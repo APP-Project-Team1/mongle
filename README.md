@@ -23,10 +23,10 @@
 ## 🧑‍💻 팀원 소개 및 역할 (Team Roles)
 | 이름 | 포지션 | GitHub | 담당 업무 |
 | --- | --- | --- | --- |
-| **에반 (팀장)** | PM / Frontend | [@GitHub_ID](https://github.com/...) | React Native(Expo) 초기 세팅, Vision API 연동, 메인 화면 UI 구현 |
-| **팀원 1** | Backend / AI | [@GitHub_ID](https://github.com/...) | Firebase 연동(Auth, DB 설계), Vision API 프롬프트 최적화 |
-| **팀원 2** | Frontend | [@GitHub_ID](https://github.com/...) | 카메라 연동, 이미지 크롭 및 업로드 UI/UX 구현 |
-| **팀원 3** | Frontend / QA | [@GitHub_ID](https://github.com/...) | 마이페이지(히스토리) 구현, 디바이스별 화면 대응 및 테스트 |
+| **에반 (팀장)** | PM / AI 기능 | [@GitHub_ID](https://github.com/...) | - 전체 일정·Git 관리, README 작성<br>- Vision API 호출 및 LLM 프롬프트 설계 (직관 번역, 알레르기 안내)<br>- API 응답 파싱 및 데이터 구조 정의 |
+| **팀원 1** | 카메라 / 이미지 처리 | [@GitHub_ID](https://github.com/...) | - Expo Camera 촬영 및 갤러리 이미지 불러오기<br>- 이미지 리사이즈·압축 및 촬영 가이드 UI 구현<br>- Firebase Storage 업로드 연동 |
+| **팀원 2** | 결과 화면 UI / UX | [@GitHub_ID](https://github.com/...) | - 번역 결과 카드 UI 및 알레르기 뱃지 구현<br>- 로딩 스켈레톤 및 설명 토글 UI 작성<br>- Firebase Firestore 기반 즐겨찾기 저장 기능 |
+| **팀원 3** | 앱 구조 / 네비게이션 | [@GitHub_ID](https://github.com/...) | - Expo Router 화면 전환 구조 설계<br>- 홈·온보딩·히스토리 화면 구현 및 접근성 대응<br>- 앱 아이콘·스플래시 및 EAS 빌드·배포 |
 
 ## 📁 폴더 구조 (Directory Structure)
 ```text

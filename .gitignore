@@ -46,7 +46,7 @@ DerivedData
 *.ida
 *.xcarchive
 
-# Environment Variables (보안 파일 - 절대 깃허브에 올라가면 안 됨)
+# Environment Variables
 .env
 .env.local
 .env.development

@@ -76,7 +76,7 @@ Feat: 새로운 기능 추가
 
 Fix: 버그 수정
 
-Design: UI/UX 디자인 변경
+Design: UI/UX 디자인 변경1
 
 Refactor: 코드 리팩토링
 

@@ -1,0 +1,7 @@
+{
+  "github.copilot.chat.codeGeneration.instructions": [
+    {
+      "file": ".agents/workflows/git_branch_naming.md"
+    }
+  ]
+}

@@ -1,84 +1,108 @@
-# 🍽️ [프로젝트 이름] - AI 기반 메뉴판 사진 분석 및 번역 앱
+# 💍 Mongle-app - 예비 부부 & 웨딩 플래너 협업 AI 플랫폼
 
-![프로젝트 대표 이미지 또는 배너 이미지 URL](https://via.placeholder.com/800x400?text=Menu+Translation+App+Banner)
+**Mongle-app**은 예비 부부와 웨딩 플래너가 함께 결혼을 준비할 수 있도록 돕는 협업 플랫폼입니다. 일정 관리, 비용 추적, 업체 탐색, 그리고 AI 챗봇 기능을 통해 원활하고 스마트한 웨딩 준비 경험을 제공합니다.
 
-## 💡 프로젝트 소개
+---
 
-해외여행이나 낯선 식당에서 외국어 메뉴판을 읽기 어려웠던 경험을 해결하기 위해 기획된 앱입니다. 사용자가 메뉴판 사진을 찍으면 AI 비전 기술을 통해 텍스트를 분석하고, 실시간으로 번역하여 제공합니다. 초보자도 쉽게 사용할 수 있는 직관적인 UI/UX를 지향합니다.
+## 🧑‍💻 팀원 역할 및 폴더 구조 (Directory Structure & Ownership)
 
-## 🛠️ 기술 스택 (Tech Stack)
+팀원들의 원활한 협업을 위해 폴더 및 파일별로 담당자를 지정했습니다. 각자 맡은 영역에서 작업을 진행해 주세요. 
 
-- **Frontend / Mobile:** React Native (Expo)
-  - 단일 코드베이스로 iOS와 Android 동시 지원 및 빠른 프로토타이핑
-- **Backend / BaaS:** Firebase
-  - 별도의 서버 구축 없이 Authentication(로그인 인증), Cloud Firestore(데이터베이스), Cloud Storage(이미지 저장소) 해결
-- **AI / API:** Claude / GPT-4o Vision API
-  - 고도화된 이미지 텍스트 추출(OCR) 및 자연스러운 문맥 번역 처리
-- **Collaboration:** GitHub, [예: Figma, Notion, Slack 등]
-
-## ✨ 주요 기능 (Key Features)
-
-1. **사진 촬영 및 이미지 업로드**: 기기 카메라 및 갤러리 연동으로 메뉴판 이미지 업로드
-2. **AI 메뉴판 분석 및 번역**: Vision API를 활용해 이미지 내 외국어 메뉴명, 가격, 설명 텍스트 추출 및 한국어 번역
-3. **사용자 맞춤형 저장 (히스토리)**: Firebase Firestore를 활용해 이전에 번역했던 메뉴판 기록을 저장하고 다시 보기 지원
-4. **간편 로그인**: Firebase Authentication을 이용한 소셜 및 이메일 로그인 기능
-
-## 🧑‍💻 팀원 소개 및 역할 (Team Roles)
-
-| 이름            | 포지션               | GitHub                               | 담당 업무                                                                                                                                     |
-| --------------- | -------------------- | ------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| **에반 (팀장)** | PM / AI 기능         | [@GitHub_ID](https://github.com/...) | - 전체 일정·Git 관리, README 작성<br>- Vision API 호출 및 LLM 프롬프트 설계 (직관 번역, 알레르기 안내)<br>- API 응답 파싱 및 데이터 구조 정의 |
-| **팀원 1**      | 카메라 / 이미지 처리 | [@GitHub_ID](https://github.com/...) | - Expo Camera 촬영 및 갤러리 이미지 불러오기<br>- 이미지 리사이즈·압축 및 촬영 가이드 UI 구현<br>- Firebase Storage 업로드 연동               |
-| **팀원 2**      | 결과 화면 UI / UX    | [@GitHub_ID](https://github.com/...) | - 번역 결과 카드 UI 및 알레르기 뱃지 구현<br>- 로딩 스켈레톤 및 설명 토글 UI 작성<br>- Firebase Firestore 기반 즐겨찾기 저장 기능             |
-| **팀원 3**      | 앱 구조 / 네비게이션 | [@GitHub_ID](https://github.com/...) | - Expo Router 화면 전환 구조 설계<br>- 홈·온보딩·히스토리 화면 구현 및 접근성 대응<br>- 앱 아이콘·스플래시 및 EAS 빌드·배포                   |
-
-## 📁 폴더 구조 (Directory Structure)
+- **[나(PM)]** : AI 챗봇 UI, 일정 관리 총괄
+- **[팀원 B]** : 로그인, 업체, 플래너 관련 화면 및 UI
+- **[팀원 C]** : 백엔드 연동, DB, 설계, 전역 상태, API 훅
+- **[팀원 D]** : 커플/플래너 대시보드, 타임라인, 예산 관리 UI
+- **[공통]** : 전원 함께 사용하는 유틸, 상수, 공통 컴포넌트
 
 ```text
-[프로젝트 이름]/
-├── App.js
-├── app.json
-├── src/
-│   ├── assets/        # 폰트, 이미지 등 정적 파일
-│   ├── components/    # 공통 재사용 컴포넌트 (버튼, 모달 등)
-│   ├── screens/       # 전체 화면 (홈, 카메라, 번역 결과, 마이페이지)
-│   ├── services/      # Firebase, Vision API 연동 로직
-│   └── utils/         # 상수 및 헬퍼 함수
-└── package.json
-🚀 실행 방법 (Getting Started)
-프로젝트를 로컬 환경에서 실행하기 위한 가이드입니다. (Node.js 환경 필요)
-
-Repository 클론
-
-Bash
-git clone [https://github.com/Organization명/Repository명.git](https://github.com/Organization명/Repository명.git)
-패키지 설치
-
-Bash
-npm install
-# 또는 yarn install
-Expo 앱 실행
-
-Bash
-npx expo start
-실행 후 터미널에 나타나는 QR 코드를 모바일 기기의 'Expo Go' 앱으로 스캔하여 테스트할 수 있습니다.
-
-🤝 협업 규칙 (Collaboration Rules)
-저희 팀은 성공적인 프로젝트 완성을 위해 아래와 같은 규칙을 준수하여 GitHub를 통한 협업을 진행합니다.
-
-Branch Strategy: Git Flow (main, develop, feature/기능명)
-
-Pull Request: 반드시 1명 이상의 리뷰(Approve) 후 develop 브랜치에 Merge 진행
-
-Commit Convention:
-
-Feat: 새로운 기능 추가
-
-Fix: 버그 수정
-
-Design: UI/UX 디자인 변경1
-
-Refactor: 코드 리팩토링
-
-Docs: README 등 문서 수정
+Mongle-app/
+├── app/                  # Expo Router 라우트
+│   ├── (auth)/           # [팀원 B] 로그인·회원가입
+│   │   ├── _layout.jsx   # [팀원 B]
+│   │   ├── login.jsx     # [팀원 B]
+│   │   └── register.jsx  # [팀원 B]
+│   ├── (couple)/         # [팀원 D] 커플 전용 탭 그룹
+│   │   ├── _layout.jsx   # [팀원 D] 탭 네비게이터
+│   │   ├── index.jsx     # [팀원 D] 준비 현황 대시보드 (D-day)
+│   │   ├── timeline.jsx  # [팀원 D] 결혼 준비 타임라인
+│   │   ├── budget.jsx    # [팀원 D] 비용 명세서
+│   │   ├── chat.jsx      # [나(PM)] 플래너 채팅 (Realtime) & 챗봇 UI
+│   │   ├── vendors.jsx   # [팀원 D] 업체 탐색 
+│   │   └── docs.jsx      # [팀원 D] 서류 보관함
+│   ├── (planner)/        # [팀원 D] 플래너 전용 탭 그룹
+│   │   ├── _layout.jsx   # [팀원 D]
+│   │   ├── dashboard.jsx # [팀원 D] 고객 목록 + 요약 지표
+│   │   └── customer/     # [팀원 D]
+│   │       └── [id].jsx  # [팀원 D] 고객 상세 (동적 라우트)
+│   ├── planners/         # [팀원 B]
+│   │   ├── index.jsx     # [팀원 B] 플래너 목록
+│   │   └── [id].jsx      # [팀원 B] 플래너 상세 프로필
+│   ├── vendors/          # [팀원 B]
+│   │   ├── index.jsx     # [팀원 B] 업체 목록 + 필터
+│   │   └── [id].jsx      # [팀원 B] 업체 상세 + 후기
+│   └── _layout.jsx       # [공통] 루트 레이아웃 (인증 가드)
+│
+├── components/           # 재사용 UI 컴포넌트
+│   ├── common/           # [공통] 전원 사용
+│   │   ├── Button.jsx    # [공통]
+│   │   ├── Card.jsx      # [공통]
+│   │   ├── Badge.jsx     # [공통]
+│   │   └── LoadingSpinner.jsx # [공통]
+│   ├── budget/           # [팀원 D]
+│   │   ├── BudgetItem.jsx # [팀원 D]
+│   │   └── AiAnalysisCard.jsx # [나(PM)] SSE 스트리밍 결과 표시
+│   ├── chat/             # [나(PM)]
+│   │   ├── MessageBubble.jsx  # [나(PM)]
+│   │   └── ChatInput.jsx      # [나(PM)]
+│   ├── timeline/         # [팀원 D]
+│   │   ├── TimelineStep.jsx   # [팀원 D]
+│   │   └── StepCard.jsx       # [팀원 D]
+│   └── vendor/           # [팀원 B]
+│       ├── VendorCard.jsx     # [팀원 B]
+│       └── MatchScoreBar.jsx  # [팀원 B]
+│
+├── lib/                  # [팀원 C] 외부 클라이언트 초기화
+│   ├── supabase.js       # [팀원 C] Supabase 클라이언트 + AsyncStorage
+│   └── api.js            # [팀원 C] Axios FastAPI 클라이언트 (인터셉터)
+│
+├── stores/               # [팀원 C] Zustand 전역 상태
+│   ├── authStore.js      # [팀원 C] 로그인 세션, 사용자 role
+│   └── projectStore.js   # [팀원 C] 현재 프로젝트 ID, 플래너 정보
+│
+├── hooks/                # [팀원 C] React Query 커스텀 훅
+│   ├── useTimeline.js    # [팀원 C]
+│   ├── useBudget.js      # [팀원 C]
+│   ├── useChat.js        # [팀원 C] Realtime 구독 포함
+│   ├── useVendors.js     # [팀원 C]
+│   └── useAi.js          # [나(PM), 팀원 C] SSE 스트리밍 훅
+│
+├── constants/            # [공통] 전역 상수
+│   └── index.js          # [공통] 카테고리, 스타일 태그 등
+│
+├── utils/                # [공통] 유틸 함수
+│   ├── formatCurrency.js # [공통] 원화 포맷 (1,200,000원)
+│   └── calculateDday.js  # [공통] D-day 계산
+│
+├── assets/               # [공통]
+│   ├── images/           # [공통]
+│   └── fonts/            # [공통]
+│
+├── app.json              # [공통] Expo 앱 설정 (이름, 아이콘, splash)
+├── babel.config.js       # [팀원 C]
+├── package.json          # [팀원 C] 프로젝트 패키지
+├── .env                  # [팀원 C] EXPO_PUBLIC_SUPABASE_URL 등
+└── .env.example          # [공통] 환경 변수 예시
 ```
+
+---
+
+## 🛠️ 기술 스택 (Tech Stack)
+- **Frontend / Mobile**: React Native (Expo Router)
+- **Backend**: Supabase, FastAPI
+- **State Management**: Zustand, React Query
+- **AI / API**: LLM 연동 챗봇 API, SSE Streaming
+
+---
+
+## 🤝 깃 브랜치 네이밍 컨벤션
+브랜치 생성 및 커밋 메시지 규칙은 `.agents/workflows/git_branch_naming.md` 파일을 참조해주세요.

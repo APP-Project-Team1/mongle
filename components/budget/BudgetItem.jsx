@@ -1,0 +1,1 @@
+export default function BudgetItem() { return null; }

@@ -27,3 +27,63 @@ description: How to correctly name Git branches and make commits in this project
 - 영어로 명확하고 간결하게 작성할 것.
 
 **※ 주의사항**: 브랜치 생성이나 커밋을 수행하기 전, 항상 이 양식에 맞는지 스스로 검증(Self-Check)하십시오.
+
+---
+
+## 💻 팀원 복사/붙여넣기용 명령어 모음
+
+이슈 번호(예: `1`)와 작업 내용(예: `login-ui`)을 본인의 상황에 맞게 수정하여 바로 복사 후 터미널에 붙여넣기하세요.
+
+### `feat/` (새로운 기능 개발)
+```bash
+# 브랜치 생성 및 이동
+git checkout -b feat/#1-feature-name
+
+# 커밋 메시지
+git commit -m "feat: 기능 설명"
+```
+
+### `fix/` (버그 수정)
+```bash
+# 브랜치 생성 및 이동
+git checkout -b fix/#1-bug-name
+
+# 커밋 메시지
+git commit -m "fix: 버그 수정 내용"
+```
+
+### `design/` (UI/UX 퍼블리싱)
+```bash
+# 브랜치 생성 및 이동
+git checkout -b design/#1-ui-name
+
+# 커밋 메시지
+git commit -m "design: UI 스타일링 내용"
+```
+
+### `refactor/` (코드 리팩토링)
+```bash
+# 브랜치 생성 및 이동
+git checkout -b refactor/#1-refactor-name
+
+# 커밋 메시지
+git commit -m "refactor: 리팩토링 내용"
+```
+
+### `chore/` (환경 설정, 패키지 설치)
+```bash
+# 브랜치 생성 및 이동
+git checkout -b chore/#1-chore-name
+
+# 커밋 메시지
+git commit -m "chore: 설정 변경 및 패키지 설치 내용"
+```
+
+### `docs/` (문서 작업)
+```bash
+# 브랜치 생성 및 이동
+git checkout -b docs/#1-doc-name
+
+# 커밋 메시지
+git commit -m "docs: 문서 작성 및 수정 내용"
+```

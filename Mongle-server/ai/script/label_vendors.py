@@ -1,12 +1,9 @@
-# -*- coding: utf-8 -*-
-import sys
-import io
-sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+import os
+os.environ["PYTHONIOENCODING"] = "utf-8"
 
 from openai import OpenAI
 import json
 import time
-import os
 from dotenv import load_dotenv
 from pathlib import Path
 
@@ -84,13 +81,18 @@ def label_vendor(vendor: dict) -> dict:
 
 
 if __name__ == "__main__":
-    with open("raw_vendors.json", encoding="utf-8") as f:
+    raw_path = Path(__file__).parent.parent.parent / "raw_vendors.json"
+    labeled_path = Path(__file__).parent.parent.parent / "labeled_vendors.json"
+    errors_path = Path(__file__).parent.parent.parent / "label_errors.json"
+
+    with open(raw_path, encoding="utf-8") as f:
         raw_vendors = json.load(f)
 
-    print(f"총 {len(raw_vendors)}개 레이블링 시작")
-
+    # 처음부터 시작
     labeled_vendors = []
     errors = []
+
+    print(f"총 {len(raw_vendors)}개 레이블링 시작")
 
     for i, vendor in enumerate(raw_vendors):
         try:
@@ -102,16 +104,23 @@ if __name__ == "__main__":
             print(f"  오류 발생: {vendor['name']} — {e}")
             errors.append({"vendor": vendor['name'], "error": str(e)})
 
+        # 10개마다 중간 저장
+        if (i + 1) % 10 == 0:
+            with open(labeled_path, "w", encoding="utf-8") as f:
+                json.dump(labeled_vendors, f, ensure_ascii=False, indent=2)
+            print(f"  ---- 중간 저장 완료 ({i+1}/{len(raw_vendors)}) ----")
+
         time.sleep(0.5)
 
-    with open("labeled_vendors.json", "w", encoding="utf-8") as f:
+    # 최종 저장
+    with open(labeled_path, "w", encoding="utf-8") as f:
         json.dump(labeled_vendors, f, ensure_ascii=False, indent=2)
 
     print(f"\n레이블링 완료: {len(labeled_vendors)}개")
 
     if errors:
         print(f"오류 발생: {len(errors)}개")
-        with open("label_errors.json", "w", encoding="utf-8") as f:
+        with open(errors_path, "w", encoding="utf-8") as f:
             json.dump(errors, f, ensure_ascii=False, indent=2)
         print("label_errors.json 저장 완료")
 

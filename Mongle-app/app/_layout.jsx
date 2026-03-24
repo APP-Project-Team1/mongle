@@ -1,4 +1,4 @@
-// app/_layout.jsx
+// app/vendors/_layout.jsx
 import { Slot } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';

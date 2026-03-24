@@ -8,9 +8,9 @@ import {
   TextInput,
   Image,
   Dimensions,
-  SafeAreaView,
   StatusBar,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -52,6 +52,7 @@ export default function HomeScreen() {
 
       {/* ── 헤더 ── */}
       <View style={styles.header}>
+        <View style={{ width: 40 }} />
         <Text style={styles.logo}>Mongle</Text>
         <TouchableOpacity style={styles.notifBtn} activeOpacity={0.7}>
           <Ionicons name="notifications-outline" size={20} color="#3a2e2a" />
@@ -222,16 +223,18 @@ const styles = StyleSheet.create({
     paddingBottom: 12,
   },
   logo: {
+    flex: 1,
+    textAlign: 'center',
     fontFamily: 'serif',
     fontSize: 26,
     fontStyle: 'italic',
-    color: '#6b4c4c',
+    color: '#917878',
     letterSpacing: 1,
   },
   notifBtn: {
     width: 40,
     height: 40,
-    backgroundColor: '#f5f0ee',
+    backgroundColor: '#F5F0F0',
     borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
@@ -256,16 +259,18 @@ const styles = StyleSheet.create({
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f5f0ee',
-    borderRadius: 24,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
+    backgroundColor: '#ffffff',
+    borderColor: '#B9B4B4',
+    borderRightWidth: 1,
+    borderRadius: 40,
+    paddingHorizontal: 20,
+    paddingVertical: 5,
     gap: 8,
   },
   searchInput: {
     flex: 1,
-    fontSize: 13.5,
-    color: '#3a2e2a',
+    fontSize: 14,
+    color: '#B9B4B4',
   },
 
   // 배너

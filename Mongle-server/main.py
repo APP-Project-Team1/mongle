@@ -1,7 +1,30 @@
 from fastapi import FastAPI
+from fastapi.responses import StreamingResponse
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
+from ai.intent_parser import parse_intent
+from ai.responder import generate_recommendation
+from ai.dummy_vendors import get_vendors_by_filter  # ← C가 나중에 이것만 교체
 
-app = FastAPI(title="Mongle API", description="Backend for the Mongle App")
+app = FastAPI()
+app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 
-@app.get("/")
-def read_root():
-    return {"message": "Welcome to Mongle API"}
+class ChatRequest(BaseModel):
+    message: str
+    history: list = []
+
+@app.post("/api/chat")
+async def chat(req: ChatRequest):
+    intent = await parse_intent(req.message)
+
+    vendors = get_vendors_by_filter(
+        categories=intent.get("categories"),
+        style=intent.get("style"),
+        region=intent.get("region"),
+        budget_max=intent.get("budget_max"),
+    )
+
+    return StreamingResponse(
+        generate_recommendation(req.message, vendors, req.history),
+        media_type="text/event-stream"
+    )

@@ -1,6 +1,6 @@
 // app/(couple)/_layout.jsx
 import { Tabs } from 'expo-router';
-import { TouchableOpacity } from 'react-native';
+import { TouchableOpacity, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 
@@ -9,19 +9,23 @@ export default function CoupleLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
+        // tabBarShowLabel: false,
         tabBarActiveTintColor: '#c9a98e',
         tabBarInactiveTintColor: '#8a7870',
         tabBarStyle: {
           backgroundColor: '#fff',
           borderTopColor: '#f0e8e4',
           borderTopWidth: 1,
-          height: 60,
-          paddingBottom: 8,
-          paddingTop: 6,
+          borderBottomColor: '#f0e8e4',
+          borderBottomWidth: 1,
+          height: Platform.OS === 'android' ? 65 : 60,
+          paddingBottom: Platform.OS === 'android' ? 12 : 8,
+          paddingTop: 8,
         },
         tabBarLabelStyle: {
           fontSize: 10,
           fontWeight: '500',
+          marginBottom: Platform.OS === 'android' ? 4 : 0,
         },
       }}
     >

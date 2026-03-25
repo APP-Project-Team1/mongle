@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.api.routes import timelines, projects
+from app.api.routes import timelines, projects, budget, chat, vendors
 
 app = FastAPI()
 
@@ -14,6 +14,9 @@ app.add_middleware(
 
 app.include_router(projects.router, prefix="/projects", tags=["projects"])
 app.include_router(timelines.router, prefix="/timelines", tags=["timelines"])
+app.include_router(budget.router, prefix="/budgets", tags=["budgets"])
+app.include_router(vendors.router, prefix="/vendors", tags=["vendors"])
+app.include_router(chat.router, prefix="/chats", tags=["chats"])
 
 
 @app.get("/")

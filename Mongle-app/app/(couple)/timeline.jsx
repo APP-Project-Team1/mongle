@@ -1,56 +1,165 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Dimensions, ActivityIndicator, Modal, TextInput, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Calendar } from 'react-native-calendars';
+import { useProjectStore } from '../../stores';
+import { useTimelines, useBudget, useBudgetItems, useCreateTimeline, useUpdateTimeline, useDeleteTimeline } from '../../hooks';
+import ProjectSelector from './components/ProjectSelector';
 
 const { width } = Dimensions.get('window');
 
-// ── 데이터 ──────────────────────────────────────────────
-const TIMELINE_ITEMS = [
-  { id: 1, label: '웨딩홀 계약 완료', date: '2025년 10월 5일', status: 'done' },
-  { id: 2, label: '스튜디오 계약 완료', date: '2025년 10월 20일', status: 'done' },
-  { id: 3, label: '드레스 1차 시착', date: '2025년 11월 8일', status: 'done' },
-  { id: 4, label: '드레스 2차 시착 — 진행 중', date: '2026년 1월 15일 · D-15', status: 'active' },
-  { id: 5, label: '본식 스냅 촬영', date: '2026년 3월 10일', status: 'next' },
-  { id: 6, label: '본식', date: '2026년 7월 25일', status: 'future' },
-];
+const formatMoney = (amount) => {
+  if (typeof amount !== 'number') return amount
+  return `${amount.toLocaleString()}원`
+}
 
-const SCHEDULE_EVENTS = [
-  {
-    date: '2026-01-15',
-    label: '1월 15일 — 드레스 2차 시착 · 오후 2시 (드레스 로즈)',
-    color: 'rose',
-  },
-  { date: '2026-01-21', label: '1월 21일 — 웨딩홀 식순 미팅 · 오전 11시', color: 'sage' },
-];
+const getStatus = (item, index) => {
+  if (item.status) return item.status
+  if (index < 2) return 'done'
+  if (index === 2) return 'active'
+  return 'future'
+}
 
-const COST_ITEMS = [
-  { label: '웨딩홀 (계약)', value: '380만원', warn: false },
-  { label: '스튜디오 (계약)', value: '160만원', warn: false },
-  { label: '드레스', value: '95만원', warn: false },
-  { label: '메이크업', value: '28만원', warn: false },
-  { label: '헤어 (추가 옵션)', value: '+8만원', warn: true },
-  { label: '예상 추가 비용', value: '미정', warn: false, gray: true },
-];
+const getMarkedDates = (timelineItems) => {
+  return timelineItems?.reduce((acc, item) => {
+    if (item.date) {
+      acc[item.date] = { marked: true, dotColor: '#7A9E8E' }
+    }
+    return acc
+  }, {})
+}
 
-const BALANCE_ITEMS = [
-  { label: '드레스 잔금', sub: '2월 1일 마감 · D-32', amount: '72만원', urgent: true },
-  { label: '스튜디오 잔금', sub: '3월 10일 마감 · D-69', amount: '80만원', urgent: false },
-  { label: '웨딩홀 잔금', sub: '6월 25일 마감 · D-176', amount: '190만원', urgent: false },
-];
+const selectEventItems = (timelineItems) => {
+  return timelineItems?.slice(0, 2).map((item, index) => ({
+    date: item.date || '',
+    label: item.title || item.description || `진행 항목 ${index + 1}`,
+    color: index === 0 ? 'rose' : 'sage',
+  })) || []
+}
 
-const MARKED_DATES = {
-  '2026-01-15': { selected: true, selectedColor: '#C9716A' },
-  '2026-01-21': { marked: true, dotColor: '#7A9E8E', selectedColor: '#EBF2EE', selected: true },
-};
+const buildBudgetItems = (budgetItems) => {
+  return budgetItems?.map((item) => ({
+    label: item.category || '기타',
+    value: `${item.amount?.toLocaleString() ?? '0'}원`,
+    warn: item.spent > item.amount,
+  })) || []
+}
+
+const buildBalanceItems = (budgetItems) => {
+  return budgetItems?.map((item) => ({
+    label: `${item.category || '기타'} 잔금`,
+    sub: item.due_date ? `${item.due_date} 마감` : '마감일 미정',
+    amount: formatMoney((item.amount ?? 0) - (item.spent ?? 0)),
+    urgent: item.due_date ? new Date(item.due_date) <= new Date(new Date().setDate(new Date().getDate() + 30)) : false,
+  })) || []
+}
+
 // ────────────────────────────────────────────────────────
 
 export default function TimelineScreen() {
   const [selectedDate, setSelectedDate] = useState('2026-01-15');
+  const projectId = useProjectStore((state) => state.currentProjectId) || '1';
+
+  const { data: timelineItems = [], isLoading: timelineLoading, error: timelineError } = useTimelines(projectId);
+  const { data: budget = { total_budget: 0, spent: 0 }, isLoading: budgetLoading, error: budgetError } = useBudget(projectId);
+  const { data: budgetItems = [], isLoading: budgetItemsLoading, error: budgetItemsError } = useBudgetItems(projectId);
+
+  const createTimelineMutation = useCreateTimeline();
+  const updateTimelineMutation = useUpdateTimeline();
+  const deleteTimelineMutation = useDeleteTimeline();
+
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [editingItem, setEditingItem] = useState(null);
+  const [formData, setFormData] = useState({ step_name: '', due_date: '', status: 'pending' });
+
+  const handleAddTimeline = async () => {
+    if (!formData.step_name.trim()) return;
+    
+    try {
+      await createTimelineMutation.mutateAsync({
+        project_id: projectId,
+        ...formData
+      });
+      setShowAddModal(false);
+      setFormData({ step_name: '', due_date: '', status: 'pending' });
+    } catch (error) {
+      console.error('타임라인 추가 실패:', error);
+    }
+  };
+
+  const handleEditTimeline = async () => {
+    if (!formData.step_name.trim() || !editingItem) return;
+    
+    try {
+      await updateTimelineMutation.mutateAsync({
+        id: editingItem.id,
+        updates: formData
+      });
+      setEditingItem(null);
+      setFormData({ step_name: '', due_date: '', status: 'pending' });
+    } catch (error) {
+      console.error('타임라인 수정 실패:', error);
+    }
+  };
+
+  const handleDeleteTimeline = async (id) => {
+    try {
+      await deleteTimelineMutation.mutateAsync(id);
+    } catch (error) {
+      console.error('타임라인 삭제 실패:', error);
+    }
+  };
+
+  const openEditModal = (item) => {
+    setEditingItem(item);
+    setFormData({
+      step_name: item.step_name || '',
+      due_date: item.due_date || '',
+      status: item.status || 'pending'
+    });
+  };
+
+  const isLoading = timelineLoading || budgetLoading || budgetItemsLoading;
+  const error = timelineError || budgetError || budgetItemsError;
+
+  const scheduleEvents = selectEventItems(timelineItems);
+  const markedDates = getMarkedDates(timelineItems);
+  const costItems = buildBudgetItems(budgetItems);
+  const balanceItems = buildBalanceItems(budgetItems);
+
+  const progressPercent = budget.total_budget
+    ? Math.min(100, Math.max(0, Math.round((budget.spent / budget.total_budget) * 100)))
+    : 0;
+
+  if (isLoading) {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <View style={[styles.safeArea, { justifyContent: 'center', alignItems: 'center' }]}>
+          <ActivityIndicator size="large" color="#C9716A" />
+          <Text style={{ marginTop: 10 }}>타임라인을 로딩 중입니다...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (error) {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <View style={[styles.safeArea, { justifyContent: 'center', alignItems: 'center', padding: 16 }]}>
+          <Text style={{ color: '#C9716A', fontSize: 16 }}>타임라인 불러오기 실패: {error.message}</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.safeArea}>
+      {/* 프로젝트 선택기 */}
+      <View style={{ padding: 16, paddingBottom: 8 }}>
+        <ProjectSelector />
+      </View>
+
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.container}>
         {/* ── ① 플래너 정보 배너 ── */}
         <View style={styles.bannerCard}>
@@ -91,26 +200,50 @@ export default function TimelineScreen() {
           <View style={styles.timelineWrap}>
             {/* 세로선 */}
             <View style={styles.timelineLine} />
-            {TIMELINE_ITEMS.map((item) => (
-              <View key={item.id} style={styles.tlItem}>
-                <View style={[styles.tlDot, styles[`dot_${item.status}`]]} />
-                <View>
-                  <Text
-                    style={[
-                      styles.tlLabel,
-                      item.status === 'active' && { color: '#C9716A' },
-                      item.status === 'future' && { color: '#B8A9A5' },
-                      item.status === 'next' && { color: '#6B5B55' },
-                    ]}
-                  >
-                    {item.label}
-                  </Text>
-                  <Text style={[styles.tlDate, item.status === 'active' && { color: '#C9716A' }]}>
-                    {item.date}
-                  </Text>
+            {(timelineItems || []).map((item) => {
+              const status = item.status || 'future';
+              return (
+                <View key={item.id} style={styles.tlItem}>
+                  <View style={[styles.tlDot, styles[`dot_${status}`]]} />
+                  <View style={{ flex: 1 }}>
+                    <Text
+                      style={[
+                        styles.tlLabel,
+                        status === 'active' && { color: '#C9716A' },
+                        status === 'future' && { color: '#B8A9A5' },
+                        status === 'next' && { color: '#6B5B55' },
+                      ]}
+                    >
+                      {item.step_name || item.title || item.label}
+                    </Text>
+                    <Text style={[styles.tlDate, status === 'active' && { color: '#C9716A' }]}>
+                      {item.due_date || item.description || item.date}
+                    </Text>
+                  </View>
+                  <View style={{ flexDirection: 'row', gap: 8 }}>
+                    <TouchableOpacity
+                      onPress={() => openEditModal(item)}
+                      style={styles.actionButton}
+                    >
+                      <Ionicons name="pencil" size={16} color="#7A9E8E" />
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      onPress={() => Alert.alert(
+                        '삭제 확인',
+                        '이 타임라인 항목을 삭제하시겠습니까?',
+                        [
+                          { text: '취소', style: 'cancel' },
+                          { text: '삭제', onPress: () => handleDeleteTimeline(item.id) }
+                        ]
+                      )}
+                      style={styles.actionButton}
+                    >
+                      <Ionicons name="trash" size={16} color="#C9716A" />
+                    </TouchableOpacity>
+                  </View>
                 </View>
-              </View>
-            ))}
+              );
+            })}
           </View>
         </View>
 
@@ -120,7 +253,7 @@ export default function TimelineScreen() {
           <Calendar
             current={selectedDate}
             onDayPress={(day) => setSelectedDate(day.dateString)}
-            markedDates={MARKED_DATES}
+            markedDates={markedDates}
             theme={{
               selectedDayBackgroundColor: '#C9716A',
               todayTextColor: '#C9716A',
@@ -134,7 +267,10 @@ export default function TimelineScreen() {
             style={{ borderRadius: 10 }}
           />
           <View style={{ marginTop: 12, gap: 6 }}>
-            {SCHEDULE_EVENTS.map((ev, i) => (
+            {scheduleEvents.length === 0 && (
+              <Text style={{ color: '#6B5B55', fontSize: 12 }}>일정 항목이 없습니다.</Text>
+            )}
+            {scheduleEvents.map((ev, i) => (
               <View
                 key={i}
                 style={[
@@ -163,7 +299,10 @@ export default function TimelineScreen() {
               <Text style={styles.badgeRoseText}>투명 공개</Text>
             </View>
           </View>
-          {COST_ITEMS.map((item, i) => (
+          {costItems.length === 0 && (
+            <Text style={{ color: '#6B5B55', fontSize: 12 }}>비용 데이터가 없습니다.</Text>
+          )}
+          {costItems.map((item, i) => (
             <View key={i} style={styles.costRow}>
               <Text style={styles.costLabel}>{item.label}</Text>
               <Text
@@ -180,13 +319,17 @@ export default function TimelineScreen() {
           ))}
           <View style={styles.costTotalRow}>
             <Text style={styles.costTotalLabel}>현재 합계</Text>
-            <Text style={styles.costTotalValue}>671만원</Text>
+            <Text style={styles.costTotalValue}>{formatMoney(budget.spent || 0)}</Text>
+          </View>
+          <View style={styles.costTotalRow}>
+            <Text style={styles.costTotalLabel}>전체 예산</Text>
+            <Text style={styles.costTotalValue}>{formatMoney(budget.total_budget || 0)}</Text>
           </View>
           {/* 프로그레스 바 */}
           <View style={styles.progressBar}>
-            <View style={[styles.progressFill, { width: '67%' }]} />
+            <View style={[styles.progressFill, { width: `${progressPercent}%` }]} />
           </View>
-          <Text style={styles.progressSub}>예산 1,000만원 중 671만원 사용</Text>
+          <Text style={styles.progressSub}>{`예산 ${formatMoney(budget.total_budget || 0)} 중 ${formatMoney(budget.spent || 0)} 사용 (${progressPercent}%)`}</Text>
         </View>
 
         {/* ── ⑤ 잔금 일정 ── */}
@@ -195,7 +338,10 @@ export default function TimelineScreen() {
             <Text style={styles.cardTitle}>잔금 일정</Text>
             <Text style={styles.annoText}>자동 알림</Text>
           </View>
-          {BALANCE_ITEMS.map((item, i) => (
+          {balanceItems.length === 0 && (
+            <Text style={{ color: '#6B5B55', fontSize: 12 }}>잔금 정보가 없습니다.</Text>
+          )}
+          {balanceItems.map((item, i) => (
             <View key={i} style={styles.balanceRow}>
               <View style={[styles.balanceDot, item.urgent && { backgroundColor: '#C9716A' }]} />
               <View style={{ flex: 1 }}>
@@ -209,6 +355,69 @@ export default function TimelineScreen() {
           ))}
         </View>
       </ScrollView>
+
+      {/* 플로팅 추가 버튼 */}
+      <TouchableOpacity
+        style={styles.fab}
+        onPress={() => setShowAddModal(true)}
+      >
+        <Ionicons name="add" size={24} color="#fff" />
+      </TouchableOpacity>
+
+      {/* 추가/수정 모달 */}
+      <Modal
+        visible={showAddModal || !!editingItem}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => {
+          setShowAddModal(false);
+          setEditingItem(null);
+          setFormData({ step_name: '', due_date: '', status: 'pending' });
+        }}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>
+              {editingItem ? '타임라인 수정' : '타임라인 추가'}
+            </Text>
+            
+            <TextInput
+              style={styles.input}
+              placeholder="단계 이름"
+              value={formData.step_name}
+              onChangeText={(text) => setFormData(prev => ({ ...prev, step_name: text }))}
+            />
+            
+            <TextInput
+              style={styles.input}
+              placeholder="마감일 (YYYY-MM-DD)"
+              value={formData.due_date}
+              onChangeText={(text) => setFormData(prev => ({ ...prev, due_date: text }))}
+            />
+            
+            <TouchableOpacity
+              style={styles.saveButton}
+              onPress={editingItem ? handleEditTimeline : handleAddTimeline}
+              disabled={createTimelineMutation.isPending || updateTimelineMutation.isPending}
+            >
+              <Text style={styles.saveButtonText}>
+                {createTimelineMutation.isPending || updateTimelineMutation.isPending ? '저장 중...' : '저장'}
+              </Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity
+              style={styles.cancelButton}
+              onPress={() => {
+                setShowAddModal(false);
+                setEditingItem(null);
+                setFormData({ step_name: '', due_date: '', status: 'pending' });
+              }}
+            >
+              <Text style={styles.cancelButtonText}>취소</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -389,4 +598,79 @@ const styles = StyleSheet.create({
   balanceLabel: { fontSize: 13, fontWeight: '500', color: '#2C2420' },
   balanceSub: { fontSize: 10, color: '#B8A9A5', marginTop: 2 },
   balanceAmount: { fontSize: 13, fontWeight: '500', color: '#2C2420' },
-});
+  // FAB
+  fab: {
+    position: 'absolute',
+    bottom: 20,
+    right: 20,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: '#C9716A',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#2C2420',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+
+  // Modal
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    backgroundColor: '#fff',
+    borderRadius: 14,
+    padding: 20,
+    width: '80%',
+    maxWidth: 400,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#2C2420',
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: '#EDE5E2',
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 12,
+    fontSize: 16,
+  },
+  saveButton: {
+    backgroundColor: '#C9716A',
+    borderRadius: 8,
+    padding: 12,
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  saveButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  cancelButton: {
+    backgroundColor: '#F2EDE8',
+    borderRadius: 8,
+    padding: 12,
+    alignItems: 'center',
+  },
+  cancelButtonText: {
+    color: '#6B5B55',
+    fontSize: 16,
+  },
+
+  // Action buttons
+  actionButton: {
+    padding: 8,
+    borderRadius: 6,
+    backgroundColor: '#F2EDE8',
+  },});

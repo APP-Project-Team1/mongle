@@ -2,6 +2,8 @@ from openai import AsyncOpenAI
 import json
 import os
 
+VENDOR_DELIMITER = '\n---VENDORS_JSON---\n'
+
 client = AsyncOpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 async def generate_recommendation(message: str, vendors: list, history: list):
@@ -35,3 +37,7 @@ async def generate_recommendation(message: str, vendors: list, history: list):
         delta = chunk.choices[0].delta.content
         if delta:
             yield delta
+
+    if vendors:
+        yield VENDOR_DELIMITER
+        yield json.dumps(vendors, ensure_ascii=False)

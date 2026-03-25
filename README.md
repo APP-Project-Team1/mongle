@@ -106,3 +106,53 @@ Mongle-app/
 
 ## 🤝 깃 브랜치 네이밍 컨벤션
 브랜치 생성 및 커밋 메시지 규칙은 `.agents/workflows/git_branch_naming.md` 파일을 참조해주세요.
+
+
+
+---
+
+## 🖥️ Backend (Mongle-server)
+
+FastAPI 기반 백엔드 서버입니다.
+
+### 📦 실행 방법
+
+```bash
+cd Mongle-server
+python -m pip install fastapi uvicorn
+python -m uvicorn app.main:app --reload
+```
+
+---
+
+### 🌐 접속 주소
+
+* 기본 서버:
+  http://127.0.0.1:8000
+
+* Swagger (API 테스트):
+  http://127.0.0.1:8000/docs
+
+---
+
+### 📁 백엔드 폴더 구조
+
+```text
+Mongle-server/
+  app/
+    main.py          # 서버 시작
+    api/             # 요청 처리 (라우터)
+      routes/        # 기능별 API
+    db/              # DB 연결 (Supabase)
+    services/        # 비즈니스 로직
+    core/            # 설정
+    utils/           # 공통 함수
+```
+
+---
+
+### ✅ 현재 상태
+
+* FastAPI 서버 실행 완료
+* 기본 API 정상 동작
+* 프론트와 연동 준비 완료

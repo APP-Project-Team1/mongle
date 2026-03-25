@@ -58,7 +58,14 @@ const INITIAL_TIMELINE_ITEMS = [
     dateDay: '10',
     status: 'next',
   },
-  { id: 6, label: '본식', dateYear: '2026', dateMonth: '07', dateDay: '25', status: 'future' },
+  {
+    id: 6,
+    label: '본식',
+    dateYear: '2026',
+    dateMonth: '07',
+    dateDay: '25',
+    status: 'future',
+  },
 ];
 
 const formatDate = (item) => {
@@ -79,7 +86,11 @@ const SCHEDULE_EVENTS = [
     label: '1월 15일 — 드레스 2차 시착 · 오후 2시 (드레스 로즈)',
     color: 'rose',
   },
-  { date: '2026-01-21', label: '1월 21일 — 웨딩홀 식순 미팅 · 오전 11시', color: 'sage' },
+  {
+    date: '2026-01-21',
+    label: '1월 21일 — 웨딩홀 식순 미팅 · 오전 11시',
+    color: 'sage',
+  },
 ];
 
 const COST_ITEMS = [
@@ -92,14 +103,34 @@ const COST_ITEMS = [
 ];
 
 const BALANCE_ITEMS = [
-  { label: '드레스 잔금', sub: '2월 1일 마감 · D-32', amount: '72만원', urgent: true },
-  { label: '스튜디오 잔금', sub: '3월 10일 마감 · D-69', amount: '80만원', urgent: false },
-  { label: '웨딩홀 잔금', sub: '6월 25일 마감 · D-176', amount: '190만원', urgent: false },
+  {
+    label: '드레스 잔금',
+    sub: '2월 1일 마감 · D-32',
+    amount: '72만원',
+    urgent: true,
+  },
+  {
+    label: '스튜디오 잔금',
+    sub: '3월 10일 마감 · D-69',
+    amount: '80만원',
+    urgent: false,
+  },
+  {
+    label: '웨딩홀 잔금',
+    sub: '6월 25일 마감 · D-176',
+    amount: '190만원',
+    urgent: false,
+  },
 ];
 
 const MARKED_DATES = {
   '2026-01-15': { selected: true, selectedColor: '#C9716A' },
-  '2026-01-21': { marked: true, dotColor: '#7A9E8E', selectedColor: '#EBF2EE', selected: true },
+  '2026-01-21': {
+    marked: true,
+    dotColor: '#7A9E8E',
+    selectedColor: '#EBF2EE',
+    selected: true,
+  },
 };
 // ────────────────────────────────────────────────────────
 
@@ -773,7 +804,12 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
     elevation: 3,
   },
-  cardTitle: { fontSize: 13, fontWeight: '600', color: '#2C2420', marginBottom: 14 },
+  cardTitle: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#2C2420',
+    marginBottom: 14,
+  },
   cardTitleRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -804,7 +840,12 @@ const styles = StyleSheet.create({
     width: 2,
     backgroundColor: '#EDE5E2',
   },
-  tlItem: { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 16, gap: 12 },
+  tlItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: 16,
+    gap: 12,
+  },
   tlDot: {
     width: 12,
     height: 12,
@@ -858,7 +899,12 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   progressFill: { height: '100%', backgroundColor: '#C9716A', borderRadius: 3 },
-  progressSub: { fontSize: 10, color: '#B8A9A5', textAlign: 'right', marginTop: 4 },
+  progressSub: {
+    fontSize: 10,
+    color: '#B8A9A5',
+    textAlign: 'right',
+    marginTop: 4,
+  },
 
   // 배지
   badgeRose: {

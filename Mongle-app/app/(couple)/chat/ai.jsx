@@ -48,18 +48,6 @@ function WelcomeView({ onChipPress }) {
   );
 }
 
-function ErrorBanner({ message, onDismiss }) {
-  return (
-    <View style={styles.errorBanner}>
-      <Ionicons name="alert-circle-outline" size={16} color="#c0392b" style={{ marginRight: 6 }} />
-      <Text style={styles.errorText} style={{ flex: 1 }}>{message}</Text>
-      <TouchableOpacity onPress={onDismiss}>
-        <Ionicons name="close" size={16} color="#c0392b" />
-      </TouchableOpacity>
-    </View>
-  );
-}
-
 export default function AiChatScreen() {
   const [inputText, setInputText] = useState('');
   const { messages, isLoading, error, sendMessage, clearMessages } = useAi();
@@ -70,14 +58,10 @@ export default function AiChatScreen() {
     setInputText('');
   };
 
-  const handleChipPress = (text) => {
-    sendMessage(text);
-  };
-
   const renderItem = ({ item }) => <MessageBubble message={item} />;
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
+    <SafeAreaView style={styles.safeArea} edges={['top']}>
       <StatusBar barStyle="dark-content" backgroundColor="#fff" />
 
       <View style={styles.header}>
@@ -107,17 +91,28 @@ export default function AiChatScreen() {
         style={styles.keyboardAvoiding}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-        <FlatList
-          data={messages}
-          keyExtractor={item => item.id}
-          renderItem={renderItem}
-          contentContainerStyle={styles.messageList}
-          inverted
-          ListHeaderComponent={
-            error ? <ErrorBanner message={error} onDismiss={() => {}} /> : null
-          }
-          ListEmptyComponent={<WelcomeView onChipPress={handleChipPress} />}
-        />
+        {/* 에러 배너 - FlatList 밖에 배치해야 텍스트 미러링 없음 */}
+        {error ? (
+          <View style={styles.errorBanner}>
+            <Ionicons name="alert-circle-outline" size={16} color="#c0392b" style={{ marginRight: 6 }} />
+            <Text style={styles.errorText}>{error}</Text>
+          </View>
+        ) : null}
+
+        {/* 메시지가 없을 때 웰컴 뷰, 있을 때 FlatList */}
+        {messages.length === 0 ? (
+          <View style={styles.emptyArea}>
+            <WelcomeView onChipPress={sendMessage} />
+          </View>
+        ) : (
+          <FlatList
+            data={messages}
+            keyExtractor={item => item.id}
+            renderItem={renderItem}
+            contentContainerStyle={styles.messageList}
+            inverted
+          />
+        )}
 
         <ChatInput
           value={inputText}
@@ -169,11 +164,13 @@ const styles = StyleSheet.create({
   keyboardAvoiding: {
     flex: 1,
   },
+  emptyArea: {
+    flex: 1,
+    justifyContent: 'center',
+  },
   messageList: {
     padding: 16,
     gap: 4,
-    flexGrow: 1,
-    justifyContent: 'flex-end',
   },
   welcomeContainer: {
     alignItems: 'center',
@@ -226,7 +223,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff0ee',
     borderRadius: 8,
     padding: 10,
-    marginBottom: 8,
+    margin: 12,
+    marginBottom: 0,
   },
   errorText: {
     fontSize: 13,

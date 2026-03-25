@@ -15,23 +15,61 @@ function parseResponse(fullText) {
   }
 }
 
+// 스트리밍 중에도 구분자 이전 텍스트만 표시
+function extractDisplayText(accumulated) {
+  const delimIdx = accumulated.indexOf(VENDOR_DELIMITER);
+  return delimIdx >= 0 ? accumulated.slice(0, delimIdx) : accumulated;
+}
+
+// React Native에서 response.body.getReader()가 미지원 → XMLHttpRequest로 스트리밍
+function streamXHR(url, body, onChunk, onDone, onError) {
+  const xhr = new XMLHttpRequest();
+  xhr.open('POST', url);
+  xhr.setRequestHeader('Content-Type', 'application/json');
+
+  let lastLength = 0;
+
+  xhr.onprogress = () => {
+    const full = xhr.responseText;
+    if (full.length > lastLength) {
+      lastLength = full.length;
+      onChunk(full);
+    }
+  };
+
+  xhr.onload = () => {
+    if (xhr.status >= 200 && xhr.status < 300) {
+      onDone(xhr.responseText);
+    } else {
+      onError(new Error(`서버 오류 (${xhr.status})`));
+    }
+  };
+
+  xhr.onerror = () => onError(new Error('네트워크 오류가 발생했습니다.'));
+  xhr.ontimeout = () => onError(new Error('응답 시간이 초과되었습니다.'));
+  xhr.timeout = 60000;
+
+  xhr.send(JSON.stringify(body));
+  return xhr;
+}
+
 export function useAi() {
-  // FlatList inverted 기준: index 0 = 최신 메시지
   const [messages, setMessages] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const sendMessage = useCallback(async (text) => {
+  const sendMessage = useCallback((text) => {
     if (isLoading || !text.trim()) return;
 
-    // 최근 N개 → 시간순(오래된 것 먼저)으로 OpenAI 포맷 변환
+    // 히스토리: displayText(clean)만 사용, vendor JSON 오염 방지
     const history = [...messages]
       .slice(0, MAX_HISTORY)
       .reverse()
       .map(m => ({
         role: m.role === 'ai' ? 'assistant' : 'user',
-        content: m.displayText || m.text || '',
-      }));
+        content: m.displayText || '',
+      }))
+      .filter(m => m.content.trim().length > 0);
 
     const userMsg = {
       id: `user-${Date.now()}`,
@@ -56,50 +94,39 @@ export function useAi() {
     setIsLoading(true);
     setError(null);
 
-    try {
-      const response = await fetch(API_ENDPOINTS.chat, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: text.trim(), history }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`서버 오류 (${response.status})`);
-      }
-
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
-      let accumulated = '';
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        const chunk = decoder.decode(value, { stream: true });
-        accumulated += chunk;
-
+    streamXHR(
+      API_ENDPOINTS.chat,
+      { message: text.trim(), history },
+      // onChunk: 스트리밍 중 — 구분자 이전 텍스트만 표시
+      (accumulated) => {
+        const displayText = extractDisplayText(accumulated);
         setMessages(prev =>
           prev.map(m =>
             m.id === aiMsgId
-              ? { ...m, text: accumulated, displayText: accumulated }
+              ? { ...m, text: accumulated, displayText }
               : m
           )
         );
+      },
+      // onDone: 완료 후 업체 파싱
+      (fullText) => {
+        const { displayText, vendors } = parseResponse(fullText);
+        setMessages(prev =>
+          prev.map(m =>
+            m.id === aiMsgId
+              ? { ...m, text: fullText, displayText, vendors, isStreaming: false }
+              : m
+          )
+        );
+        setIsLoading(false);
+      },
+      // onError
+      (err) => {
+        setError(err.message || '오류가 발생했습니다. 다시 시도해주세요.');
+        setMessages(prev => prev.filter(m => m.id !== aiMsgId));
+        setIsLoading(false);
       }
-
-      const { displayText, vendors } = parseResponse(accumulated);
-      setMessages(prev =>
-        prev.map(m =>
-          m.id === aiMsgId
-            ? { ...m, text: accumulated, displayText, vendors, isStreaming: false }
-            : m
-        )
-      );
-    } catch (err) {
-      setError(err.message || '오류가 발생했습니다. 다시 시도해주세요.');
-      setMessages(prev => prev.filter(m => m.id !== aiMsgId));
-    } finally {
-      setIsLoading(false);
-    }
+    );
   }, [isLoading, messages]);
 
   const clearMessages = useCallback(() => {

@@ -30,3 +30,8 @@ android/app/build.gradle.local
 ios/build/
 ios/Pods/
 ios/Podfile.lock
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class

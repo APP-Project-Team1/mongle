@@ -18,7 +18,7 @@ async def parse_intent(message: str) -> dict:
 
 반환 형식:
 {
-  "categories": ["studio", "dress", "makeup", "hall"],
+  "categories": ["studio", "dress", "makeup", "hall", "planner"],
   "style": ["모던", "내추럴", "클래식", "럭셔리", "빈티지"],
   "region": null,
   "budget_max": null,

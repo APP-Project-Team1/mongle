@@ -440,7 +440,13 @@ export default function HomeScreen() {
           {subHasMore && (
             <TouchableOpacity
               style={styles.moreCard}
-              onPress={() => router.push('/vendors')}
+              onPress={() => {
+                if (activeSubTab === 2) {
+                  router.push('/planners');
+                } else {
+                  router.push('/vendors');
+                }
+              }}
               activeOpacity={0.8}
             >
               <View style={styles.moreCardInner}>

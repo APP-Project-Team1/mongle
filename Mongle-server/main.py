@@ -1,10 +1,10 @@
 from fastapi import FastAPI
-from fastapi.responses import StreamingResponse
+from fastapi.responses import StreamingResponse, PlainTextResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from ai.intent_parser import parse_intent
 from ai.responder import generate_recommendation
-from ai.dummy_vendors import get_vendors_by_filter  # ← C가 나중에 이것만 교체
+from ai.dummy_vendors import get_vendors_by_filter  # ← 나중에 Supabase 연동 시 이 함수만 교체
 
 app = FastAPI()
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
@@ -15,14 +15,20 @@ class ChatRequest(BaseModel):
 
 @app.post("/api/chat")
 async def chat(req: ChatRequest):
-    intent = await parse_intent(req.message)
+    try:
+        intent = await parse_intent(req.message)
+    except Exception as e:
+        return PlainTextResponse(f"의도 분석 중 오류가 발생했습니다: {str(e)}", status_code=500)
 
-    vendors = get_vendors_by_filter(
-        categories=intent.get("categories"),
-        style=intent.get("style"),
-        region=intent.get("region"),
-        budget_max=intent.get("budget_max"),
-    )
+    try:
+        vendors = get_vendors_by_filter(
+            categories=intent.get("categories"),
+            style=intent.get("style"),
+            region=intent.get("region"),
+            budget_max=intent.get("budget_max"),
+        )
+    except Exception as e:
+        return PlainTextResponse(f"업체 검색 중 오류가 발생했습니다: {str(e)}", status_code=500)
 
     return StreamingResponse(
         generate_recommendation(req.message, vendors, req.history),

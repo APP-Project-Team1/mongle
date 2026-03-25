@@ -1,19 +1,83 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
+import {
+  View,
+  Text,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  TextInput,
+  Modal,
+  Dimensions,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Calendar } from 'react-native-calendars';
+import { router } from 'expo-router';
 
 const { width } = Dimensions.get('window');
 
 // ── 데이터 ──────────────────────────────────────────────
-const TIMELINE_ITEMS = [
-  { id: 1, label: '웨딩홀 계약 완료', date: '2025년 10월 5일', status: 'done' },
-  { id: 2, label: '스튜디오 계약 완료', date: '2025년 10월 20일', status: 'done' },
-  { id: 3, label: '드레스 1차 시착', date: '2025년 11월 8일', status: 'done' },
-  { id: 4, label: '드레스 2차 시착 — 진행 중', date: '2026년 1월 15일 · D-15', status: 'active' },
-  { id: 5, label: '본식 스냅 촬영', date: '2026년 3월 10일', status: 'next' },
-  { id: 6, label: '본식', date: '2026년 7월 25일', status: 'future' },
+const INITIAL_TIMELINE_ITEMS = [
+  {
+    id: 1,
+    label: '웨딩홀 계약 완료',
+    dateYear: '2025',
+    dateMonth: '10',
+    dateDay: '05',
+    status: 'done',
+  },
+  {
+    id: 2,
+    label: '스튜디오 계약 완료',
+    dateYear: '2025',
+    dateMonth: '10',
+    dateDay: '20',
+    status: 'done',
+  },
+  {
+    id: 3,
+    label: '드레스 1차 시착',
+    dateYear: '2025',
+    dateMonth: '11',
+    dateDay: '08',
+    status: 'done',
+  },
+  {
+    id: 4,
+    label: '드레스 2차 시착 — 진행 중',
+    dateYear: '2026',
+    dateMonth: '01',
+    dateDay: '15',
+    status: 'active',
+  },
+  {
+    id: 5,
+    label: '본식 스냅 촬영',
+    dateYear: '2026',
+    dateMonth: '03',
+    dateDay: '10',
+    status: 'next',
+  },
+  {
+    id: 6,
+    label: '본식',
+    dateYear: '2026',
+    dateMonth: '07',
+    dateDay: '25',
+    status: 'future',
+  },
+];
+
+const formatDate = (item) => {
+  if (!item.dateYear) return item.date ?? '';
+  return `${item.dateYear}년 ${parseInt(item.dateMonth)}월 ${parseInt(item.dateDay)}일`;
+};
+
+const STATUS_OPTIONS = [
+  { value: 'done', label: '완료' },
+  { value: 'active', label: '진행 중' },
+  { value: 'next', label: '다음 예정' },
+  { value: 'future', label: '미래' },
 ];
 
 const SCHEDULE_EVENTS = [
@@ -22,7 +86,11 @@ const SCHEDULE_EVENTS = [
     label: '1월 15일 — 드레스 2차 시착 · 오후 2시 (드레스 로즈)',
     color: 'rose',
   },
-  { date: '2026-01-21', label: '1월 21일 — 웨딩홀 식순 미팅 · 오전 11시', color: 'sage' },
+  {
+    date: '2026-01-21',
+    label: '1월 21일 — 웨딩홀 식순 미팅 · 오전 11시',
+    color: 'sage',
+  },
 ];
 
 const COST_ITEMS = [
@@ -35,63 +103,277 @@ const COST_ITEMS = [
 ];
 
 const BALANCE_ITEMS = [
-  { label: '드레스 잔금', sub: '2월 1일 마감 · D-32', amount: '72만원', urgent: true },
-  { label: '스튜디오 잔금', sub: '3월 10일 마감 · D-69', amount: '80만원', urgent: false },
-  { label: '웨딩홀 잔금', sub: '6월 25일 마감 · D-176', amount: '190만원', urgent: false },
+  {
+    label: '드레스 잔금',
+    sub: '2월 1일 마감 · D-32',
+    amount: '72만원',
+    urgent: true,
+  },
+  {
+    label: '스튜디오 잔금',
+    sub: '3월 10일 마감 · D-69',
+    amount: '80만원',
+    urgent: false,
+  },
+  {
+    label: '웨딩홀 잔금',
+    sub: '6월 25일 마감 · D-176',
+    amount: '190만원',
+    urgent: false,
+  },
 ];
 
 const MARKED_DATES = {
   '2026-01-15': { selected: true, selectedColor: '#C9716A' },
-  '2026-01-21': { marked: true, dotColor: '#7A9E8E', selectedColor: '#EBF2EE', selected: true },
+  '2026-01-21': {
+    marked: true,
+    dotColor: '#7A9E8E',
+    selectedColor: '#EBF2EE',
+    selected: true,
+  },
 };
+// ────────────────────────────────────────────────────────
+
+// ── 타임라인 수정 모달 ──────────────────────────────────
+function TimelineEditModal({ visible, items, onClose, onSave }) {
+  const [draft, setDraft] = useState([]);
+  const [openIdx, setOpenIdx] = useState(null);
+
+  React.useEffect(() => {
+    if (visible) {
+      setDraft(items.map((i) => ({ ...i })));
+      setOpenIdx(null);
+    }
+  }, [visible]);
+
+  const updateField = (idx, field, value) => {
+    setDraft((prev) => prev.map((item, i) => (i === idx ? { ...item, [field]: value } : item)));
+  };
+
+  const deleteItem = (idx) => {
+    setDraft((prev) => prev.filter((_, i) => i !== idx));
+    setOpenIdx(null);
+  };
+
+  const addItem = () => {
+    const newItem = {
+      id: Date.now(),
+      label: '',
+      dateYear: '',
+      dateMonth: '',
+      dateDay: '',
+      status: 'future',
+    };
+    setDraft((prev) => {
+      const next = [...prev, newItem];
+      setOpenIdx(next.length - 1);
+      return next;
+    });
+  };
+
+  const handleSave = () => {
+    const sorted = [...draft].sort((a, b) => {
+      const toMs = (i) =>
+        new Date(
+          parseInt(i.dateYear) || 0,
+          (parseInt(i.dateMonth) || 1) - 1,
+          parseInt(i.dateDay) || 1,
+        ).getTime();
+      return toMs(a) - toMs(b);
+    });
+    onSave(sorted);
+    onClose();
+  };
+
+  return (
+    <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
+      <View style={modalStyles.overlay}>
+        <TouchableOpacity style={modalStyles.backdrop} activeOpacity={1} onPress={onClose} />
+        <View style={modalStyles.sheet}>
+          {/* 헤더 */}
+          <View style={modalStyles.header}>
+            <Text style={modalStyles.title}>타임라인 수정</Text>
+            <TouchableOpacity onPress={onClose}>
+              <Ionicons name="close" size={20} color="#B8A9A5" />
+            </TouchableOpacity>
+          </View>
+
+          <ScrollView showsVerticalScrollIndicator={false} style={{ flexGrow: 1 }}>
+            {draft.map((item, idx) => {
+              const isOpen = openIdx === idx;
+              return (
+                <View
+                  key={item.id}
+                  style={[modalStyles.itemBox, isOpen && { borderColor: '#C9716A' }]}
+                >
+                  {!isOpen ? (
+                    /* 접힌 행 */
+                    <TouchableOpacity
+                      style={modalStyles.collapsedRow}
+                      onPress={() => setOpenIdx(idx)}
+                      activeOpacity={0.7}
+                    >
+                      <View
+                        style={[styles.tlDot, styles[`dot_${item.status}`], { marginTop: 0 }]}
+                      />
+                      <View style={{ flex: 1 }}>
+                        <Text style={modalStyles.collapsedLabel} numberOfLines={1}>
+                          {item.label || '새 일정'}
+                        </Text>
+                        <Text style={modalStyles.collapsedDate}>
+                          {formatDate(item) || '날짜 미입력'}
+                        </Text>
+                      </View>
+                      <Ionicons name="create-outline" size={15} color="#C9716A" />
+                    </TouchableOpacity>
+                  ) : (
+                    /* 펼쳐진 편집 영역 */
+                    <View style={modalStyles.editArea}>
+                      <Text style={modalStyles.fieldLabel}>일정 이름</Text>
+                      <TextInput
+                        style={modalStyles.input}
+                        value={item.label}
+                        onChangeText={(v) => updateField(idx, 'label', v)}
+                        placeholder="예: 드레스 시착"
+                        placeholderTextColor="#C8BFBB"
+                      />
+
+                      {/* 날짜 */}
+                      <Text style={[modalStyles.fieldLabel, { marginTop: 12 }]}>날짜</Text>
+                      <View style={modalStyles.dateRow}>
+                        <TextInput
+                          style={[modalStyles.input, modalStyles.dateInput]}
+                          value={item.dateYear}
+                          onChangeText={(v) =>
+                            updateField(idx, 'dateYear', v.replace(/\D/g, '').slice(0, 4))
+                          }
+                          placeholder="2026"
+                          placeholderTextColor="#C8BFBB"
+                          keyboardType="number-pad"
+                          maxLength={4}
+                        />
+                        <Text style={modalStyles.dateSep}>년</Text>
+                        <TextInput
+                          style={[modalStyles.input, modalStyles.dateInputSm]}
+                          value={item.dateMonth}
+                          onChangeText={(v) =>
+                            updateField(idx, 'dateMonth', v.replace(/\D/g, '').slice(0, 2))
+                          }
+                          placeholder="01"
+                          placeholderTextColor="#C8BFBB"
+                          keyboardType="number-pad"
+                          maxLength={2}
+                        />
+                        <Text style={modalStyles.dateSep}>월</Text>
+                        <TextInput
+                          style={[modalStyles.input, modalStyles.dateInputSm]}
+                          value={item.dateDay}
+                          onChangeText={(v) =>
+                            updateField(idx, 'dateDay', v.replace(/\D/g, '').slice(0, 2))
+                          }
+                          placeholder="01"
+                          placeholderTextColor="#C8BFBB"
+                          keyboardType="number-pad"
+                          maxLength={2}
+                        />
+                        <Text style={modalStyles.dateSep}>일</Text>
+                      </View>
+
+                      <View style={modalStyles.editFooter}>
+                        <TouchableOpacity onPress={() => deleteItem(idx)}>
+                          <Text style={modalStyles.deleteText}>삭제</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          style={modalStyles.confirmBtn}
+                          onPress={() => setOpenIdx(null)}
+                        >
+                          <Text style={modalStyles.confirmBtnText}>확인</Text>
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+                  )}
+                </View>
+              );
+            })}
+
+            {/* 새 일정 추가 */}
+            <TouchableOpacity style={modalStyles.addBtn} onPress={addItem}>
+              <Text style={modalStyles.addBtnText}>+ 새 일정 추가</Text>
+            </TouchableOpacity>
+          </ScrollView>
+
+          {/* 하단 저장/취소 */}
+          <View style={modalStyles.footer}>
+            <TouchableOpacity style={modalStyles.cancelBtn} onPress={onClose}>
+              <Text style={modalStyles.cancelBtnText}>취소</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={modalStyles.saveBtn} onPress={handleSave}>
+              <Text style={modalStyles.saveBtnText}>저장</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </Modal>
+  );
+}
 // ────────────────────────────────────────────────────────
 
 export default function TimelineScreen() {
   const [selectedDate, setSelectedDate] = useState('2026-01-15');
+  const [timelineItems, setTimelineItems] = useState(INITIAL_TIMELINE_ITEMS);
+  const [editModalVisible, setEditModalVisible] = useState(false);
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.container}>
         {/* ── ① 플래너 정보 배너 ── */}
         <View style={styles.bannerCard}>
-          {/* 플래너 */}
-          <View style={styles.plannerRow}>
-            <View style={styles.avatar}>
-              <Text style={styles.avatarText}>박</Text>
+          <View style={styles.topSection}>
+            <View style={styles.ddayWrap}>
+              <Text style={styles.ddayText}>D-127</Text>
+              <Text style={styles.ddaySub}>2026년 7월 25일 (토)</Text>
             </View>
-            <View>
-              <Text style={styles.plannerLabel}>담당 플래너</Text>
-              <Text style={styles.plannerName}>박지현 플래너</Text>
-              <Text style={styles.onlineText}>● 온라인</Text>
-            </View>
-          </View>
-
-          {/* D-day */}
-          <View style={styles.ddayWrap}>
-            <Text style={styles.ddayText}>D-127</Text>
-            <Text style={styles.ddaySub}>2026년 7월 25일 (토)</Text>
-          </View>
-
-          {/* 통계 */}
-          <View style={styles.statsRow}>
             <View style={styles.statBox}>
               <Text style={styles.statValueRose}>73%</Text>
               <Text style={styles.statLabel}>준비 완료</Text>
             </View>
-            <View style={[styles.statBox, { marginLeft: 8 }]}>
-              <Text style={styles.statValueInk}>3</Text>
-              <Text style={styles.statLabel}>미확인 알림</Text>
+          </View>
+        </View>
+
+        <View style={styles.bannerCard}>
+          <View style={styles.bottomRow}>
+            <View style={styles.plannerRow}>
+              <View style={styles.avatar}>
+                <Text style={styles.avatarText}>박</Text>
+              </View>
+              <View>
+                <Text style={styles.plannerLabel}>담당 플래너</Text>
+                <Text style={styles.plannerName}>박지현 플래너</Text>
+                <Text style={styles.onlineText}>● 온라인</Text>
+              </View>
             </View>
+            <TouchableOpacity
+              style={styles.chatBtn}
+              onPress={() => router.push('/(couple)/chat/1')}
+            >
+              <Ionicons name="chatbubble-ellipses" size={18} color="#fff" />
+              <Text style={styles.chatBtnText}>문의하기</Text>
+            </TouchableOpacity>
           </View>
         </View>
 
         {/* ── ② 결혼 준비 타임라인 ── */}
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>결혼 준비 타임라인</Text>
+          <View style={styles.cardTitleRow}>
+            <Text style={styles.cardTitle}>결혼 준비 타임라인</Text>
+            <TouchableOpacity style={styles.editBtn} onPress={() => setEditModalVisible(true)}>
+              <Text style={styles.editBtnText}>수정</Text>
+            </TouchableOpacity>
+          </View>
+
           <View style={styles.timelineWrap}>
-            {/* 세로선 */}
             <View style={styles.timelineLine} />
-            {TIMELINE_ITEMS.map((item) => (
+            {timelineItems.map((item) => (
               <View key={item.id} style={styles.tlItem}>
                 <View style={[styles.tlDot, styles[`dot_${item.status}`]]} />
                 <View>
@@ -106,7 +388,7 @@ export default function TimelineScreen() {
                     {item.label}
                   </Text>
                   <Text style={[styles.tlDate, item.status === 'active' && { color: '#C9716A' }]}>
-                    {item.date}
+                    {formatDate(item)}
                   </Text>
                 </View>
               </View>
@@ -182,7 +464,6 @@ export default function TimelineScreen() {
             <Text style={styles.costTotalLabel}>현재 합계</Text>
             <Text style={styles.costTotalValue}>671만원</Text>
           </View>
-          {/* 프로그레스 바 */}
           <View style={styles.progressBar}>
             <View style={[styles.progressFill, { width: '67%' }]} />
           </View>
@@ -209,64 +490,310 @@ export default function TimelineScreen() {
           ))}
         </View>
       </ScrollView>
+
+      {/* 타임라인 수정 모달 */}
+      <TimelineEditModal
+        visible={editModalVisible}
+        items={timelineItems}
+        onClose={() => setEditModalVisible(false)}
+        onSave={(updated) => setTimelineItems(updated)}
+      />
     </SafeAreaView>
   );
 }
 
-// ── 스타일 ──────────────────────────────────────────────
+// ── 모달 스타일 ──────────────────────────────────────────
+const modalStyles = StyleSheet.create({
+  overlay: {
+    flex: 1,
+    justifyContent: 'flex-end',
+  },
+  backdrop: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(44,36,32,0.4)',
+  },
+  sheet: {
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingTop: 20,
+    paddingHorizontal: 18,
+    paddingBottom: 32,
+    maxHeight: '85%',
+    flex: 1,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 18,
+  },
+  title: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#2C2420',
+  },
+  itemBox: {
+    borderWidth: 1,
+    borderColor: '#EDE5E2',
+    borderRadius: 10,
+    marginBottom: 10,
+    overflow: 'hidden',
+  },
+  collapsedRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    padding: 12,
+  },
+  collapsedLabel: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: '#2C2420',
+  },
+  collapsedDate: {
+    fontSize: 11,
+    color: '#B8A9A5',
+    marginTop: 1,
+  },
+  editArea: {
+    padding: 12,
+  },
+  fieldLabel: {
+    fontSize: 10,
+    fontWeight: '500',
+    color: '#6B5B55',
+    letterSpacing: 0.5,
+    marginBottom: 6,
+    paddingHorizontal: 6,
+    textTransform: 'uppercase',
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: '#EDE5E2',
+    borderRadius: 8,
+    paddingHorizontal: 11,
+    paddingVertical: 9,
+    fontSize: 13,
+    color: '#2C2420',
+  },
+  statusRow: {
+    flexDirection: 'row',
+    gap: 6,
+  },
+  statusBtn: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: '#EDE5E2',
+    borderRadius: 7,
+    paddingVertical: 7,
+    alignItems: 'center',
+  },
+  statusBtnActive: {
+    backgroundColor: '#C9716A',
+    borderColor: '#C9716A',
+  },
+  statusBtnText: {
+    fontSize: 11,
+    fontWeight: '500',
+    color: '#6B5B55',
+  },
+  editFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 14,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#EDE5E2',
+  },
+  deleteText: {
+    fontSize: 13,
+    color: '#D0534A',
+  },
+  confirmBtn: {
+    backgroundColor: '#C9716A',
+    borderRadius: 8,
+    paddingHorizontal: 18,
+    paddingVertical: 7,
+  },
+  confirmBtnText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#fff',
+  },
+  addBtn: {
+    borderWidth: 1.5,
+    borderColor: '#EDE5E2',
+    borderStyle: 'dashed',
+    borderRadius: 10,
+    paddingVertical: 12,
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  addBtnText: {
+    fontSize: 13,
+    color: '#B8A9A5',
+  },
+  footer: {
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 4,
+  },
+  cancelBtn: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: '#EDE5E2',
+    borderRadius: 10,
+    paddingVertical: 13,
+    alignItems: 'center',
+  },
+  cancelBtnText: {
+    fontSize: 14,
+    color: '#6B5B55',
+  },
+  saveBtn: {
+    flex: 2,
+    backgroundColor: '#C9716A',
+    borderRadius: 10,
+    paddingVertical: 13,
+    alignItems: 'center',
+  },
+  saveBtnText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#fff',
+  },
+
+  dateRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: '100%',
+    marginTop: 2,
+
+    justifyContent: 'flex-start',
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: '#EDE5E2',
+    backgroundColor: '#FBF8F7',
+    borderRadius: 5,
+    paddingVertical: 6,
+    fontSize: 13,
+    color: '#2C2420',
+    minWidth: 0,
+    paddingHorizontal: 10,
+  },
+  dateInput: {
+    flex: 2.5,
+    textAlign: 'center',
+  },
+  dateInputSm: {
+    flex: 1.5,
+    textAlign: 'center',
+  },
+  dateSep: {
+    fontSize: 13,
+    color: '#6B5B55',
+
+    marginHorizontal: 5,
+    marginRight: 20,
+    width: 20,
+    textAlign: 'center',
+  },
+});
+
+// ── 화면 스타일 ──────────────────────────────────────────
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: '#F2EDE8' },
   container: { padding: 16, gap: 14 },
 
-  // 배너 카드
   bannerCard: {
     backgroundColor: '#fff',
     borderRadius: 14,
-    padding: 18,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    flexWrap: 'wrap',
-    gap: 12,
+    padding: 20,
+    flexDirection: 'column',
     shadowColor: '#2C2420',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.08,
     shadowRadius: 12,
     elevation: 3,
   },
-  plannerRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  avatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#E8C5C2',
-    justifyContent: 'center',
+  topSection: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
+    paddingBottom: 5,
   },
-  avatarText: { fontSize: 15, fontWeight: '500', color: '#C9716A' },
-  plannerLabel: { fontSize: 10, color: '#6B5B55', marginBottom: 2 },
-  plannerName: { fontSize: 13, fontWeight: '500', color: '#2C2420' },
-  onlineText: { fontSize: 10, color: '#7A9E8E', marginTop: 1 },
-
-  ddayWrap: { alignItems: 'center' },
-  ddayText: { fontFamily: 'serif', fontSize: 30, fontWeight: '700', color: '#C9716A' },
-  ddaySub: { fontSize: 10, color: '#6B5B55', marginTop: 2 },
-
-  statsRow: { flexDirection: 'row' },
+  ddayWrap: {
+    flexDirection: 'column',
+  },
+  ddayText: {
+    fontSize: 28,
+    fontWeight: '700',
+    color: '#C9716A',
+  },
+  ddaySub: {
+    fontSize: 11,
+    color: '#8A7870',
+    marginTop: 2,
+  },
   statBox: {
     alignItems: 'center',
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    backgroundColor: '#fff',
+    paddingHorizontal: 16,
+    paddingVertical: 6,
+    backgroundColor: '#FBF8F7',
     borderRadius: 10,
     borderWidth: 1,
     borderColor: '#EDE5E2',
   },
-  statValueRose: { fontSize: 16, fontWeight: '700', color: '#C9716A' },
-  statValueInk: { fontSize: 16, fontWeight: '700', color: '#2C2420' },
-  statLabel: { fontSize: 10, color: '#6B5B55', marginTop: 2 },
+  statValueRose: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#C9716A',
+  },
+  statLabel: {
+    fontSize: 9,
+    color: '#6B5B55',
+    marginTop: 1,
+  },
+  bottomRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  plannerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  avatar: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: '#E8C5C2',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  avatarText: { fontSize: 14, fontWeight: '500', color: '#C9716A' },
+  plannerLabel: { fontSize: 10, color: '#6B5B55', marginBottom: 2 },
+  plannerName: { fontSize: 13, fontWeight: '600', color: '#2C2420' },
+  onlineText: { fontSize: 10, color: '#7A9E8E', marginTop: 1 },
+  chatBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#C9A98E',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+    gap: 6,
+  },
+  chatBtnText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: '600',
+  },
 
-  // 공통 카드
   card: {
     backgroundColor: '#fff',
     borderRadius: 14,
@@ -277,12 +804,30 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
     elevation: 3,
   },
-  cardTitle: { fontSize: 13, fontWeight: '600', color: '#2C2420', marginBottom: 14 },
+  cardTitle: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#2C2420',
+    marginBottom: 14,
+  },
   cardTitleRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: 14,
+  },
+
+  // 수정 버튼
+  editBtn: {
+    backgroundColor: '#F5EAE9',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+  },
+  editBtnText: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: '#C9716A',
   },
 
   // 타임라인
@@ -295,7 +840,12 @@ const styles = StyleSheet.create({
     width: 2,
     backgroundColor: '#EDE5E2',
   },
-  tlItem: { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 16, gap: 12 },
+  tlItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: 16,
+    gap: 12,
+  },
   tlDot: {
     width: 12,
     height: 12,
@@ -349,7 +899,12 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   progressFill: { height: '100%', backgroundColor: '#C9716A', borderRadius: 3 },
-  progressSub: { fontSize: 10, color: '#B8A9A5', textAlign: 'right', marginTop: 4 },
+  progressSub: {
+    fontSize: 10,
+    color: '#B8A9A5',
+    textAlign: 'right',
+    marginTop: 4,
+  },
 
   // 배지
   badgeRose: {

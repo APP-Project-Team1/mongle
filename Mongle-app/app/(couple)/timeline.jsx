@@ -25,6 +25,7 @@ const INITIAL_TIMELINE_ITEMS = [
     dateMonth: '10',
     dateDay: '05',
     status: 'done',
+    color: 'sage',
   },
   {
     id: 2,
@@ -33,6 +34,7 @@ const INITIAL_TIMELINE_ITEMS = [
     dateMonth: '10',
     dateDay: '20',
     status: 'done',
+    color: 'sage',
   },
   {
     id: 3,
@@ -41,6 +43,7 @@ const INITIAL_TIMELINE_ITEMS = [
     dateMonth: '11',
     dateDay: '08',
     status: 'done',
+    color: 'rose',
   },
   {
     id: 4,
@@ -49,22 +52,34 @@ const INITIAL_TIMELINE_ITEMS = [
     dateMonth: '01',
     dateDay: '15',
     status: 'active',
+    color: 'rose',
   },
   {
     id: 5,
+    label: '웨딩홀 식순 미팅',
+    dateYear: '2026',
+    dateMonth: '01',
+    dateDay: '21',
+    status: 'active',
+    color: 'sage',
+  },
+  {
+    id: 6,
     label: '본식 스냅 촬영',
     dateYear: '2026',
     dateMonth: '03',
     dateDay: '10',
     status: 'next',
+    color: 'sky',
   },
   {
-    id: 6,
+    id: 7,
     label: '본식',
     dateYear: '2026',
     dateMonth: '07',
     dateDay: '25',
     status: 'future',
+    color: 'peach',
   },
 ];
 
@@ -80,58 +95,88 @@ const STATUS_OPTIONS = [
   { value: 'future', label: '미래' },
 ];
 
-const SCHEDULE_EVENTS = [
+// ── 비용/잔금 통합 데이터 ────────────────────────────────
+// hasBalance: true인 항목만 잔금 카드에 표시
+const INITIAL_COST_ITEMS = [
   {
-    date: '2026-01-15',
-    label: '1월 15일 — 드레스 2차 시착 · 오후 2시 (드레스 로즈)',
-    color: 'rose',
+    id: 1,
+    label: '웨딩홀',
+    value: '380', // 만원 단위 숫자 문자열
+    warn: false,
+    hasBalance: true,
+    balanceDue: '2026-06-25',
+    balanceAmount: '190',
+    urgent: false,
   },
   {
-    date: '2026-01-21',
-    label: '1월 21일 — 웨딩홀 식순 미팅 · 오전 11시',
-    color: 'sage',
+    id: 2,
+    label: '스튜디오',
+    value: '160',
+    warn: false,
+    hasBalance: true,
+    balanceDue: '2026-03-10',
+    balanceAmount: '80',
+    urgent: false,
   },
-];
-
-const COST_ITEMS = [
-  { label: '웨딩홀 (계약)', value: '380만원', warn: false },
-  { label: '스튜디오 (계약)', value: '160만원', warn: false },
-  { label: '드레스', value: '95만원', warn: false },
-  { label: '메이크업', value: '28만원', warn: false },
-  { label: '헤어 (추가 옵션)', value: '+8만원', warn: true },
-  { label: '예상 추가 비용', value: '미정', warn: false, gray: true },
-];
-
-const BALANCE_ITEMS = [
   {
-    label: '드레스 잔금',
-    sub: '2월 1일 마감 · D-32',
-    amount: '72만원',
+    id: 3,
+    label: '드레스',
+    value: '95',
+    warn: false,
+    hasBalance: true,
+    balanceDue: '2026-02-01',
+    balanceAmount: '72',
     urgent: true,
   },
   {
-    label: '스튜디오 잔금',
-    sub: '3월 10일 마감 · D-69',
-    amount: '80만원',
+    id: 4,
+    label: '메이크업',
+    value: '28',
+    warn: false,
+    hasBalance: false,
+    balanceDue: '',
+    balanceAmount: '',
     urgent: false,
   },
   {
-    label: '웨딩홀 잔금',
-    sub: '6월 25일 마감 · D-176',
-    amount: '190만원',
+    id: 5,
+    label: '헤어 (추가 옵션)',
+    value: '8',
+    warn: true,
+    hasBalance: false,
+    balanceDue: '',
+    balanceAmount: '',
+    urgent: false,
+  },
+  {
+    id: 6,
+    label: '예상 추가 비용',
+    value: '', // 빈 문자열 = 미정
+    warn: false,
+    gray: true,
+    hasBalance: false,
+    balanceDue: '',
+    balanceAmount: '',
     urgent: false,
   },
 ];
 
-const MARKED_DATES = {
-  '2026-01-15': { selected: true, selectedColor: '#C9716A' },
-  '2026-01-21': {
-    marked: true,
-    dotColor: '#7A9E8E',
-    selectedColor: '#EBF2EE',
-    selected: true,
-  },
+// 잔금 마감일 → "N월 N일 마감 · D-NN" 형식 계산
+const formatBalanceSub = (dueDateStr) => {
+  if (!dueDateStr) return '';
+  const due = new Date(dueDateStr);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const diff = Math.round((due - today) / (1000 * 60 * 60 * 24));
+  const m = due.getMonth() + 1;
+  const d = due.getDate();
+  return `${m}월 ${d}일 마감 · D-${diff}`;
 };
+
+// 숫자 문자열 합산 (빈 문자열은 0 취급)
+const sumValues = (items) => items.reduce((acc, item) => acc + (parseInt(item.value) || 0), 0);
+// ────────────────────────────────────────────────────────
+
 // ────────────────────────────────────────────────────────
 
 // ── 타임라인 수정 모달 ──────────────────────────────────
@@ -279,6 +324,42 @@ function TimelineEditModal({ visible, items, onClose, onSave }) {
                         <Text style={modalStyles.dateSep}>일</Text>
                       </View>
 
+                      {/* 색상 */}
+                      <Text style={[modalStyles.fieldLabel, { marginTop: 12, marginBottom: 8 }]}>
+                        색상
+                      </Text>
+                      <View style={scheduleModalStyles.swatchRow}>
+                        {COLOR_OPTIONS.map((opt) => {
+                          const isSelected = (item.color ?? 'rose') === opt.key;
+                          return (
+                            <TouchableOpacity
+                              key={opt.key}
+                              style={scheduleModalStyles.swatchWrap}
+                              onPress={() => updateField(idx, 'color', opt.key)}
+                              activeOpacity={0.8}
+                            >
+                              <View
+                                style={[
+                                  scheduleModalStyles.swatch,
+                                  { backgroundColor: opt.hex },
+                                  isSelected && scheduleModalStyles.swatchSelected,
+                                ]}
+                              >
+                                {isSelected && <Ionicons name="checkmark" size={16} color="#fff" />}
+                              </View>
+                              <Text
+                                style={[
+                                  scheduleModalStyles.swatchLabel,
+                                  isSelected && { color: opt.hex, fontWeight: '600' },
+                                ]}
+                              >
+                                {opt.label}
+                              </Text>
+                            </TouchableOpacity>
+                          );
+                        })}
+                      </View>
+
                       <View style={modalStyles.editFooter}>
                         <TouchableOpacity onPress={() => deleteItem(idx)}>
                           <Text style={modalStyles.deleteText}>삭제</Text>
@@ -318,10 +399,875 @@ function TimelineEditModal({ visible, items, onClose, onSave }) {
 }
 // ────────────────────────────────────────────────────────
 
+// ── 일정 색상 팔레트 ─────────────────────────────────────
+const COLOR_OPTIONS = [
+  { key: 'rose', label: '로즈', hex: '#C9716A', bg: '#F5EAE9', text: '#C9716A' },
+  { key: 'sage', label: '세이지', hex: '#7A9E8E', bg: '#EBF2EE', text: '#7A9E8E' },
+  { key: 'lavender', label: '라벤더', hex: '#9B8EC4', bg: '#F0EDF8', text: '#9B8EC4' },
+  { key: 'sky', label: '스카이', hex: '#6A9EC9', bg: '#E9F2F8', text: '#6A9EC9' },
+  { key: 'peach', label: '피치', hex: '#D4956A', bg: '#F8EFE9', text: '#D4956A' },
+  { key: 'mint', label: '민트', hex: '#5BAD9A', bg: '#E6F4F1', text: '#5BAD9A' },
+];
+// ────────────────────────────────────────────────────────
+
+// ── 일정 추가 모달 ──────────────────────────────────────
+function ScheduleAddModal({ visible, preselectedDate, onClose, onSave }) {
+  const [label, setLabel] = useState('');
+  const [color, setColor] = useState('rose');
+  const [status, setStatus] = useState('future');
+  const [dateYear, setDateYear] = useState('');
+  const [dateMonth, setDateMonth] = useState('');
+  const [dateDay, setDateDay] = useState('');
+
+  React.useEffect(() => {
+    if (visible && preselectedDate) {
+      const [y, m, d] = preselectedDate.split('-');
+      setDateYear(y ?? '');
+      setDateMonth(m ?? '');
+      setDateDay(d ?? '');
+    }
+    if (visible) {
+      setLabel('');
+      setColor('rose');
+      setStatus('future');
+    }
+  }, [visible]);
+
+  const handleSave = () => {
+    if (!label.trim() || !dateYear || !dateMonth || !dateDay) return;
+    onSave({
+      dateYear,
+      dateMonth: String(parseInt(dateMonth)),
+      dateDay: String(parseInt(dateDay)),
+      label: label.trim(),
+      color,
+      status,
+    });
+    onClose();
+  };
+
+  const isValid = label.trim() && dateYear.length === 4 && dateMonth && dateDay;
+  const selectedColorOpt = COLOR_OPTIONS.find((c) => c.key === color);
+
+  return (
+    <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
+      <View style={modalStyles.overlay}>
+        <TouchableOpacity style={modalStyles.backdrop} activeOpacity={1} onPress={onClose} />
+        <View style={[modalStyles.sheet, { maxHeight: '80%' }]}>
+          {/* 헤더 */}
+          <View style={modalStyles.header}>
+            <Text style={modalStyles.title}>일정 추가</Text>
+            <TouchableOpacity onPress={onClose}>
+              <Ionicons name="close" size={20} color="#B8A9A5" />
+            </TouchableOpacity>
+          </View>
+
+          <ScrollView showsVerticalScrollIndicator={false}>
+            {/* 일정 이름 */}
+            <Text style={modalStyles.fieldLabel}>일정 이름</Text>
+            <TextInput
+              style={[modalStyles.input, { marginBottom: 16 }]}
+              value={label}
+              onChangeText={setLabel}
+              placeholder="예: 부케 상담 · 오후 3시"
+              placeholderTextColor="#C8BFBB"
+            />
+
+            {/* 날짜 */}
+            <Text style={modalStyles.fieldLabel}>날짜</Text>
+            <View style={[modalStyles.dateRow, { marginBottom: 16 }]}>
+              <TextInput
+                style={[modalStyles.input, modalStyles.dateInput]}
+                value={dateYear}
+                onChangeText={(v) => setDateYear(v.replace(/\D/g, '').slice(0, 4))}
+                placeholder="2026"
+                placeholderTextColor="#C8BFBB"
+                keyboardType="number-pad"
+                maxLength={4}
+              />
+              <Text style={modalStyles.dateSep}>년</Text>
+              <TextInput
+                style={[modalStyles.input, modalStyles.dateInputSm]}
+                value={dateMonth}
+                onChangeText={(v) => setDateMonth(v.replace(/\D/g, '').slice(0, 2))}
+                placeholder="01"
+                placeholderTextColor="#C8BFBB"
+                keyboardType="number-pad"
+                maxLength={2}
+              />
+              <Text style={modalStyles.dateSep}>월</Text>
+              <TextInput
+                style={[modalStyles.input, modalStyles.dateInputSm]}
+                value={dateDay}
+                onChangeText={(v) => setDateDay(v.replace(/\D/g, '').slice(0, 2))}
+                placeholder="01"
+                placeholderTextColor="#C8BFBB"
+                keyboardType="number-pad"
+                maxLength={2}
+              />
+              <Text style={modalStyles.dateSep}>일</Text>
+            </View>
+
+            {/* 상태 선택 */}
+            <Text style={[modalStyles.fieldLabel, { marginBottom: 8 }]}>상태</Text>
+            <View style={[modalStyles.statusRow, { marginBottom: 16 }]}>
+              {STATUS_OPTIONS.map((opt) => (
+                <TouchableOpacity
+                  key={opt.value}
+                  style={[
+                    modalStyles.statusBtn,
+                    status === opt.value && modalStyles.statusBtnActive,
+                  ]}
+                  onPress={() => setStatus(opt.value)}
+                >
+                  <Text
+                    style={[modalStyles.statusBtnText, status === opt.value && { color: '#fff' }]}
+                  >
+                    {opt.label}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            {/* 색상 선택 */}
+            <Text style={[modalStyles.fieldLabel, { marginBottom: 10 }]}>색상</Text>
+            <View style={scheduleModalStyles.swatchRow}>
+              {COLOR_OPTIONS.map((opt) => {
+                const isSelected = color === opt.key;
+                return (
+                  <TouchableOpacity
+                    key={opt.key}
+                    style={scheduleModalStyles.swatchWrap}
+                    onPress={() => setColor(opt.key)}
+                    activeOpacity={0.8}
+                  >
+                    <View
+                      style={[
+                        scheduleModalStyles.swatch,
+                        { backgroundColor: opt.hex },
+                        isSelected && scheduleModalStyles.swatchSelected,
+                      ]}
+                    >
+                      {isSelected && <Ionicons name="checkmark" size={16} color="#fff" />}
+                    </View>
+                    <Text
+                      style={[
+                        scheduleModalStyles.swatchLabel,
+                        isSelected && { color: opt.hex, fontWeight: '600' },
+                      ]}
+                    >
+                      {opt.label}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+
+            {/* 미리보기 */}
+            {label.trim() ? (
+              <View
+                style={[
+                  scheduleModalStyles.preview,
+                  { backgroundColor: selectedColorOpt.bg, borderLeftColor: selectedColorOpt.hex },
+                ]}
+              >
+                <Text style={[scheduleModalStyles.previewText, { color: selectedColorOpt.text }]}>
+                  {`${parseInt(dateMonth) || 'MM'}월 ${parseInt(dateDay) || 'DD'}일 — ${label.trim()}`}
+                </Text>
+              </View>
+            ) : null}
+          </ScrollView>
+
+          {/* 하단 버튼 */}
+          <View style={[modalStyles.footer, { marginTop: 16 }]}>
+            <TouchableOpacity style={modalStyles.cancelBtn} onPress={onClose}>
+              <Text style={modalStyles.cancelBtnText}>취소</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[modalStyles.saveBtn, !isValid && { backgroundColor: '#E8C5C2' }]}
+              onPress={handleSave}
+              disabled={!isValid}
+            >
+              <Text style={modalStyles.saveBtnText}>추가</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </Modal>
+  );
+}
+
+const scheduleModalStyles = StyleSheet.create({
+  swatchRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 14,
+    paddingHorizontal: 4,
+  },
+  swatchWrap: {
+    alignItems: 'center',
+    gap: 5,
+  },
+  swatch: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  swatchSelected: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 4,
+    transform: [{ scale: 1.12 }],
+  },
+  swatchLabel: {
+    fontSize: 10,
+    color: '#B8A9A5',
+    fontWeight: '400',
+  },
+  preview: {
+    borderLeftWidth: 3,
+    borderRadius: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 9,
+    marginBottom: 4,
+  },
+  previewText: {
+    fontSize: 12,
+    fontWeight: '500',
+  },
+});
+// ────────────────────────────────────────────────────────
+
+// ── 비용/잔금 수정 모달 ──────────────────────────────────
+function CostEditModal({ visible, items, onClose, onSave }) {
+  const [draft, setDraft] = useState([]);
+  const [activeTab, setActiveTab] = useState('cost'); // 'cost' | 'balance'
+  const [openIdx, setOpenIdx] = useState(null);
+  const [budget, setBudget] = useState('1000');
+
+  React.useEffect(() => {
+    if (visible) {
+      setDraft(items.map((i) => ({ ...i })));
+      setActiveTab('cost');
+      setOpenIdx(null);
+    }
+  }, [visible]);
+
+  const updateField = (idx, field, value) => {
+    setDraft((prev) => prev.map((item, i) => (i === idx ? { ...item, [field]: value } : item)));
+  };
+
+  const deleteItem = (idx) => {
+    setDraft((prev) => prev.filter((_, i) => i !== idx));
+    setOpenIdx(null);
+  };
+
+  const addCostItem = () => {
+    const newItem = {
+      id: Date.now(),
+      label: '',
+      value: '',
+      warn: false,
+      gray: false,
+      hasBalance: false,
+      balanceDue: '',
+      balanceAmount: '',
+      urgent: false,
+    };
+    setDraft((prev) => {
+      const next = [...prev, newItem];
+      setOpenIdx(next.length - 1);
+      return next;
+    });
+  };
+
+  const balanceItems = draft.filter((item) => item.hasBalance);
+
+  return (
+    <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
+      <View style={modalStyles.overlay}>
+        <TouchableOpacity style={modalStyles.backdrop} activeOpacity={1} onPress={onClose} />
+        <View style={modalStyles.sheet}>
+          {/* 헤더 */}
+          <View style={modalStyles.header}>
+            <Text style={modalStyles.title}>비용 · 잔금 관리</Text>
+            <TouchableOpacity onPress={onClose}>
+              <Ionicons name="close" size={20} color="#B8A9A5" />
+            </TouchableOpacity>
+          </View>
+
+          {/* 탭 */}
+          <View style={costModalStyles.tabRow}>
+            <TouchableOpacity
+              style={[costModalStyles.tab, activeTab === 'cost' && costModalStyles.tabActive]}
+              onPress={() => {
+                setActiveTab('cost');
+                setOpenIdx(null);
+              }}
+            >
+              <Text
+                style={[
+                  costModalStyles.tabText,
+                  activeTab === 'cost' && costModalStyles.tabTextActive,
+                ]}
+              >
+                비용 항목
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[costModalStyles.tab, activeTab === 'balance' && costModalStyles.tabActive]}
+              onPress={() => {
+                setActiveTab('balance');
+                setOpenIdx(null);
+              }}
+            >
+              <Text
+                style={[
+                  costModalStyles.tabText,
+                  activeTab === 'balance' && costModalStyles.tabTextActive,
+                ]}
+              >
+                잔금 일정
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          <ScrollView showsVerticalScrollIndicator={false} style={{ flex: 1 }}>
+            {activeTab === 'cost' ? (
+              <>
+                {/* 예산 설정 */}
+                <View style={costModalStyles.budgetRow}>
+                  <Text style={costModalStyles.budgetLabel}>전체 예산</Text>
+                  <View style={costModalStyles.budgetInputWrap}>
+                    <TextInput
+                      style={costModalStyles.budgetInput}
+                      value={budget}
+                      onChangeText={(v) => setBudget(v.replace(/\D/g, ''))}
+                      keyboardType="number-pad"
+                      placeholder="1000"
+                      placeholderTextColor="#C8BFBB"
+                    />
+                    <Text style={costModalStyles.budgetUnit}>만원</Text>
+                  </View>
+                </View>
+
+                {/* 비용 항목 목록 */}
+                {draft.map((item, idx) => {
+                  const isOpen = openIdx === idx;
+                  return (
+                    <View
+                      key={item.id}
+                      style={[modalStyles.itemBox, isOpen && { borderColor: '#C9716A' }]}
+                    >
+                      {!isOpen ? (
+                        <TouchableOpacity
+                          style={modalStyles.collapsedRow}
+                          onPress={() => setOpenIdx(idx)}
+                          activeOpacity={0.7}
+                        >
+                          <View style={{ flex: 1 }}>
+                            <Text style={modalStyles.collapsedLabel} numberOfLines={1}>
+                              {item.label || '새 항목'}
+                            </Text>
+                            <Text style={modalStyles.collapsedDate}>
+                              {item.value ? `${item.value}만원` : '미정'}
+                              {item.hasBalance ? ` · 잔금 ${item.balanceAmount}만원` : ''}
+                            </Text>
+                          </View>
+                          {item.warn && (
+                            <Ionicons
+                              name="warning-outline"
+                              size={14}
+                              color="#C9716A"
+                              style={{ marginRight: 4 }}
+                            />
+                          )}
+                          <Ionicons name="create-outline" size={15} color="#C9716A" />
+                        </TouchableOpacity>
+                      ) : (
+                        <View style={modalStyles.editArea}>
+                          {/* 항목명 */}
+                          <Text style={modalStyles.fieldLabel}>항목명</Text>
+                          <TextInput
+                            style={[modalStyles.input, { marginBottom: 12 }]}
+                            value={item.label}
+                            onChangeText={(v) => updateField(idx, 'label', v)}
+                            placeholder="예: 웨딩홀"
+                            placeholderTextColor="#C8BFBB"
+                          />
+                          {/* 금액 */}
+                          <Text style={modalStyles.fieldLabel}>금액 (만원)</Text>
+                          <View style={costModalStyles.amountRow}>
+                            <TextInput
+                              style={[modalStyles.input, { flex: 1 }]}
+                              value={item.value}
+                              onChangeText={(v) => updateField(idx, 'value', v.replace(/\D/g, ''))}
+                              placeholder="미정이면 빈칸"
+                              placeholderTextColor="#C8BFBB"
+                              keyboardType="number-pad"
+                            />
+                            <Text style={costModalStyles.amountUnit}>만원</Text>
+                          </View>
+                          {/* 옵션 토글 */}
+                          <View style={costModalStyles.toggleRow}>
+                            <TouchableOpacity
+                              style={[
+                                costModalStyles.toggleBtn,
+                                item.warn && costModalStyles.toggleBtnOn,
+                              ]}
+                              onPress={() => updateField(idx, 'warn', !item.warn)}
+                            >
+                              <Text
+                                style={[
+                                  costModalStyles.toggleText,
+                                  item.warn && { color: '#C9716A' },
+                                ]}
+                              >
+                                ⚠ 주의
+                              </Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                              style={[
+                                costModalStyles.toggleBtn,
+                                item.hasBalance && costModalStyles.toggleBtnOn,
+                              ]}
+                              onPress={() => updateField(idx, 'hasBalance', !item.hasBalance)}
+                            >
+                              <Text
+                                style={[
+                                  costModalStyles.toggleText,
+                                  item.hasBalance && { color: '#C9716A' },
+                                ]}
+                              >
+                                잔금 있음
+                              </Text>
+                            </TouchableOpacity>
+                          </View>
+                          {/* 잔금 세부 (hasBalance일 때만) */}
+                          {item.hasBalance && (
+                            <View style={costModalStyles.balanceSubSection}>
+                              <Text style={[modalStyles.fieldLabel, { marginTop: 10 }]}>
+                                잔금액 (만원)
+                              </Text>
+                              <View style={costModalStyles.amountRow}>
+                                <TextInput
+                                  style={[modalStyles.input, { flex: 1 }]}
+                                  value={item.balanceAmount}
+                                  onChangeText={(v) =>
+                                    updateField(idx, 'balanceAmount', v.replace(/\D/g, ''))
+                                  }
+                                  placeholder="0"
+                                  placeholderTextColor="#C8BFBB"
+                                  keyboardType="number-pad"
+                                />
+                                <Text style={costModalStyles.amountUnit}>만원</Text>
+                              </View>
+                              <Text style={[modalStyles.fieldLabel, { marginTop: 10 }]}>
+                                마감일
+                              </Text>
+                              <View style={modalStyles.dateRow}>
+                                <TextInput
+                                  style={[modalStyles.input, { flex: 2, textAlign: 'center' }]}
+                                  value={item.balanceDue ? item.balanceDue.split('-')[0] : ''}
+                                  onChangeText={(v) => {
+                                    const parts = (item.balanceDue || '--').split('-');
+                                    updateField(
+                                      idx,
+                                      'balanceDue',
+                                      `${v.replace(/\D/g, '').slice(0, 4)}-${parts[1] || ''}-${parts[2] || ''}`,
+                                    );
+                                  }}
+                                  placeholder="2026"
+                                  placeholderTextColor="#C8BFBB"
+                                  keyboardType="number-pad"
+                                  maxLength={4}
+                                />
+                                <Text style={modalStyles.dateSep}>년</Text>
+                                <TextInput
+                                  style={[modalStyles.input, { flex: 1.5, textAlign: 'center' }]}
+                                  value={item.balanceDue ? item.balanceDue.split('-')[1] : ''}
+                                  onChangeText={(v) => {
+                                    const parts = (item.balanceDue || '--').split('-');
+                                    updateField(
+                                      idx,
+                                      'balanceDue',
+                                      `${parts[0] || ''}-${v.replace(/\D/g, '').slice(0, 2)}-${parts[2] || ''}`,
+                                    );
+                                  }}
+                                  placeholder="02"
+                                  placeholderTextColor="#C8BFBB"
+                                  keyboardType="number-pad"
+                                  maxLength={2}
+                                />
+                                <Text style={modalStyles.dateSep}>월</Text>
+                                <TextInput
+                                  style={[modalStyles.input, { flex: 1.5, textAlign: 'center' }]}
+                                  value={item.balanceDue ? item.balanceDue.split('-')[2] : ''}
+                                  onChangeText={(v) => {
+                                    const parts = (item.balanceDue || '--').split('-');
+                                    updateField(
+                                      idx,
+                                      'balanceDue',
+                                      `${parts[0] || ''}-${parts[1] || ''}-${v.replace(/\D/g, '').slice(0, 2)}`,
+                                    );
+                                  }}
+                                  placeholder="01"
+                                  placeholderTextColor="#C8BFBB"
+                                  keyboardType="number-pad"
+                                  maxLength={2}
+                                />
+                                <Text style={modalStyles.dateSep}>일</Text>
+                              </View>
+                              <View style={costModalStyles.urgentRow}>
+                                <TouchableOpacity
+                                  style={[
+                                    costModalStyles.toggleBtn,
+                                    item.urgent && costModalStyles.toggleBtnUrgent,
+                                  ]}
+                                  onPress={() => updateField(idx, 'urgent', !item.urgent)}
+                                >
+                                  <Text
+                                    style={[
+                                      costModalStyles.toggleText,
+                                      item.urgent && { color: '#D0534A', fontWeight: '600' },
+                                    ]}
+                                  >
+                                    🔴 긴급
+                                  </Text>
+                                </TouchableOpacity>
+                              </View>
+                            </View>
+                          )}
+                          <View style={modalStyles.editFooter}>
+                            <TouchableOpacity onPress={() => deleteItem(idx)}>
+                              <Text style={modalStyles.deleteText}>삭제</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                              style={modalStyles.confirmBtn}
+                              onPress={() => setOpenIdx(null)}
+                            >
+                              <Text style={modalStyles.confirmBtnText}>확인</Text>
+                            </TouchableOpacity>
+                          </View>
+                        </View>
+                      )}
+                    </View>
+                  );
+                })}
+                <TouchableOpacity style={modalStyles.addBtn} onPress={addCostItem}>
+                  <Text style={modalStyles.addBtnText}>+ 비용 항목 추가</Text>
+                </TouchableOpacity>
+              </>
+            ) : (
+              /* 잔금 탭 */
+              <>
+                {balanceItems.length === 0 ? (
+                  <View style={costModalStyles.emptyBalance}>
+                    <Text style={costModalStyles.emptyBalanceText}>
+                      비용 항목에서 '잔금 있음'을 켜면{'\n'}여기에 표시됩니다
+                    </Text>
+                  </View>
+                ) : (
+                  balanceItems.map((item) => {
+                    const draftIdx = draft.findIndex((d) => d.id === item.id);
+                    return (
+                      <View key={item.id} style={costModalStyles.balanceCard}>
+                        <View style={costModalStyles.balanceCardLeft}>
+                          <View
+                            style={[
+                              costModalStyles.balanceDot,
+                              item.urgent && { backgroundColor: '#C9716A' },
+                            ]}
+                          />
+                          <View>
+                            <Text style={costModalStyles.balanceCardLabel}>{item.label} 잔금</Text>
+                            <Text style={costModalStyles.balanceCardSub}>
+                              {formatBalanceSub(item.balanceDue)}
+                            </Text>
+                          </View>
+                        </View>
+                        <View style={{ alignItems: 'flex-end' }}>
+                          <Text
+                            style={[
+                              costModalStyles.balanceCardAmount,
+                              item.urgent && { color: '#C9716A' },
+                            ]}
+                          >
+                            {item.balanceAmount ? `${item.balanceAmount}만원` : '미정'}
+                          </Text>
+                          <TouchableOpacity
+                            onPress={() => {
+                              setActiveTab('cost');
+                              setOpenIdx(draftIdx);
+                            }}
+                          >
+                            <Text style={costModalStyles.editLink}>수정</Text>
+                          </TouchableOpacity>
+                        </View>
+                      </View>
+                    );
+                  })
+                )}
+              </>
+            )}
+          </ScrollView>
+
+          {/* 하단 저장/취소 */}
+          <View style={[modalStyles.footer, { marginTop: 8 }]}>
+            <TouchableOpacity style={modalStyles.cancelBtn} onPress={onClose}>
+              <Text style={modalStyles.cancelBtnText}>취소</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={modalStyles.saveBtn}
+              onPress={() => {
+                onSave(draft, budget);
+                onClose();
+              }}
+            >
+              <Text style={modalStyles.saveBtnText}>저장</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </Modal>
+  );
+}
+
+const costModalStyles = StyleSheet.create({
+  tabRow: {
+    flexDirection: 'row',
+    backgroundColor: '#F5F0EE',
+    borderRadius: 10,
+    padding: 3,
+    marginBottom: 16,
+  },
+  tab: {
+    flex: 1,
+    paddingVertical: 8,
+    alignItems: 'center',
+    borderRadius: 8,
+  },
+  tabActive: {
+    backgroundColor: '#fff',
+    shadowColor: '#2C2420',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  tabText: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: '#B8A9A5',
+  },
+  tabTextActive: {
+    color: '#2C2420',
+    fontWeight: '600',
+  },
+  budgetRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#FBF8F7',
+    borderRadius: 10,
+    padding: 12,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#EDE5E2',
+  },
+  budgetLabel: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: '#6B5B55',
+  },
+  budgetInputWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  budgetInput: {
+    borderWidth: 1,
+    borderColor: '#EDE5E2',
+    borderRadius: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#C9716A',
+    minWidth: 70,
+    textAlign: 'right',
+    backgroundColor: '#fff',
+  },
+  budgetUnit: {
+    fontSize: 13,
+    color: '#6B5B55',
+  },
+  amountRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 4,
+  },
+  amountUnit: {
+    fontSize: 13,
+    color: '#6B5B55',
+  },
+  toggleRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 10,
+  },
+  toggleBtn: {
+    borderWidth: 1,
+    borderColor: '#EDE5E2',
+    borderRadius: 7,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    backgroundColor: '#FBF8F7',
+  },
+  toggleBtnOn: {
+    borderColor: '#C9716A',
+    backgroundColor: '#F5EAE9',
+  },
+  toggleBtnUrgent: {
+    borderColor: '#D0534A',
+    backgroundColor: '#FDF0EF',
+  },
+  toggleText: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: '#B8A9A5',
+  },
+  balanceSubSection: {
+    backgroundColor: '#FBF8F7',
+    borderRadius: 8,
+    padding: 10,
+    marginTop: 8,
+    borderWidth: 1,
+    borderColor: '#EDE5E2',
+  },
+  urgentRow: {
+    marginTop: 10,
+  },
+  balanceCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderWidth: 1,
+    borderColor: '#EDE5E2',
+    borderRadius: 10,
+    padding: 14,
+    marginBottom: 10,
+    backgroundColor: '#FDFAF9',
+  },
+  balanceCardLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    flex: 1,
+  },
+  balanceDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#EDE5E2',
+    flexShrink: 0,
+  },
+  balanceCardLabel: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: '#2C2420',
+  },
+  balanceCardSub: {
+    fontSize: 11,
+    color: '#B8A9A5',
+    marginTop: 2,
+  },
+  balanceCardAmount: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#2C2420',
+  },
+  editLink: {
+    fontSize: 11,
+    color: '#C9716A',
+    marginTop: 4,
+  },
+  emptyBalance: {
+    paddingVertical: 40,
+    alignItems: 'center',
+  },
+  emptyBalanceText: {
+    fontSize: 13,
+    color: '#C8BFBB',
+    textAlign: 'center',
+    lineHeight: 20,
+  },
+});
+// ────────────────────────────────────────────────────────
+
 export default function TimelineScreen() {
   const [selectedDate, setSelectedDate] = useState('2026-01-15');
+  const [visibleMonth, setVisibleMonth] = useState('2026-01');
   const [timelineItems, setTimelineItems] = useState(INITIAL_TIMELINE_ITEMS);
   const [editModalVisible, setEditModalVisible] = useState(false);
+  const [scheduleAddModalVisible, setScheduleAddModalVisible] = useState(false);
+  const [costItems, setCostItems] = useState(INITIAL_COST_ITEMS);
+  const [budget, setBudget] = useState('1000');
+  const [costEditModalVisible, setCostEditModalVisible] = useState(false);
+
+  // timelineItems에서 달력 마킹 파생
+  const markedDates = timelineItems.reduce((acc, item) => {
+    if (!item.dateYear || !item.dateMonth || !item.dateDay) return acc;
+    const pad = (v) => String(parseInt(v)).padStart(2, '0');
+    const key = `${item.dateYear}-${pad(item.dateMonth)}-${pad(item.dateDay)}`;
+    const colorOpt = COLOR_OPTIONS.find((c) => c.key === (item.color ?? 'rose'));
+    acc[key] = { selected: true, selectedColor: colorOpt ? colorOpt.hex : '#C9716A' };
+    return acc;
+  }, {});
+
+  // 현재 달력에 보이는 월의 일정만 필터링 (날짜순)
+  const visibleEvents = timelineItems
+    .filter((item) => {
+      if (!item.dateYear || !item.dateMonth || !item.dateDay) return false;
+      const pad = (v) => String(parseInt(v)).padStart(2, '0');
+      const dateStr = `${item.dateYear}-${pad(item.dateMonth)}-${pad(item.dateDay)}`;
+      return dateStr.startsWith(visibleMonth);
+    })
+    .sort((a, b) => {
+      const pad = (v) => String(parseInt(v)).padStart(2, '0');
+      const da = `${a.dateYear}-${pad(a.dateMonth)}-${pad(a.dateDay)}`;
+      const db = `${b.dateYear}-${pad(b.dateMonth)}-${pad(b.dateDay)}`;
+      return da.localeCompare(db);
+    });
+
+  const [visibleYear, visibleMonthNum] = visibleMonth.split('-');
+  const monthLabel = `${parseInt(visibleYear)}년 ${parseInt(visibleMonthNum)}월`;
+
+  // 달력 일정 추가 → timelineItems에 직접 추가
+  const handleAddSchedule = ({ dateYear, dateMonth, dateDay, label, color, status }) => {
+    const newItem = {
+      id: Date.now(),
+      label,
+      dateYear,
+      dateMonth,
+      dateDay,
+      status: status ?? 'future',
+      color: color ?? 'rose',
+    };
+    setTimelineItems((prev) =>
+      [...prev, newItem].sort((a, b) => {
+        const pad = (v) => String(parseInt(v)).padStart(2, '0');
+        const da = `${a.dateYear}-${pad(a.dateMonth)}-${pad(a.dateDay)}`;
+        const db = `${b.dateYear}-${pad(b.dateMonth)}-${pad(b.dateDay)}`;
+        return da.localeCompare(db);
+      }),
+    );
+  };
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -373,36 +1319,58 @@ export default function TimelineScreen() {
 
           <View style={styles.timelineWrap}>
             <View style={styles.timelineLine} />
-            {timelineItems.map((item) => (
-              <View key={item.id} style={styles.tlItem}>
-                <View style={[styles.tlDot, styles[`dot_${item.status}`]]} />
-                <View>
-                  <Text
-                    style={[
-                      styles.tlLabel,
-                      item.status === 'active' && { color: '#C9716A' },
-                      item.status === 'future' && { color: '#B8A9A5' },
-                      item.status === 'next' && { color: '#6B5B55' },
-                    ]}
-                  >
-                    {item.label}
-                  </Text>
-                  <Text style={[styles.tlDate, item.status === 'active' && { color: '#C9716A' }]}>
-                    {formatDate(item)}
-                  </Text>
+            {timelineItems.map((item) => {
+              // 도트 색상: done=초록, active=로즈(채움), next=로즈(빈 원), future=회색(빈 원)
+              const dotStyle =
+                item.status === 'done'
+                  ? { backgroundColor: '#7A9E8E', borderColor: '#7A9E8E' }
+                  : item.status === 'active'
+                    ? { backgroundColor: '#C9716A', borderColor: '#C9716A' }
+                    : item.status === 'next'
+                      ? { backgroundColor: '#fff', borderColor: '#C9716A' }
+                      : { backgroundColor: '#fff', borderColor: '#D4C9C5' };
+              return (
+                <View key={item.id} style={styles.tlItem}>
+                  <View style={[styles.tlDot, dotStyle]} />
+                  <View>
+                    <Text
+                      style={[
+                        styles.tlLabel,
+                        item.status === 'active' && { color: '#C9716A' },
+                        item.status === 'future' && { color: '#B8A9A5' },
+                        item.status === 'next' && { color: '#6B5B55' },
+                      ]}
+                    >
+                      {item.label}
+                    </Text>
+                    <Text style={[styles.tlDate, item.status === 'active' && { color: '#C9716A' }]}>
+                      {formatDate(item)}
+                    </Text>
+                  </View>
                 </View>
-              </View>
-            ))}
+              );
+            })}
           </View>
         </View>
 
         {/* ── ③ 일정 관리 달력 ── */}
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>일정 관리</Text>
+          <View style={styles.cardTitleRow}>
+            <Text style={styles.cardTitle}>일정 관리</Text>
+            <TouchableOpacity
+              style={styles.editBtn}
+              onPress={() => setScheduleAddModalVisible(true)}
+            >
+              <Text style={styles.editBtnText}>+ 일정 추가</Text>
+            </TouchableOpacity>
+          </View>
           <Calendar
             current={selectedDate}
             onDayPress={(day) => setSelectedDate(day.dateString)}
-            markedDates={MARKED_DATES}
+            onMonthChange={(month) =>
+              setVisibleMonth(`${month.year}-${String(month.month).padStart(2, '0')}`)
+            }
+            markedDates={markedDates}
             theme={{
               selectedDayBackgroundColor: '#C9716A',
               todayTextColor: '#C9716A',
@@ -416,24 +1384,31 @@ export default function TimelineScreen() {
             style={{ borderRadius: 10 }}
           />
           <View style={{ marginTop: 12, gap: 6 }}>
-            {SCHEDULE_EVENTS.map((ev, i) => (
-              <View
-                key={i}
-                style={[
-                  styles.eventBadge,
-                  ev.color === 'rose' ? styles.eventRose : styles.eventSage,
-                ]}
-              >
-                <Text
-                  style={[
-                    styles.eventText,
-                    ev.color === 'rose' ? { color: '#C9716A' } : { color: '#7A9E8E' },
-                  ]}
-                >
-                  {ev.label}
-                </Text>
+            {visibleEvents.length > 0 ? (
+              visibleEvents.map((item) => {
+                const colorOpt = COLOR_OPTIONS.find((c) => c.key === (item.color ?? 'rose'));
+                const bgColor = colorOpt ? colorOpt.bg : '#F5EAE9';
+                const borderColor = colorOpt ? colorOpt.hex : '#C9716A';
+                const textColor = colorOpt ? colorOpt.text : '#C9716A';
+                const pad = (v) => String(parseInt(v)).padStart(2, '0');
+                const displayLabel = `${parseInt(item.dateMonth)}월 ${parseInt(item.dateDay)}일 — ${item.label}`;
+                return (
+                  <View
+                    key={item.id}
+                    style={[
+                      styles.eventBadge,
+                      { backgroundColor: bgColor, borderLeftColor: borderColor },
+                    ]}
+                  >
+                    <Text style={[styles.eventText, { color: textColor }]}>{displayLabel}</Text>
+                  </View>
+                );
+              })
+            ) : (
+              <View style={styles.emptyEvents}>
+                <Text style={styles.emptyEventsText}>{monthLabel}에 등록된 일정이 없습니다</Text>
               </View>
-            ))}
+            )}
           </View>
         </View>
 
@@ -441,12 +1416,12 @@ export default function TimelineScreen() {
         <View style={styles.card}>
           <View style={styles.cardTitleRow}>
             <Text style={styles.cardTitle}>비용 관리</Text>
-            <View style={styles.badgeRose}>
-              <Text style={styles.badgeRoseText}>투명 공개</Text>
-            </View>
+            <TouchableOpacity style={styles.editBtn} onPress={() => setCostEditModalVisible(true)}>
+              <Text style={styles.editBtnText}>수정</Text>
+            </TouchableOpacity>
           </View>
-          {COST_ITEMS.map((item, i) => (
-            <View key={i} style={styles.costRow}>
+          {costItems.map((item) => (
+            <View key={item.id} style={styles.costRow}>
               <Text style={styles.costLabel}>{item.label}</Text>
               <Text
                 style={[
@@ -455,39 +1430,50 @@ export default function TimelineScreen() {
                   item.gray && { color: '#B8A9A5' },
                 ]}
               >
-                {item.warn && '⚠ '}
-                {item.value}
+                {item.warn ? '⚠ ' : ''}
+                {item.value ? `${item.value}만원` : '미정'}
               </Text>
             </View>
           ))}
           <View style={styles.costTotalRow}>
             <Text style={styles.costTotalLabel}>현재 합계</Text>
-            <Text style={styles.costTotalValue}>671만원</Text>
+            <Text style={styles.costTotalValue}>{sumValues(costItems)}만원</Text>
           </View>
           <View style={styles.progressBar}>
-            <View style={[styles.progressFill, { width: '67%' }]} />
+            <View
+              style={[
+                styles.progressFill,
+                {
+                  width: `${Math.min(100, Math.round((sumValues(costItems) / (parseInt(budget) || 1)) * 100))}%`,
+                },
+              ]}
+            />
           </View>
-          <Text style={styles.progressSub}>예산 1,000만원 중 671만원 사용</Text>
+          <Text style={styles.progressSub}>
+            예산 {budget}만원 중 {sumValues(costItems)}만원 사용
+          </Text>
         </View>
 
         {/* ── ⑤ 잔금 일정 ── */}
         <View style={[styles.card, { marginBottom: 32 }]}>
           <View style={styles.cardTitleRow}>
             <Text style={styles.cardTitle}>잔금 일정</Text>
-            <Text style={styles.annoText}>자동 알림</Text>
           </View>
-          {BALANCE_ITEMS.map((item, i) => (
-            <View key={i} style={styles.balanceRow}>
-              <View style={[styles.balanceDot, item.urgent && { backgroundColor: '#C9716A' }]} />
-              <View style={{ flex: 1 }}>
-                <Text style={styles.balanceLabel}>{item.label}</Text>
-                <Text style={styles.balanceSub}>{item.sub}</Text>
+          {costItems
+            .filter((item) => item.hasBalance)
+            .sort((a, b) => (a.balanceDue > b.balanceDue ? 1 : -1))
+            .map((item) => (
+              <View key={item.id} style={styles.balanceRow}>
+                <View style={[styles.balanceDot, item.urgent && { backgroundColor: '#C9716A' }]} />
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.balanceLabel}>{item.label} 잔금</Text>
+                  <Text style={styles.balanceSub}>{formatBalanceSub(item.balanceDue)}</Text>
+                </View>
+                <Text style={[styles.balanceAmount, item.urgent && { color: '#C9716A' }]}>
+                  {item.balanceAmount ? `${item.balanceAmount}만원` : '미정'}
+                </Text>
               </View>
-              <Text style={[styles.balanceAmount, item.urgent && { color: '#C9716A' }]}>
-                {item.amount}
-              </Text>
-            </View>
-          ))}
+            ))}
         </View>
       </ScrollView>
 
@@ -497,6 +1483,25 @@ export default function TimelineScreen() {
         items={timelineItems}
         onClose={() => setEditModalVisible(false)}
         onSave={(updated) => setTimelineItems(updated)}
+      />
+
+      {/* 일정 추가 모달 */}
+      <ScheduleAddModal
+        visible={scheduleAddModalVisible}
+        preselectedDate={selectedDate}
+        onClose={() => setScheduleAddModalVisible(false)}
+        onSave={handleAddSchedule}
+      />
+
+      {/* 비용/잔금 수정 모달 */}
+      <CostEditModal
+        visible={costEditModalVisible}
+        items={costItems}
+        onClose={() => setCostEditModalVisible(false)}
+        onSave={(updatedItems, updatedBudget) => {
+          setCostItems(updatedItems);
+          setBudget(updatedBudget);
+        }}
       />
     </SafeAreaView>
   );
@@ -872,6 +1877,14 @@ const styles = StyleSheet.create({
   eventRose: { backgroundColor: '#F5EAE9', borderLeftColor: '#C9716A' },
   eventSage: { backgroundColor: '#EBF2EE', borderLeftColor: '#7A9E8E' },
   eventText: { fontSize: 12, fontWeight: '500' },
+  emptyEvents: {
+    paddingVertical: 12,
+    alignItems: 'center',
+  },
+  emptyEventsText: {
+    fontSize: 12,
+    color: '#C8BFBB',
+  },
 
   // 비용
   costRow: {

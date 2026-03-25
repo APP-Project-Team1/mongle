@@ -12,6 +12,8 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
+import LottieView from 'lottie-react-native';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
@@ -35,12 +37,19 @@ export default function LoginScreen() {
           <Text style={styles.logoSub}>웨딩의 모든 것을 한 곳에서</Text>
         </View>
 
+        <LottieView
+          source={require('../../assets/lottie/Animated_leaves.json')}
+          autoPlay
+          loop
+          style={{ width: 200, height: 200, left: 100 }}
+        />
+
         <View style={styles.form}>
           <View style={styles.inputWrap}>
             <Ionicons name="mail-outline" size={16} color="#8a7870" style={styles.inputIcon} />
             <TextInput
               style={styles.input}
-              placeholder="이메일"
+              placeholder="이메일을 입력해주세요."
               placeholderTextColor="#8a7870"
               value={email}
               onChangeText={setEmail}
@@ -74,21 +83,18 @@ export default function LoginScreen() {
           </View>
 
           <TouchableOpacity
-            style={styles.loginBtn}
+            style={[styles.loginBtnWrapper, styles.shadow]}
             activeOpacity={0.85}
             onPress={() => router.replace('/(couple)')}
           >
-            <Text style={styles.loginBtnText}>로그인</Text>
-          </TouchableOpacity>
-
-          <View style={styles.dividerRow}>
-            <View style={styles.divider} />
-            <Text style={styles.dividerText}>또는</Text>
-            <View style={styles.divider} />
-          </View>
-
-          <TouchableOpacity style={styles.kakaoBtn} activeOpacity={0.85}>
-            <Text style={styles.kakaoBtnText}>카카오로 계속하기</Text>
+            <LinearGradient
+              colors={['#d6a6a6', '#d5d1b3']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.loginBtnGradient}
+            >
+              <Text style={styles.loginBtnText}>로그인</Text>
+            </LinearGradient>
           </TouchableOpacity>
         </View>
 
@@ -107,26 +113,28 @@ const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: '#fff' },
   backBtn: { padding: 16, paddingBottom: 0 },
   inner: { flex: 1, paddingHorizontal: 28, justifyContent: 'center' },
-  logoWrap: { alignItems: 'center', marginBottom: 48 },
+  logoWrap: { alignItems: 'center', marginBottom: 10 },
   logo: {
     fontFamily: 'serif',
     fontSize: 36,
     fontStyle: 'italic',
-    color: '#6b4c4c',
+    color: '#917878',
     letterSpacing: 2,
     marginBottom: 8,
   },
-  logoSub: { fontSize: 13, color: '#8a7870', letterSpacing: 0.5 },
+  logoSub: { fontSize: 13, color: '#B49191', letterSpacing: 0.5 },
   form: { gap: 12 },
   inputWrap: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f5f0ee',
-    borderRadius: 14,
-    paddingHorizontal: 14,
-    paddingVertical: 14,
+    backgroundColor: '#F5F0F0',
+    borderRadius: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderColor: '#e3dcd7',
+    borderWidth: 1,
   },
-  inputIcon: { marginRight: 10 },
+  inputIcon: { marginHorizontal: 10 },
   input: { flex: 1, fontSize: 14, color: '#3a2e2a' },
   eyeBtn: { padding: 4 },
   loginBtn: {
@@ -136,7 +144,32 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 8,
   },
+
+  loginBtnWrapper: {
+    width: '100%',
+    height: 56,
+    marginTop: 20,
+    borderRadius: 10,
+  },
+  loginBtnGradient: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 10,
+  },
+
   loginBtnText: { fontSize: 15, fontWeight: '600', color: '#fff', letterSpacing: 0.5 },
+
+  shadow: {
+    // iOS
+    shadowColor: '#c1a8a8',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
+
+    // Android
+    elevation: 6,
+  },
   dividerRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginVertical: 4 },
   divider: { flex: 1, height: 1, backgroundColor: '#e8e0dc' },
   dividerText: { fontSize: 12, color: '#8a7870' },
@@ -155,5 +188,5 @@ const styles = StyleSheet.create({
     marginTop: 36,
   },
   registerText: { fontSize: 13, color: '#8a7870' },
-  registerLink: { fontSize: 13, color: '#c9a98e', fontWeight: '600' },
+  registerLink: { fontSize: 13, color: '#B49191', fontWeight: '600' },
 });

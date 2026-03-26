@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -34,6 +34,8 @@ export default function PlannersScreen() {
   });
 
   const [selectedPlanner, setSelectedPlanner] = useState(null);
+  const [showScrollTop, setShowScrollTop] = useState(false);
+  const flatListRef = useRef(null);
 
   useEffect(() => {
     const handleBackPress = () => {
@@ -139,6 +141,15 @@ export default function PlannersScreen() {
       </TouchableOpacity>
     </View>
   );
+
+  const scrollToTop = () => {
+    flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
+  };
+
+  const onScroll = (event) => {
+    const offsetY = event.nativeEvent.contentOffset.y;
+    setShowScrollTop(offsetY > 300);
+  };
 
   const allSelectedChips = [
     ...selectedFilters.activity_regions.map((v) => ({ cat: 'activity_regions', val: v })),
@@ -353,6 +364,9 @@ export default function PlannersScreen() {
       )}
 
       <FlatList
+        ref={flatListRef}
+        onScroll={onScroll}
+        scrollEventThrottle={16}
         data={filteredPlanners}
         keyExtractor={(item, index) => `${item.name}-${index}`}
         contentContainerStyle={styles.listContainer}
@@ -389,6 +403,12 @@ export default function PlannersScreen() {
         )}
         ListEmptyComponent={<Text style={styles.emptyList}>일치하는 플래너가 없습니다.</Text>}
       />
+
+      {showScrollTop && (
+        <TouchableOpacity style={styles.scrollTopButton} onPress={scrollToTop} activeOpacity={0.8}>
+          <Ionicons name="arrow-up" size={24} color="#fff" />
+        </TouchableOpacity>
+      )}
 
       {renderBottomTab()}
     </SafeAreaView>
@@ -869,5 +889,21 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: '700',
+  },
+  scrollTopButton: {
+    position: 'absolute',
+    right: 20,
+    bottom: Platform.OS === 'android' ? 85 : 80,
+    backgroundColor: '#c9a98e',
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 3,
   },
 });

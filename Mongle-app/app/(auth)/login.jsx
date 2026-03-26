@@ -8,6 +8,7 @@ import {
   StatusBar,
   KeyboardAvoidingView,
   Platform,
+  Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
@@ -18,7 +19,30 @@ import LottieView from 'lottie-react-native';
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [isPlanner, setIsPlanner] = useState(false);
   const [showPw, setShowPw] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [modalMessage, setModalMessage] = useState('');
+  const renderBottomTab = () => (
+    <View style={tabStyles.container}>
+      <TouchableOpacity style={tabStyles.tabItem} onPress={() => router.replace('/(couple)')}>
+        <Ionicons name="home-outline" size={24} color="#8a7870" />
+        <Text style={tabStyles.tabText}>홈</Text>
+      </TouchableOpacity>
+      <TouchableOpacity style={tabStyles.tabItem} onPress={() => router.replace('/(couple)/timeline')}>
+        <Ionicons name="calendar-outline" size={24} color="#8a7870" />
+        <Text style={tabStyles.tabText}>일정</Text>
+      </TouchableOpacity>
+      <TouchableOpacity style={tabStyles.tabItem} onPress={() => router.replace('/(couple)/chat')}>
+        <Ionicons name="chatbubble-outline" size={24} color="#8a7870" />
+        <Text style={tabStyles.tabText}>채팅</Text>
+      </TouchableOpacity>
+      <TouchableOpacity style={tabStyles.tabItem} onPress={() => router.push('/(auth)/login')}>
+        <Ionicons name="person-outline" size={24} color="#c9a98e" />
+        <Text style={[tabStyles.tabText, { color: '#c9a98e' }]}>마이</Text>
+      </TouchableOpacity>
+    </View>
+  );
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -45,6 +69,24 @@ export default function LoginScreen() {
         />
 
         <View style={styles.form}>
+          {/* 로그인 유형 선택 (탭) */}
+          <View style={styles.roleTabContainer}>
+            <TouchableOpacity
+              style={[styles.roleTab, !isPlanner && styles.activeRoleTab]}
+              onPress={() => setIsPlanner(false)}
+              activeOpacity={0.8}
+            >
+              <Text style={[styles.roleTabText, !isPlanner && styles.activeRoleTabText]}>예비 신혼</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.roleTab, isPlanner && styles.activeRoleTab]}
+              onPress={() => setIsPlanner(true)}
+              activeOpacity={0.8}
+            >
+              <Text style={[styles.roleTabText, isPlanner && styles.activeRoleTabText]}>웨딩 플래너</Text>
+            </TouchableOpacity>
+          </View>
+
           <View style={styles.inputWrap}>
             <Ionicons name="mail-outline" size={16} color="#8a7870" style={styles.inputIcon} />
             <TextInput
@@ -85,7 +127,23 @@ export default function LoginScreen() {
           <TouchableOpacity
             style={[styles.loginBtnWrapper, styles.shadow]}
             activeOpacity={0.85}
-            onPress={() => router.replace('/(couple)')}
+            onPress={() => {
+              if (!email || !password) {
+                setModalMessage('이메일과 비밀번호를 입력해주세요.');
+                setModalVisible(true);
+                return;
+              }
+              // Simulated logic: if email contains 'planner' but isPlanner is false, or vice versa
+              if (email.includes('planner') && !isPlanner) {
+                setModalMessage('선택하신 회원 유형이 계정 정보와 일치하지 않습니다.');
+                setModalVisible(true);
+              } else if (!email.includes('planner') && isPlanner && email.includes('@')) {
+                setModalMessage('선택하신 회원 유형이 계정 정보와 일치하지 않습니다.');
+                setModalVisible(true);
+              } else {
+                router.replace('/(couple)');
+              }
+            }}
           >
             <LinearGradient
               colors={['#d6a6a6', '#d5d1b3']}
@@ -98,13 +156,52 @@ export default function LoginScreen() {
           </TouchableOpacity>
         </View>
 
-        <View style={styles.registerRow}>
-          <Text style={styles.registerText}>아직 계정이 없으신가요?</Text>
+        <View style={styles.authLinksRow}>
           <TouchableOpacity onPress={() => router.push('/(auth)/register')}>
-            <Text style={styles.registerLink}>회원가입</Text>
+            <Text style={styles.authLinkText}>회원가입</Text>
+          </TouchableOpacity>
+          <View style={styles.linkDivider} />
+          <TouchableOpacity
+            onPress={() => {
+              setModalMessage('비밀번호 찾기 기능은 준비 중입니다.');
+              setModalVisible(true);
+            }}
+          >
+            <Text style={styles.authLinkText}>비밀번호 찾기</Text>
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
+
+      {/* 커스텀 모달 */}
+      <Modal
+        transparent
+        visible={modalVisible}
+        animationType="fade"
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalBox}>
+            <Text style={styles.modalTitle}>알림</Text>
+            <Text style={styles.modalMessage}>{modalMessage}</Text>
+            <TouchableOpacity
+              style={styles.modalBtn}
+              activeOpacity={0.85}
+              onPress={() => setModalVisible(false)}
+            >
+              <LinearGradient
+                colors={['#c89494', '#ccc79e']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.modalBtnGradient}
+              >
+                <Text style={styles.modalBtnText}>확인</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {renderBottomTab()}
     </SafeAreaView>
   );
 }
@@ -187,6 +284,128 @@ const styles = StyleSheet.create({
     gap: 6,
     marginTop: 36,
   },
-  registerText: { fontSize: 13, color: '#8a7870' },
-  registerLink: { fontSize: 13, color: '#B49191', fontWeight: '600' },
+  authLinksRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 24,
+    gap: 12,
+  },
+  authLinkText: {
+    fontSize: 13,
+    color: '#B49191',
+    fontWeight: '600',
+  },
+  linkDivider: {
+    width: 1,
+    height: 12,
+    backgroundColor: '#e8dcd7',
+  },
+  roleTabContainer: {
+    flexDirection: 'row',
+    backgroundColor: '#F5F0F0',
+    borderRadius: 12,
+    padding: 4,
+    marginBottom: 8,
+  },
+  roleTab: {
+    flex: 1,
+    paddingVertical: 10,
+    alignItems: 'center',
+    borderRadius: 9,
+  },
+  activeRoleTab: {
+    backgroundColor: '#fff',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  roleTabText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#8a7870',
+  },
+  activeRoleTabText: {
+    color: '#917878',
+    fontWeight: '700',
+  },
+
+  // 모달
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.35)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalBox: {
+    width: '80%',
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    paddingVertical: 28,
+    paddingHorizontal: 24,
+    alignItems: 'center',
+    gap: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  modalTitle: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: '#3a2e2a',
+    letterSpacing: 0.3,
+  },
+  modalMessage: {
+    fontSize: 14,
+    color: '#8a7870',
+    textAlign: 'center',
+    lineHeight: 20,
+  },
+  modalBtn: {
+    width: '100%',
+    height: 46,
+    borderRadius: 10,
+    marginTop: 8,
+  },
+  modalBtnGradient: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 10,
+  },
+  modalBtnText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#fff',
+    letterSpacing: 0.5,
+  },
+});
+
+const tabStyles = StyleSheet.create({
+  container: {
+    flexDirection: 'row',
+    backgroundColor: '#fff',
+    borderTopColor: '#f0e8e4',
+    borderTopWidth: 1,
+    height: Platform.OS === 'android' ? 65 : 60,
+    paddingBottom: Platform.OS === 'ios' ? 15 : 10,
+    paddingTop: 10,
+    justifyContent: 'space-around',
+    alignItems: 'center',
+  },
+  tabItem: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    flex: 1,
+  },
+  tabText: {
+    fontSize: 11,
+    color: '#8a7870',
+    marginTop: 4,
+    fontWeight: '500',
+  },
 });

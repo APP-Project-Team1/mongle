@@ -39,8 +39,9 @@ export const useChatStore = create((set, get) => ({
       set({ messages: mockMessages, currentChatId: chatId, loading: false })
       return { data: mockMessages, error: null }
     } catch (error) {
-      set({ error: error.message, loading: false })
-      return { data: null, error }
+      const errorMessage = error.response?.data?.message || error.message || '채팅 메시지 조회 실패';
+      set({ error: errorMessage, loading: false })
+      return { data: null, error: errorMessage }
     }
   },
 
@@ -87,8 +88,9 @@ export const useChatStore = create((set, get) => ({
 
       return { data: newMessage, error: null }
     } catch (error) {
-      set({ error: error.message, loading: false })
-      return { data: null, error }
+      const errorMessage = error.response?.data?.message || error.message || '메시지 전송 실패';
+      set({ error: errorMessage, loading: false })
+      return { data: null, error: errorMessage }
     }
   },
 
@@ -116,8 +118,9 @@ export const useChatStore = create((set, get) => ({
       set({ currentChatId: newChat.id, messages: [], loading: false })
       return { data: newChat, error: null }
     } catch (error) {
-      set({ error: error.message, loading: false })
-      return { data: null, error }
+      const errorMessage = error.response?.data?.message || error.message || '채팅방 생성 실패';
+      set({ error: errorMessage, loading: false })
+      return { data: null, error: errorMessage }
     }
   },
 

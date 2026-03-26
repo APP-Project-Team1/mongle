@@ -11,25 +11,21 @@ import {
   StatusBar,
   KeyboardAvoidingView,
   Platform,
+  ActivityIndicator
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useProjectStore } from '../../stores';
+import { useChats, useCreateChat } from '../../hooks/useChat';
 
 // Dummy user ID to mock authentication
 const CURRENT_USER_ID = 'me';
 
 export default function ChatScreen() {
-  const [rooms, setRooms] = useState([
-    {
-      id: '1',
-      title: 'Our Wedding Plan',
-      participants: ['me', 'partner'],
-      isMuted: false,
-      lastMessage: 'Did you check the venue?',
-      createdAt: new Date().toISOString(),
-    },
-  ]);
+  const projectId = useProjectStore((state) => state.currentProjectId);
+  const { data: rooms = [], isLoading, error } = useChats(projectId);
+  const createChatMutation = useCreateChat();
 
   const [isCreateModalVisible, setCreateModalVisible] = useState(false);
   const [newRoomTitle, setNewRoomTitle] = useState('');
@@ -40,33 +36,25 @@ export default function ChatScreen() {
   const [renameRoomId, setRenameRoomId] = useState('');
   const [renameRoomTitle, setRenameRoomTitle] = useState('');
 
-  // 1. 초대받은 사람만 접근 가능: 나와 관련된 방만 필터링
-  const visibleRooms = rooms.filter(room => room.participants.includes(CURRENT_USER_ID));
+  const visibleRooms = rooms || [];
 
-  const handleCreateRoom = () => {
+  const handleCreateRoom = async () => {
     if (!newRoomTitle.trim()) {
       Alert.alert('알림', '채팅방 제목을 입력해주세요.');
       return;
     }
 
-    // Create new room structure
-    const newRoom = {
-      id: Date.now().toString(),
-      title: newRoomTitle,
-      participants: [CURRENT_USER_ID],
-      isMuted: false,
-      lastMessage: '채팅방이 생성되었습니다.',
-      createdAt: new Date().toISOString(),
-    };
-
-    if (inviteeId.trim()) {
-      newRoom.participants.push(inviteeId.trim());
+    try {
+      await createChatMutation.mutateAsync({
+        projectId,
+        title: newRoomTitle
+      });
+      setCreateModalVisible(false);
+      setNewRoomTitle('');
+      setInviteeId('');
+    } catch (error) {
+      Alert.alert('오류', '채팅방을 생성하지 못했습니다.');
     }
-
-    setRooms(prev => [newRoom, ...prev]);
-    setCreateModalVisible(false);
-    setNewRoomTitle('');
-    setInviteeId('');
   };
 
   const handleLongPress = (room) => {
@@ -102,24 +90,12 @@ export default function ChatScreen() {
   };
 
   const handleToggleMute = (roomId) => {
-    setRooms(prev => prev.map(r => r.id === roomId ? { ...r, isMuted: !r.isMuted } : r));
+    Alert.alert('알림', '기능 준비 중입니다.');
   };
 
   const handleLeaveRoom = (roomId) => {
-    Alert.alert('채팅방 나가기', '정말로 이 채팅방에서 나가시겠습니까?', [
-      { text: '취소', style: 'cancel' },
-      {
-        text: '나가기',
-        style: 'destructive',
-        onPress: () => {
-          setRooms(prev => prev.map(r => {
-            if (r.id === roomId) {
-              return { ...r, participants: r.participants.filter(p => p !== CURRENT_USER_ID) };
-            }
-            return r;
-          }));
-        }
-      }
+    Alert.alert('채팅방 나가기', '채팅방 삭제 기능은 준비 중입니다.', [
+      { text: '확인' }
     ]);
   };
 
@@ -142,6 +118,34 @@ export default function ChatScreen() {
       </View>
     </TouchableOpacity>
   );
+
+  if (!projectId) {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <StatusBar barStyle="dark-content" backgroundColor="#fff" />
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>채팅</Text>
+        </View>
+        <View style={styles.emptyContainer}>
+          <Text style={styles.emptyText}>프로젝트를 선택해주세요</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <StatusBar barStyle="dark-content" backgroundColor="#fff" />
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>채팅</Text>
+        </View>
+        <View style={styles.emptyContainer}>
+          <ActivityIndicator size="large" color="#8a7870" />
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -273,9 +277,7 @@ export default function ChatScreen() {
               <TouchableOpacity
                 style={[styles.modalBtn, styles.modalCreateBtn]}
                 onPress={() => {
-                  if (renameRoomTitle && renameRoomTitle.trim()) {
-                    setRooms(prev => prev.map(r => r.id === renameRoomId ? { ...r, title: renameRoomTitle.trim() } : r));
-                  }
+                  Alert.alert('알림', '제목 변경 기능은 준비 중입니다.');
                   setRenameModalVisible(false);
                   setRenameRoomId('');
                   setRenameRoomTitle('');

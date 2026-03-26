@@ -18,8 +18,9 @@ export const useProjectStore = create((set, get) => ({
       set({ projects: response, loading: false })
       return { data: response, error: null }
     } catch (error) {
-      set({ error: error.message, loading: false })
-      return { data: null, error }
+      const errorMessage = error.response?.data?.message || error.message || '프로젝트 조회 실패';
+      set({ error: errorMessage, loading: false });
+      return { data: null, error: errorMessage };
     }
   },
 
@@ -31,8 +32,9 @@ export const useProjectStore = create((set, get) => ({
       set({ currentProject: response, loading: false })
       return { data: response, error: null }
     } catch (error) {
-      set({ error: error.message, loading: false })
-      return { data: null, error }
+      const errorMessage = error.response?.data?.message || error.message || '프로젝트 상세 조회 실패';
+      set({ error: errorMessage, loading: false });
+      return { data: null, error: errorMessage };
     }
   },
 
@@ -71,8 +73,9 @@ export const useProjectStore = create((set, get) => ({
 
       return { data: response, error: null }
     } catch (error) {
-      set({ error: error.message, loading: false })
-      return { data: null, error }
+      const errorMessage = error.response?.data?.message || error.message || '프로젝트 생성 실패';
+      set({ error: errorMessage, loading: false });
+      return { data: null, error: errorMessage };
     }
   },
 
@@ -95,8 +98,9 @@ export const useProjectStore = create((set, get) => ({
 
       return { data: response, error: null }
     } catch (error) {
-      set({ error: error.message, loading: false })
-      return { data: null, error }
+      const errorMessage = error.response?.data?.message || error.message || '프로젝트 수정 실패';
+      set({ error: errorMessage, loading: false });
+      return { data: null, error: errorMessage };
     }
   },
 
@@ -117,8 +121,9 @@ export const useProjectStore = create((set, get) => ({
 
       return { error: null }
     } catch (error) {
-      set({ error: error.message, loading: false })
-      return { error }
+      const errorMessage = error.response?.data?.message || error.message || '프로젝트 삭제 실패';
+      set({ error: errorMessage, loading: false });
+      return { data: null, error: errorMessage };
     }
   },
 

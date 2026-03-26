@@ -54,8 +54,8 @@ export const useDeleteTimeline = () => {
       await timelinesApi.deleteTimeline(id)
       return id
     },
-    onSuccess: (data, id) => {
-      // 모든 타임라인 쿼리 무효화 (project_id를 모르기 때문에)
+    onSuccess: () => {
+      // 모든 타임라인 쿼리 무효화 (특정 projectId를 알 수 없으면 전체 무효화)
       queryClient.invalidateQueries({ queryKey: ['timelines'] })
     }
   })

@@ -89,27 +89,4 @@ export const useSendMessage = () => {
     }
   })
 }
-
-// 채팅방 생성 (임시)
-export const useCreateChat = () => {
-  return useMutation({
-    mutationFn: async ({ projectId, title = '새 채팅' }) => {
-      // TODO: 실제 API 호출로 변경
-      // const { data, error } = await supabase
-      //   .from('chats')
-      //   .insert([{
-      //     project_id: projectId,
-      //     title
-      //   }])
-      //   .select()
-      //   .single()
-
-      return {
-        id: Date.now().toString(),
-        project_id: projectId,
-        title,
-        created_at: new Date().toISOString()
-      }
-    }
-  })
-}
+

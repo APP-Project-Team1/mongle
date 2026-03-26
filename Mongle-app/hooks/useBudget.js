@@ -54,8 +54,9 @@ export const useCreateBudgetItem = () => {
       const response = await budgetsApi.createBudgetItem(itemData)
       return response
     },
-    onSuccess: (data) => {
-      // budget_id로 project_id를 찾아서 무효화
+    onSuccess: (data, variables) => {
+      // url이나 arguments에서 projectId를 가져오거나 itemData의 project_id 사용
+      // 여기서는 data.project_id 혹은 변수의 project_id를 활용 (API 응답에 project_id가 포함되어야 함)
       queryClient.invalidateQueries({ queryKey: ['budgetItems'] })
     }
   })

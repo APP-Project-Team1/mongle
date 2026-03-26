@@ -257,9 +257,3 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
 });
-  sub: { color: '#6B5B55', marginTop: 4 },
-  itemBox: { backgroundColor: '#fff', borderRadius: 10, padding: 12, marginBottom: 10 },
-  itemTitle: { fontSize: 16, fontWeight: 'bold' },
-  itemValue: { color: '#6B5B55' },
-  error: { color: '#C9716A' },
-});

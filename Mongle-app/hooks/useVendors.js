@@ -21,7 +21,7 @@ export const useCreateVendor = () => {
       const response = await vendorsApi.createVendor(vendorData)
       return response
     },
-    onSuccess: (data) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['vendors'] })
     }
   })
@@ -36,7 +36,7 @@ export const useUpdateVendor = () => {
       const response = await vendorsApi.updateVendor(id, vendorData)
       return response
     },
-    onSuccess: (data) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['vendors'] })
     }
   })

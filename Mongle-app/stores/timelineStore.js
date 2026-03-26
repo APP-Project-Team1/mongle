@@ -22,8 +22,9 @@ export const useTimelineStore = create((set, get) => ({
       set({ timelines: data, loading: false })
       return { data, error: null }
     } catch (error) {
-      set({ error: error.message, loading: false })
-      return { data: null, error }
+      const errorMessage = error.response?.data?.message || error.message || '타임라인 조회 실패';
+      set({ error: errorMessage, loading: false })
+      return { data: null, error: errorMessage }
     }
   },
 
@@ -45,8 +46,9 @@ export const useTimelineStore = create((set, get) => ({
 
       return { data, error: null }
     } catch (error) {
-      set({ error: error.message, loading: false })
-      return { data: null, error }
+      const errorMessage = error.response?.data?.message || error.message || '타임라인 생성 실패';
+      set({ error: errorMessage, loading: false })
+      return { data: null, error: errorMessage }
     }
   },
 
@@ -103,8 +105,9 @@ export const useTimelineStore = create((set, get) => ({
 
       return { error: null }
     } catch (error) {
-      set({ error: error.message, loading: false })
-      return { error }
+      const errorMessage = error.response?.data?.message || error.message || '타임라인 삭제 실패';
+      set({ error: errorMessage, loading: false })
+      return { error: errorMessage }
     }
   },
 

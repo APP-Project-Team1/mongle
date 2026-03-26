@@ -30,8 +30,9 @@ export const useBudgetStore = create((set, get) => ({
       set({ budget: mockBudget, loading: false })
       return { data: mockBudget, error: null }
     } catch (error) {
-      set({ error: error.message, loading: false })
-      return { data: null, error }
+      const errorMessage = error.response?.data?.message || error.message || '예산 데이터 로드 실패';
+      set({ error: errorMessage, loading: false })
+      return { data: null, error: errorMessage }
     }
   },
 
@@ -57,8 +58,9 @@ export const useBudgetStore = create((set, get) => ({
       set({ budgetItems: mockItems, loading: false })
       return { data: mockItems, error: null }
     } catch (error) {
-      set({ error: error.message, loading: false })
-      return { data: null, error }
+      const errorMessage = error.response?.data?.message || error.message || '예산 항목 로드 실패';
+      set({ error: errorMessage, loading: false })
+      return { data: null, error: errorMessage }
     }
   },
 
@@ -80,8 +82,9 @@ export const useBudgetStore = create((set, get) => ({
 
       return { data: newItem, error: null }
     } catch (error) {
-      set({ error: error.message, loading: false })
-      return { data: null, error }
+      const errorMessage = error.response?.data?.message || error.message || '예산 항목 추가 실패';
+      set({ error: errorMessage, loading: false })
+      return { data: null, error: errorMessage }
     }
   },
 
@@ -105,8 +108,9 @@ export const useBudgetStore = create((set, get) => ({
 
       return { data: updatedItems.find(item => item.id === id), error: null }
     } catch (error) {
-      set({ error: error.message, loading: false })
-      return { data: null, error }
+      const errorMessage = error.response?.data?.message || error.message || '예산 항목 수정 실패';
+      set({ error: errorMessage, loading: false })
+      return { data: null, error: errorMessage }
     }
   },
 
@@ -126,8 +130,9 @@ export const useBudgetStore = create((set, get) => ({
 
       return { error: null }
     } catch (error) {
-      set({ error: error.message, loading: false })
-      return { error }
+      const errorMessage = error.response?.data?.message || error.message || '예산 항목 삭제 실패';
+      set({ error: errorMessage, loading: false })
+      return { error: errorMessage }
     }
   },
 

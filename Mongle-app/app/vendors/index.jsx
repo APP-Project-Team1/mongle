@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -59,6 +59,8 @@ export default function VendorsScreen() {
   const [searchText, setSearchText] = useState('');
   const [activeCategory, setActiveCategory] = useState('hall');
   const [selectedVendor, setSelectedVendor] = useState(null);
+  const [showScrollTop, setShowScrollTop] = useState(false);
+  const flatListRef = useRef(null);
 
   // Filter States
   const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -243,6 +245,15 @@ export default function VendorsScreen() {
     return <Text style={isDetail ? styles.priceText : styles.vendorPrice}>가격 문의</Text>;
   };
 
+  const scrollToTop = () => {
+    flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
+  };
+
+  const onScroll = (event) => {
+    const offsetY = event.nativeEvent.contentOffset.y;
+    setShowScrollTop(offsetY > 300);
+  };
+
   const renderDetailRow = (label, value) => {
     if (!value) return null;
     return (
@@ -406,6 +417,9 @@ export default function VendorsScreen() {
       </View>
 
       <FlatList
+        ref={flatListRef}
+        onScroll={onScroll}
+        scrollEventThrottle={16}
         data={filteredVendors}
         keyExtractor={(item) => item.basic_info.vendor_id}
         contentContainerStyle={styles.listContainer}
@@ -557,6 +571,11 @@ export default function VendorsScreen() {
         }
       />
 
+      {showScrollTop && (
+        <TouchableOpacity style={styles.scrollTopButton} onPress={scrollToTop} activeOpacity={0.8}>
+          <Ionicons name="arrow-up" size={24} color="#fff" />
+        </TouchableOpacity>
+      )}
       {renderBottomTab()}
     </SafeAreaView>
   );
@@ -1067,5 +1086,21 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: '700',
+  },
+  scrollTopButton: {
+    position: 'absolute',
+    right: 20,
+    bottom: Platform.OS === 'android' ? 85 : 80,
+    backgroundColor: '#c9a98e',
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 3,
   },
 });

@@ -13,53 +13,45 @@ import {
 import { useLocalSearchParams, router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-
-const CURRENT_USER_ID = 'me';
+import { useChatMessages, useSendMessage, useCurrentUser } from '../../../hooks';
+import LoadingSpinner from '../../../components/common/LoadingSpinner';
+import ErrorView from '../../../components/common/ErrorView';
 
 export default function ChatRoomScreen() {
   const { id } = useLocalSearchParams();
-  const [message, setMessage] = useState('');
+  const [messageText, setMessageText] = useState('');
   
-  // Dummy messages for demonstration
-  const [messages, setMessages] = useState([
-    {
-      id: '1',
-      text: '안녕하세요! 채팅방 구조를 잡았습니다.',
-      sender: 'partner',
-      timestamp: new Date().toISOString(),
-    },
-    {
-      id: '2',
-      text: '채팅방 생성이 완료되었습니다.',
-      sender: 'system',
-      timestamp: new Date().toISOString(),
+  const { data: currentUser } = useCurrentUser();
+  const currentUserId = currentUser?.id || 'me';
+
+  const { data: messages = [], isLoading, error, refetch } = useChatMessages(id);
+  const sendMessageMutation = useSendMessage();
+
+  const handleSend = async () => {
+    if (!messageText.trim()) return;
+
+    try {
+      await sendMessageMutation.mutateAsync({
+        chat_id: id,
+        sender: currentUserId,
+        content: messageText.trim()
+      });
+      setMessageText('');
+    } catch (err) {
+      console.error('메시지 전송 실패:', err);
     }
-  ]);
-
-  const handleSend = () => {
-    if (!message.trim()) return;
-
-    const newMessage = {
-      id: Date.now().toString(),
-      text: message.trim(),
-      sender: CURRENT_USER_ID,
-      timestamp: new Date().toISOString(),
-    };
-
-    setMessages(prev => [newMessage, ...prev]);
-    setMessage('');
   };
 
   const renderMessage = ({ item }) => {
     if (item.sender === 'system') {
       return (
         <View style={styles.systemMessageContainer}>
-          <Text style={styles.systemMessageText}>{item.text}</Text>
+          <Text style={styles.systemMessageText}>{item.content}</Text>
         </View>
       );
     }
 
-    const isMe = item.sender === CURRENT_USER_ID;
+    const isMe = item.sender === currentUserId;
 
     return (
       <View style={[styles.messageRow, isMe ? styles.messageRowMe : styles.messageRowOther]}>
@@ -70,12 +62,28 @@ export default function ChatRoomScreen() {
         )}
         <View style={[styles.bubble, isMe ? styles.bubbleMe : styles.bubbleOther]}>
           <Text style={[styles.messageText, isMe ? styles.messageTextMe : styles.messageTextOther]}>
-            {item.text}
+            {item.content}
           </Text>
         </View>
       </View>
     );
   };
+
+  if (isLoading) {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <LoadingSpinner message="메시지를 불러오는 중입니다..." />
+      </SafeAreaView>
+    );
+  }
+
+  if (error) {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <ErrorView message="대화 기록을 불러올 수 없습니다" subMessage={error.message} onRetry={refetch} />
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
@@ -98,8 +106,9 @@ export default function ChatRoomScreen() {
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         <FlatList
-          data={messages}
-          keyExtractor={item => item.id}
+          // flatlist를 inverted로 사용하려면 최신 데이터가 인덱스 0에 오도록 배열을 뒤집어야 합니다.
+          data={[...messages].reverse()}
+          keyExtractor={item => item.id?.toString()}
           renderItem={renderMessage}
           contentContainerStyle={styles.messageList}
           inverted
@@ -107,7 +116,6 @@ export default function ChatRoomScreen() {
 
         {/* Input Area */}
         <View style={styles.inputWrapper}>
-          {/* AI 플로팅 버튼 - 전송 버튼 위에 독립적으로 떠있음 */}
           <TouchableOpacity
             style={styles.aiFloatingBtn}
             onPress={() => router.push('/(couple)/chat/ai')}

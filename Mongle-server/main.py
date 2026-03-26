@@ -5,12 +5,12 @@ from pydantic import BaseModel
 from ai.intent_parser import parse_intent
 from ai.responder import generate_recommendation
 from ai.dummy_vendors import get_vendors_by_filter
-from api.chat import router as chat_router
+from ai.api.rag_chat import router as rag_router
 
 app = FastAPI()
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 
-app.include_router(chat_router, prefix="/api/v2", tags=["chat"])
+app.include_router(rag_router, prefix="/api/v2", tags=["chat"])
 
 class ChatRequest(BaseModel):
     message: str

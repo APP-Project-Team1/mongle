@@ -20,10 +20,32 @@ import { LinearGradient } from 'expo-linear-gradient';
 export default function RegisterScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [isPlanner, setIsPlanner] = useState(false);
   const [showPw, setShowPw] = useState(false);
   const [isEmailVerified, setIsEmailVerified] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [modalConfig, setModalConfig] = useState({ title: '', message: '', onConfirm: null });
+
+  const renderBottomTab = () => (
+    <View style={tabStyles.container}>
+      <TouchableOpacity style={tabStyles.tabItem} onPress={() => router.replace('/(couple)')}>
+        <Ionicons name="home-outline" size={24} color="#8a7870" />
+        <Text style={tabStyles.tabText}>홈</Text>
+      </TouchableOpacity>
+      <TouchableOpacity style={tabStyles.tabItem} onPress={() => router.replace('/(couple)/timeline')}>
+        <Ionicons name="calendar-outline" size={24} color="#8a7870" />
+        <Text style={tabStyles.tabText}>일정</Text>
+      </TouchableOpacity>
+      <TouchableOpacity style={tabStyles.tabItem} onPress={() => router.replace('/(couple)/chat')}>
+        <Ionicons name="chatbubble-outline" size={24} color="#8a7870" />
+        <Text style={tabStyles.tabText}>채팅</Text>
+      </TouchableOpacity>
+      <TouchableOpacity style={tabStyles.tabItem} onPress={() => router.push('/(auth)/login')}>
+        <Ionicons name="person-outline" size={24} color="#c9a98e" />
+        <Text style={[tabStyles.tabText, { color: '#c9a98e' }]}>마이</Text>
+      </TouchableOpacity>
+    </View>
+  );
 
   const showModal = (title, message, onConfirm = null) => {
     setModalConfig({ title, message, onConfirm });
@@ -52,7 +74,8 @@ export default function RegisterScreen() {
 
   const handleRegister = () => {
     if (isSignUpEnabled) {
-      showModal('환영합니다!', '회원가입이 완료되었습니다.', () => {
+      const roleText = isPlanner ? '웨딩 플래너' : '예비 신혼';
+      showModal('환영합니다!', `${roleText}로 회원가입이 완료되었습니다.`, () => {
         router.replace('/(auth)/login');
       });
     }
@@ -81,6 +104,24 @@ export default function RegisterScreen() {
           </View>
 
           <View style={styles.form}>
+            {/* 가입 유형 선택 (탭) */}
+            <View style={styles.roleTabContainer}>
+              <TouchableOpacity
+                style={[styles.roleTab, !isPlanner && styles.activeRoleTab]}
+                onPress={() => setIsPlanner(false)}
+                activeOpacity={0.8}
+              >
+                <Text style={[styles.roleTabText, !isPlanner && styles.activeRoleTabText]}>예비 신혼</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.roleTab, isPlanner && styles.activeRoleTab]}
+                onPress={() => setIsPlanner(true)}
+                activeOpacity={0.8}
+              >
+                <Text style={[styles.roleTabText, isPlanner && styles.activeRoleTabText]}>웨딩 플래너</Text>
+              </TouchableOpacity>
+            </View>
+
             {/* 이메일(아이디) 입력 & 인증 */}
             <View style={styles.emailContainer}>
               <View style={[styles.inputWrap, styles.emailInputWrap]}>
@@ -210,6 +251,7 @@ export default function RegisterScreen() {
           </View>
         </View>
       </Modal>
+      {renderBottomTab()}
     </SafeAreaView>
   );
 }
@@ -235,6 +277,36 @@ const styles = StyleSheet.create({
   },
   logoSub: { fontSize: 13, color: '#B49191', letterSpacing: 0.5 },
   form: { gap: 16 },
+  roleTabContainer: {
+    flexDirection: 'row',
+    backgroundColor: '#F5F0F0',
+    borderRadius: 12,
+    padding: 4,
+    marginBottom: 8,
+  },
+  roleTab: {
+    flex: 1,
+    paddingVertical: 10,
+    alignItems: 'center',
+    borderRadius: 9,
+  },
+  activeRoleTab: {
+    backgroundColor: '#fff',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  roleTabText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#8a7870',
+  },
+  activeRoleTabText: {
+    color: '#917878',
+    fontWeight: '700',
+  },
   emailContainer: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   emailInputWrap: { flex: 1 },
   inputWrap: {
@@ -362,5 +434,30 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#fff',
     letterSpacing: 0.5,
+  },
+});
+
+const tabStyles = StyleSheet.create({
+  container: {
+    flexDirection: 'row',
+    backgroundColor: '#fff',
+    borderTopColor: '#f0e8e4',
+    borderTopWidth: 1,
+    height: Platform.OS === 'android' ? 65 : 60,
+    paddingBottom: Platform.OS === 'ios' ? 15 : 10,
+    paddingTop: 10,
+    justifyContent: 'space-around',
+    alignItems: 'center',
+  },
+  tabItem: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    flex: 1,
+  },
+  tabText: {
+    fontSize: 11,
+    color: '#8a7870',
+    marginTop: 4,
+    fontWeight: '500',
   },
 });

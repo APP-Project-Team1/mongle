@@ -39,11 +39,8 @@ export default function PlannersScreen() {
 
   useEffect(() => {
     const handleBackPress = () => {
-      if (selectedPlanner) {
-        setSelectedPlanner(null);
-        return true;
-      }
-      return false;
+      router.replace('/(couple)');
+      return true;
     };
 
     const subscription = BackHandler.addEventListener(
@@ -161,7 +158,7 @@ export default function PlannersScreen() {
     return (
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.detailHeader}>
-          <TouchableOpacity onPress={() => setSelectedPlanner(null)} style={styles.backBtnWrapper}>
+          <TouchableOpacity onPress={() => router.replace('/(couple)')} style={styles.backBtnWrapper}>
             <Ionicons name="chevron-back" size={26} color="#3a2e2a" />
           </TouchableOpacity>
           <Text style={styles.detailHeaderTitle}>플래너 프로필</Text>
@@ -275,7 +272,7 @@ export default function PlannersScreen() {
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backBtnWrapper}>
+        <TouchableOpacity onPress={() => router.replace('/(couple)')} style={styles.backBtnWrapper}>
           <Ionicons name="chevron-back" size={24} color="#3a2e2a" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>웨딩플래너 찾기</Text>

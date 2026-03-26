@@ -7,7 +7,9 @@ import {
   Image,
   ScrollView,
   Platform,
+  BackHandler,
 } from 'react-native';
+import { useEffect } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -16,6 +18,20 @@ import plannersData from './planners.json';
 export default function PlannerDetailScreen() {
   const { id } = useLocalSearchParams();
   const selectedPlanner = plannersData.find(p => p.name === id);
+
+  useEffect(() => {
+    const handleBackPress = () => {
+      router.replace('/(couple)');
+      return true;
+    };
+
+    const subscription = BackHandler.addEventListener(
+      'hardwareBackPress',
+      handleBackPress
+    );
+
+    return () => subscription.remove();
+  }, []);
 
   if (!selectedPlanner) {
     return (
@@ -52,7 +68,7 @@ export default function PlannerDetailScreen() {
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.detailHeader}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backBtnWrapper}>
+        <TouchableOpacity onPress={() => router.replace('/(couple)')} style={styles.backBtnWrapper}>
           <Ionicons name="chevron-back" size={26} color="#3a2e2a" />
         </TouchableOpacity>
         <Text style={styles.detailHeaderTitle}>플래너 프로필</Text>

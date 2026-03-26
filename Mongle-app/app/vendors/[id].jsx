@@ -8,7 +8,9 @@ import {
   ScrollView,
   Linking,
   Platform,
+  BackHandler,
 } from 'react-native';
+import { useState, useEffect } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -42,6 +44,24 @@ const CATEGORIES = [
 export default function VendorDetailScreen() {
   const { id } = useLocalSearchParams();
   const selectedVendor = ALL_VENDORS.find(v => v.basic_info.vendor_id === id);
+
+  useEffect(() => {
+    const handleBackPress = () => {
+      if (router.canGoBack()) {
+        router.back();
+      } else {
+        router.replace('/(couple)');
+      }
+      return true;
+    };
+
+    const subscription = BackHandler.addEventListener(
+      'hardwareBackPress',
+      handleBackPress
+    );
+
+    return () => subscription.remove();
+  }, []);
 
   const renderPrice = (item) => {
     const category = item.basic_info?.category;
@@ -144,6 +164,15 @@ export default function VendorDetailScreen() {
     );
   };
 
+  const handleCall = () => {
+    const phoneNumber = selectedVendor?.basic_info?.phone;
+    if (phoneNumber) {
+      Linking.openURL(`tel:${phoneNumber}`);
+    } else {
+      alert('업체 전화번호 정보가 없습니다.');
+    }
+  };
+
   if (!selectedVendor) {
     return (
       <View style={styles.errorContainer}>
@@ -178,8 +207,11 @@ export default function VendorDetailScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <View style={styles.detailHeader}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backBtnWrapper}>
+      <View style={styles.header}>
+        <TouchableOpacity 
+          onPress={() => router.canGoBack() ? router.back() : router.replace('/(couple)')} 
+          style={styles.backBtnWrapper}
+        >
           <Ionicons name="chevron-back" size={26} color="#3a2e2a" />
         </TouchableOpacity>
         <Text style={styles.detailHeaderTitle}>업체 상세 정보</Text>
@@ -270,11 +302,11 @@ export default function VendorDetailScreen() {
         <View style={{ height: 40 }} />
       </ScrollView>
 
-      <View style={styles.ctaBottom}>
-        <TouchableOpacity style={styles.ctaButton} onPress={() => {}}>
-          <Text style={styles.ctaButtonText}>상담 예약하기</Text>
-        </TouchableOpacity>
-      </View>
+        <View style={styles.ctaBottom}>
+          <TouchableOpacity style={styles.ctaButton} onPress={handleCall}>
+            <Text style={styles.ctaButtonText}>상담 예약하기</Text>
+          </TouchableOpacity>
+        </View>
 
       {renderBottomTab()}
     </SafeAreaView>

@@ -146,5 +146,5 @@ export const authApi = {
 
 export const BASE_URL = baseURL;
 export const API_ENDPOINTS = {
-  chat: `${BASE_URL}/api/chat`,
+  chat: `${BASE_URL}/api/v2/chat`,
 };

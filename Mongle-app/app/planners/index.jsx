@@ -33,17 +33,13 @@ export default function PlannersScreen() {
     style_keywords: [],
   });
 
-  const [selectedPlanner, setSelectedPlanner] = useState(null);
   const [showScrollTop, setShowScrollTop] = useState(false);
   const flatListRef = useRef(null);
 
   useEffect(() => {
     const handleBackPress = () => {
-      if (selectedPlanner) {
-        setSelectedPlanner(null);
-        return true;
-      }
-      return false;
+      router.replace('/(couple)');
+      return true;
     };
 
     const subscription = BackHandler.addEventListener(
@@ -54,7 +50,7 @@ export default function PlannersScreen() {
     return () => {
       subscription.remove();
     };
-  }, [selectedPlanner]);
+  }, []);
 
   const filterOptions = useMemo(() => {
     const regions = new Set();
@@ -157,125 +153,12 @@ export default function PlannersScreen() {
     ...selectedFilters.style_keywords.map((v) => ({ cat: 'style_keywords', val: v })),
   ];
 
-  if (selectedPlanner) {
-    return (
-      <SafeAreaView style={styles.safeArea}>
-        <View style={styles.detailHeader}>
-          <TouchableOpacity onPress={() => setSelectedPlanner(null)} style={styles.backBtnWrapper}>
-            <Ionicons name="chevron-back" size={26} color="#3a2e2a" />
-          </TouchableOpacity>
-          <Text style={styles.detailHeaderTitle}>플래너 프로필</Text>
-          <View style={{ width: 26 }} />
-        </View>
-
-        <ScrollView style={styles.detailContent} showsVerticalScrollIndicator={false}>
-          {/* Main Info */}
-          <View style={styles.detailMainInfo}>
-            <Image source={{ uri: selectedPlanner.profile_image_url }} style={styles.detailProfileImage} />
-            <View style={styles.detailMainText}>
-              <Text style={styles.detailBrand}>{selectedPlanner.brand_name}</Text>
-              <Text style={styles.detailName}>{selectedPlanner.name} {selectedPlanner.title}</Text>
-              <View style={styles.detailRatingRow}>
-                <Ionicons name="star" size={14} color="#f0b452" />
-                <Text style={styles.detailRatingText}>{selectedPlanner.rating} ({selectedPlanner.reviews.length})</Text>
-              </View>
-            </View>
-          </View>
-
-          <Text style={styles.detailOneLiner}>"{selectedPlanner.one_liner}"</Text>
-
-          {/* Stats */}
-          <View style={styles.statsRow}>
-            <View style={styles.statBox}>
-              <Text style={styles.statLabel}>총 경력</Text>
-              <Text style={styles.statValue}>{selectedPlanner.career_years}년</Text>
-            </View>
-            <View style={styles.statDivider} />
-            <View style={styles.statBox}>
-              <Text style={styles.statLabel}>전문 지역</Text>
-              <Text style={styles.statValue}>{selectedPlanner.activity_regions.join(', ')}</Text>
-            </View>
-            <View style={styles.statDivider} />
-            <View style={styles.statBox}>
-              <Text style={styles.statLabel}>성공적인 진행</Text>
-              <Text style={styles.statValue}>{selectedPlanner.weddings_completed}건+</Text>
-            </View>
-          </View>
-
-          {/* Tags */}
-          <View style={styles.tagsContainer}>
-            {selectedPlanner.specialties.map((s) => (
-              <View key={s} style={styles.tagBadge}>
-                <Text style={styles.tagText}>#{s}</Text>
-              </View>
-            ))}
-            {selectedPlanner.style_keywords.map((k) => (
-              <View key={k} style={[styles.tagBadge, styles.tagBadgeStyle]}>
-                <Text style={[styles.tagText, styles.tagTextStyle]}>#{k}</Text>
-              </View>
-            ))}
-          </View>
-
-          <View style={styles.divider} />
-
-          {/* Base Price */}
-          <Text style={styles.sectionTitle}>플래닝 예상 견적</Text>
-          <View style={styles.priceWrap}>
-            <Text style={styles.priceLabel}>스타터 패키지 기준</Text>
-            <Text style={styles.priceText}>{selectedPlanner.base_price_krw.toLocaleString()}원</Text>
-          </View>
-
-          <View style={styles.divider} />
-
-          {/* Service Core */}
-          <Text style={styles.sectionTitle}>제공 서비스</Text>
-          <View style={styles.servicesGrid}>
-            {selectedPlanner.service_scope.included.map((item, i) => (
-              <View key={i} style={styles.serviceItem}>
-                <Ionicons name="checkmark-circle" size={16} color="#c9a98e" />
-                <Text style={styles.serviceItemText}>{item}</Text>
-              </View>
-            ))}
-          </View>
-
-          <View style={styles.divider} />
-
-          <Text style={styles.sectionTitle}>주요 경력 & 특징</Text>
-          {selectedPlanner.major_experiences.map((exp, i) => (
-            <Text key={`exp-${i}`} style={styles.bulletText}>• {exp}</Text>
-          ))}
-          {selectedPlanner.service_features.map((feat, i) => (
-            <Text key={`feat-${i}`} style={styles.bulletText}>• {feat}</Text>
-          ))}
-
-          <View style={styles.divider} />
-
-          <Text style={styles.sectionTitle}>포트폴리오 스냅</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.portfolioScroll}>
-            {selectedPlanner.portfolio_images.map((img, i) => (
-              <Image key={i} source={{ uri: img }} style={styles.portfolioImage} />
-            ))}
-          </ScrollView>
-
-          <View style={{ height: 40 }} />
-        </ScrollView>
-
-        <View style={styles.ctaBottom}>
-          <TouchableOpacity style={styles.ctaButton}>
-            <Text style={styles.ctaButtonText}>{selectedPlanner.cta}</Text>
-          </TouchableOpacity>
-        </View>
-
-        {renderBottomTab()}
-      </SafeAreaView>
-    );
-  }
 
   // --- List View return ---
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backBtnWrapper}>
+        <TouchableOpacity onPress={() => router.replace('/(couple)')} style={styles.backBtnWrapper}>
           <Ionicons name="chevron-back" size={24} color="#3a2e2a" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>웨딩플래너 찾기</Text>
@@ -372,7 +255,11 @@ export default function PlannersScreen() {
         contentContainerStyle={styles.listContainer}
         showsVerticalScrollIndicator={false}
         renderItem={({ item }) => (
-          <TouchableOpacity style={styles.plannerCard} onPress={() => setSelectedPlanner(item)} activeOpacity={0.9}>
+          <TouchableOpacity
+            style={styles.plannerCard}
+            onPress={() => router.push(`/planners/${item.name}`)}
+            activeOpacity={0.9}
+          >
             <Image source={{ uri: item.profile_image_url }} style={styles.cardProfileImg} />
             <View style={styles.cardInfo}>
               <View style={styles.cardHeaderRow}>

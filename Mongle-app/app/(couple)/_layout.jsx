@@ -16,10 +16,8 @@ export default function CoupleLayout() {
           backgroundColor: '#fff',
           borderTopColor: '#f0e8e4',
           borderTopWidth: 1,
-          borderBottomColor: '#f0e8e4',
-          borderBottomWidth: 1,
-          height: Platform.OS === 'android' ? 65 : 60,
-          paddingBottom: Platform.OS === 'android' ? 12 : 8,
+          height: Platform.OS === 'android' ? 65 : 85,
+          paddingBottom: Platform.OS === 'android' ? 12 : 28,
           paddingTop: 8,
         },
         tabBarLabelStyle: {

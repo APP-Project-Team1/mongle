@@ -86,7 +86,7 @@ export default function ChatRoomScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
+    <SafeAreaView style={styles.safeArea} edges={['top']}>
       <StatusBar barStyle="dark-content" backgroundColor="#fff" />
       
       {/* Header */}
@@ -115,29 +115,38 @@ export default function ChatRoomScreen() {
         />
 
         {/* Input Area */}
-        <View style={styles.inputContainer}>
-          <TouchableOpacity style={styles.attachBtn}>
-            <Ionicons name="add" size={24} color="#8a7870" />
-          </TouchableOpacity>
-          <TextInput
-            style={styles.input}
-            placeholder="메시지 입력..."
-            placeholderTextColor="#8a7870"
-            value={messageText}
-            onChangeText={setMessageText}
-            multiline
-          />
-          <TouchableOpacity 
-            style={[styles.sendBtn, messageText.trim() ? styles.sendBtnActive : {}]}
-            onPress={handleSend}
-            disabled={!messageText.trim() || sendMessageMutation.isPending}
+        <View style={styles.inputWrapper}>
+          <TouchableOpacity
+            style={styles.aiFloatingBtn}
+            onPress={() => router.push('/(couple)/chat/ai')}
           >
-            <Ionicons 
-              name="send" 
-              size={18} 
-              color={messageText.trim() ? "#fff" : "#c9a98e"} 
-            />
+            <Ionicons name="sparkles" size={13} color="#c9a98e" />
           </TouchableOpacity>
+
+          <View style={styles.inputContainer}>
+            <TouchableOpacity style={styles.attachBtn}>
+              <Ionicons name="add" size={24} color="#8a7870" />
+            </TouchableOpacity>
+            <TextInput
+              style={styles.input}
+              placeholder="메시지 입력..."
+              placeholderTextColor="#8a7870"
+              value={message}
+              onChangeText={setMessage}
+              multiline
+            />
+            <TouchableOpacity
+              style={[styles.sendBtn, message.trim() ? styles.sendBtnActive : {}]}
+              onPress={handleSend}
+              disabled={!message.trim()}
+            >
+              <Ionicons
+                name="send"
+                size={18}
+                color={message.trim() ? "#fff" : "#c9a98e"}
+              />
+            </TouchableOpacity>
+          </View>
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -228,6 +237,27 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     borderRadius: 12,
     overflow: 'hidden',
+  },
+  inputWrapper: {
+    position: 'relative',
+  },
+  aiFloatingBtn: {
+    position: 'absolute',
+    right: 12,
+    top: -38,
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#e8ddd7',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 3,
+    elevation: 2,
   },
   inputContainer: {
     flexDirection: 'row',

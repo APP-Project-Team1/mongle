@@ -1,0 +1,2796 @@
+[
+  {
+    "basic_info": {
+      "vendor_id": "video_snap_18508575",
+      "source": "kakao",
+      "source_id": "18508575",
+      "name": "까미유스냅",
+      "category": "video_snap",
+      "raw_category": "가정,생활 > 결혼 > 웨딩스튜디오",
+      "region": "서울",
+      "district": "강남구",
+      "neighborhood": "논현동",
+      "address": "서울 강남구 논현동 238-12",
+      "road_address": "서울 강남구 학동로 312",
+      "phone": "02-3442-0266",
+      "website_url": "http://place.map.kakao.com/18508575",
+      "source_url": "https://place.map.kakao.com/18508575",
+      "lat": 37.51551298726632,
+      "lng": 127.03672779894585,
+      "status": "active"
+    },
+    "search_filters": {
+      "service_types": [
+        "본식스냅"
+      ],
+      "video_style": [
+        "감성",
+        "시네마틱"
+      ],
+      "photo_style": [
+        "자연스러운",
+        "다큐형"
+      ],
+      "district": "강남구",
+      "price_min": 2200000,
+      "price_max": 3100000,
+      "price_level": "high",
+      "highlight_video_included": true,
+      "full_video_included": true
+    },
+    "details": {
+      "service_types": [
+        "본식스냅"
+      ],
+      "photo_details": {
+        "photographer_count": 1,
+        "delivered_photos": 500,
+        "retouched_photos": 20
+      },
+      "video_details": {
+        "videographer_count": 1,
+        "highlight_video_duration_minutes": 3,
+        "full_video_included": true
+      },
+      "equipment_level": "전문 장비",
+      "specialties": [
+        "감성 영상",
+        "자연스러운 스냅"
+      ],
+      "recommended_for": [
+        "감성적인 웨딩 기록을 원하는 커플"
+      ]
+    },
+    "pricing": {
+      "currency": "KRW",
+      "price_min": 2200000,
+      "price_max": 3100000,
+      "pricing_type": "package",
+      "includes": [
+        "본식 촬영",
+        "보정 사진",
+        "하이라이트 영상"
+      ],
+      "additional_costs": [
+        "촬영 인원 추가 비용",
+        "원본 전체 제공 비용"
+      ],
+      "price_note": "지역 기준 더미 추정값 (정확한 확인 필요)"
+    },
+    "content": {
+      "short_description": "본식 스냅 및 웨딩 촬영 전문 업체",
+      "review_summary_positive": [
+        "감성 연출에 적합",
+        "기록용 서비스 비교 가능"
+      ],
+      "review_summary_negative": [
+        "정확한 실제 후기 확인 필요"
+      ],
+      "tags": [
+        "웨딩영상",
+        "본식스냅",
+        "감성",
+        "강남구"
+      ],
+      "thumbnail_url": "//img1.kakaocdn.net/cthumb/local/C800x400.q50/?fname=https%3A%2F%2Fpostfiles.pstatic.net%2FMjAyNjAzMjVfMTc1%2FMDAxNzc0Mzk2NTA4ODY4.txMFdB2yBs_Setk2mHgtiZPoWl1wF7SrFil2I3oysTEg.TpiSlXPPDssNde-6Lp8fdtFxSBLcNhSw8N1SQb9-xswg.PNG%2Fimage.png%3Ftype%3Dw773",
+      "image_urls": [
+        "//img1.kakaocdn.net/cthumb/local/C800x400.q50/?fname=https%3A%2F%2Fpostfiles.pstatic.net%2FMjAyNjAzMjVfMTc1%2FMDAxNzc0Mzk2NTA4ODY4.txMFdB2yBs_Setk2mHgtiZPoWl1wF7SrFil2I3oysTEg.TpiSlXPPDssNde-6Lp8fdtFxSBLcNhSw8N1SQb9-xswg.PNG%2Fimage.png%3Ftype%3Dw773"
+      ],
+      "rating_avg": null,
+      "review_count": 0,
+      "rating_info": {
+        "rating_avg": null,
+        "rating_scale": 5,
+        "review_count": 0,
+        "rating_display": "평점 없음",
+        "rating_source": "kakao_place_page",
+        "rating_confidence": "none",
+        "rating_reliability": "none"
+      },
+      "search_text": "가격대는 약 2200000원에서 3100000원 수준입니다. 정확한 구성은 업체에 문의가 필요합니다."
+    },
+    "quality_control": {
+      "is_dummy_enriched": true,
+      "dummy_fields": [
+        "price_min",
+        "price_max",
+        "delivered_photos",
+        "highlight_video_duration_minutes"
+      ],
+      "verification_notes": [
+        "촬영 구성은 업체별 상이",
+        "가격은 지역 및 스타일 기준 더미 보정"
+      ],
+      "last_updated_at": "2026-03-26T02:16:04.316815Z",
+      "asset_source": "kakao_place_page",
+      "asset_note": "상세 페이지 기반 추출값으로 구조 변경 시 재조정 필요"
+    }
+  },
+  {
+    "basic_info": {
+      "vendor_id": "video_snap_25539967",
+      "source": "kakao",
+      "source_id": "25539967",
+      "name": "마리에드오늘",
+      "category": "video_snap",
+      "raw_category": "가정,생활 > 결혼 > 웨딩드레스",
+      "region": "서울",
+      "district": "강남구",
+      "neighborhood": "청담동",
+      "address": "서울 강남구 청담동 5-9",
+      "road_address": "서울 강남구 도산대로 450",
+      "phone": "02-517-7644",
+      "website_url": "http://place.map.kakao.com/25539967",
+      "source_url": "https://place.map.kakao.com/25539967",
+      "lat": 37.52354688812537,
+      "lng": 127.04548196699656,
+      "status": "active"
+    },
+    "search_filters": {
+      "service_types": [
+        "본식스냅"
+      ],
+      "video_style": [
+        "감성",
+        "시네마틱"
+      ],
+      "photo_style": [
+        "자연스러운",
+        "다큐형"
+      ],
+      "district": "강남구",
+      "price_min": 2100000,
+      "price_max": 3700000,
+      "price_level": "premium",
+      "highlight_video_included": true,
+      "full_video_included": true
+    },
+    "details": {
+      "service_types": [
+        "본식스냅"
+      ],
+      "photo_details": {
+        "photographer_count": 1,
+        "delivered_photos": 500,
+        "retouched_photos": 20
+      },
+      "video_details": {
+        "videographer_count": 1,
+        "highlight_video_duration_minutes": 3,
+        "full_video_included": true
+      },
+      "equipment_level": "전문 장비",
+      "specialties": [
+        "감성 영상",
+        "자연스러운 스냅"
+      ],
+      "recommended_for": [
+        "감성적인 웨딩 기록을 원하는 커플"
+      ]
+    },
+    "pricing": {
+      "currency": "KRW",
+      "price_min": 2100000,
+      "price_max": 3700000,
+      "pricing_type": "package",
+      "includes": [
+        "본식 촬영",
+        "보정 사진",
+        "하이라이트 영상"
+      ],
+      "additional_costs": [
+        "촬영 인원 추가 비용",
+        "원본 전체 제공 비용"
+      ],
+      "price_note": "지역 기준 더미 추정값 (정확한 확인 필요)"
+    },
+    "content": {
+      "short_description": "본식 스냅 및 웨딩 촬영 전문 업체",
+      "review_summary_positive": [
+        "감성 연출에 적합",
+        "기록용 서비스 비교 가능"
+      ],
+      "review_summary_negative": [
+        "정확한 실제 후기 확인 필요"
+      ],
+      "tags": [
+        "웨딩영상",
+        "본식스냅",
+        "감성",
+        "강남구"
+      ],
+      "thumbnail_url": "//img1.kakaocdn.net/cthumb/local/C800x400.q50/?fname=http%3A%2F%2Ft1.kakaocdn.net%2Fmystore%2FEDBB29C4BEF24982A7D2EE369EC8CFC5",
+      "image_urls": [
+        "//img1.kakaocdn.net/cthumb/local/C800x400.q50/?fname=http%3A%2F%2Ft1.kakaocdn.net%2Fmystore%2FEDBB29C4BEF24982A7D2EE369EC8CFC5"
+      ],
+      "rating_avg": null,
+      "review_count": 0,
+      "rating_info": {
+        "rating_avg": null,
+        "rating_scale": 5,
+        "review_count": 0,
+        "rating_display": "평점 없음",
+        "rating_source": "kakao_place_page",
+        "rating_confidence": "none",
+        "rating_reliability": "none"
+      },
+      "search_text": "가격대는 약 2100000원에서 3700000원 수준입니다. 정확한 구성은 업체에 문의가 필요합니다."
+    },
+    "quality_control": {
+      "is_dummy_enriched": true,
+      "dummy_fields": [
+        "price_min",
+        "price_max",
+        "delivered_photos",
+        "highlight_video_duration_minutes"
+      ],
+      "verification_notes": [
+        "촬영 구성은 업체별 상이",
+        "가격은 지역 및 스타일 기준 더미 보정"
+      ],
+      "last_updated_at": "2026-03-26T02:16:04.548214Z",
+      "asset_source": "kakao_place_page",
+      "asset_note": "상세 페이지 기반 추출값으로 구조 변경 시 재조정 필요"
+    }
+  },
+  {
+    "basic_info": {
+      "vendor_id": "video_snap_1150634473",
+      "source": "kakao",
+      "source_id": "1150634473",
+      "name": "앤드류권 스튜디오",
+      "category": "video_snap",
+      "raw_category": "문화,예술 > 사진 > 사진관,포토스튜디오",
+      "region": "서울",
+      "district": "강남구",
+      "neighborhood": "논현동",
+      "address": "서울 강남구 논현동 27-2",
+      "road_address": "서울 강남구 학동로21길 52",
+      "phone": "02-548-7217",
+      "website_url": "http://place.map.kakao.com/1150634473",
+      "source_url": "https://place.map.kakao.com/1150634473",
+      "lat": 37.51630864331378,
+      "lng": 127.02634204096361,
+      "status": "active"
+    },
+    "search_filters": {
+      "service_types": [
+        "본식스냅"
+      ],
+      "video_style": [
+        "감성",
+        "시네마틱"
+      ],
+      "photo_style": [
+        "자연스러운",
+        "다큐형"
+      ],
+      "district": "강남구",
+      "price_min": 2100000,
+      "price_max": 3400000,
+      "price_level": "high",
+      "highlight_video_included": true,
+      "full_video_included": true
+    },
+    "details": {
+      "service_types": [
+        "본식스냅"
+      ],
+      "photo_details": {
+        "photographer_count": 1,
+        "delivered_photos": 500,
+        "retouched_photos": 20
+      },
+      "video_details": {
+        "videographer_count": 1,
+        "highlight_video_duration_minutes": 3,
+        "full_video_included": true
+      },
+      "equipment_level": "전문 장비",
+      "specialties": [
+        "감성 영상",
+        "자연스러운 스냅"
+      ],
+      "recommended_for": [
+        "감성적인 웨딩 기록을 원하는 커플"
+      ]
+    },
+    "pricing": {
+      "currency": "KRW",
+      "price_min": 2100000,
+      "price_max": 3400000,
+      "pricing_type": "package",
+      "includes": [
+        "본식 촬영",
+        "보정 사진",
+        "하이라이트 영상"
+      ],
+      "additional_costs": [
+        "촬영 인원 추가 비용",
+        "원본 전체 제공 비용"
+      ],
+      "price_note": "지역 기준 더미 추정값 (정확한 확인 필요)"
+    },
+    "content": {
+      "short_description": "본식 스냅 및 웨딩 촬영 전문 업체",
+      "review_summary_positive": [
+        "감성 연출에 적합",
+        "기록용 서비스 비교 가능"
+      ],
+      "review_summary_negative": [
+        "정확한 실제 후기 확인 필요"
+      ],
+      "tags": [
+        "웨딩영상",
+        "본식스냅",
+        "감성",
+        "강남구"
+      ],
+      "thumbnail_url": "//img1.kakaocdn.net/cthumb/local/C800x400.q50/?fname=http%3A%2F%2Ft1.kakaocdn.net%2Fmystore%2F902F5BB88415425DB72C8107BC63E191",
+      "image_urls": [
+        "//img1.kakaocdn.net/cthumb/local/C800x400.q50/?fname=http%3A%2F%2Ft1.kakaocdn.net%2Fmystore%2F902F5BB88415425DB72C8107BC63E191"
+      ],
+      "rating_avg": null,
+      "review_count": 0,
+      "rating_info": {
+        "rating_avg": null,
+        "rating_scale": 5,
+        "review_count": 0,
+        "rating_display": "평점 없음",
+        "rating_source": "kakao_place_page",
+        "rating_confidence": "none",
+        "rating_reliability": "none"
+      },
+      "search_text": "가격대는 약 2100000원에서 3400000원 수준입니다. 정확한 구성은 업체에 문의가 필요합니다."
+    },
+    "quality_control": {
+      "is_dummy_enriched": true,
+      "dummy_fields": [
+        "price_min",
+        "price_max",
+        "delivered_photos",
+        "highlight_video_duration_minutes"
+      ],
+      "verification_notes": [
+        "촬영 구성은 업체별 상이",
+        "가격은 지역 및 스타일 기준 더미 보정"
+      ],
+      "last_updated_at": "2026-03-26T02:16:04.781894Z",
+      "asset_source": "kakao_place_page",
+      "asset_note": "상세 페이지 기반 추출값으로 구조 변경 시 재조정 필요"
+    }
+  },
+  {
+    "basic_info": {
+      "vendor_id": "video_snap_1962695765",
+      "source": "kakao",
+      "source_id": "1962695765",
+      "name": "에이블스튜디오",
+      "category": "video_snap",
+      "raw_category": "문화,예술 > 사진 > 사진관,포토스튜디오",
+      "region": "서울",
+      "district": "강남구",
+      "neighborhood": "삼성동",
+      "address": "서울 강남구 삼성동 24-27",
+      "road_address": "서울 강남구 삼성로115길 22",
+      "phone": "02-542-4008",
+      "website_url": "http://place.map.kakao.com/1962695765",
+      "source_url": "https://place.map.kakao.com/1962695765",
+      "lat": 37.5145520282641,
+      "lng": 127.050286011587,
+      "status": "active"
+    },
+    "search_filters": {
+      "service_types": [
+        "본식스냅"
+      ],
+      "video_style": [
+        "감성",
+        "시네마틱"
+      ],
+      "photo_style": [
+        "자연스러운",
+        "다큐형"
+      ],
+      "district": "강남구",
+      "price_min": 2400000,
+      "price_max": 3900000,
+      "price_level": "high",
+      "highlight_video_included": true,
+      "full_video_included": true
+    },
+    "details": {
+      "service_types": [
+        "본식스냅"
+      ],
+      "photo_details": {
+        "photographer_count": 1,
+        "delivered_photos": 500,
+        "retouched_photos": 20
+      },
+      "video_details": {
+        "videographer_count": 1,
+        "highlight_video_duration_minutes": 3,
+        "full_video_included": true
+      },
+      "equipment_level": "전문 장비",
+      "specialties": [
+        "감성 영상",
+        "자연스러운 스냅"
+      ],
+      "recommended_for": [
+        "감성적인 웨딩 기록을 원하는 커플"
+      ]
+    },
+    "pricing": {
+      "currency": "KRW",
+      "price_min": 2400000,
+      "price_max": 3900000,
+      "pricing_type": "package",
+      "includes": [
+        "본식 촬영",
+        "보정 사진",
+        "하이라이트 영상"
+      ],
+      "additional_costs": [
+        "촬영 인원 추가 비용",
+        "원본 전체 제공 비용"
+      ],
+      "price_note": "지역 기준 더미 추정값 (정확한 확인 필요)"
+    },
+    "content": {
+      "short_description": "본식 스냅 및 웨딩 촬영 전문 업체",
+      "review_summary_positive": [
+        "감성 연출에 적합",
+        "기록용 서비스 비교 가능"
+      ],
+      "review_summary_negative": [
+        "정확한 실제 후기 확인 필요"
+      ],
+      "tags": [
+        "웨딩영상",
+        "본식스냅",
+        "감성",
+        "강남구"
+      ],
+      "thumbnail_url": "//img1.kakaocdn.net/cthumb/local/C800x400.q50/?fname=http%3A%2F%2Ft1.kakaocdn.net%2Fmystore%2F969A2FB3167D48389C15A0F892205BB9",
+      "image_urls": [
+        "//img1.kakaocdn.net/cthumb/local/C800x400.q50/?fname=http%3A%2F%2Ft1.kakaocdn.net%2Fmystore%2F969A2FB3167D48389C15A0F892205BB9"
+      ],
+      "rating_avg": null,
+      "review_count": 0,
+      "rating_info": {
+        "rating_avg": null,
+        "rating_scale": 5,
+        "review_count": 0,
+        "rating_display": "평점 없음",
+        "rating_source": "kakao_place_page",
+        "rating_confidence": "none",
+        "rating_reliability": "none"
+      },
+      "search_text": "가격대는 약 2400000원에서 3900000원 수준입니다. 정확한 구성은 업체에 문의가 필요합니다."
+    },
+    "quality_control": {
+      "is_dummy_enriched": true,
+      "dummy_fields": [
+        "price_min",
+        "price_max",
+        "delivered_photos",
+        "highlight_video_duration_minutes"
+      ],
+      "verification_notes": [
+        "촬영 구성은 업체별 상이",
+        "가격은 지역 및 스타일 기준 더미 보정"
+      ],
+      "last_updated_at": "2026-03-26T02:16:05.017128Z",
+      "asset_source": "kakao_place_page",
+      "asset_note": "상세 페이지 기반 추출값으로 구조 변경 시 재조정 필요"
+    }
+  },
+  {
+    "basic_info": {
+      "vendor_id": "video_snap_954924197",
+      "source": "kakao",
+      "source_id": "954924197",
+      "name": "희일스튜디오",
+      "category": "video_snap",
+      "raw_category": "문화,예술 > 사진 > 사진관,포토스튜디오",
+      "region": "서울",
+      "district": "강남구",
+      "neighborhood": "역삼동",
+      "address": "서울 강남구 역삼동 675-1",
+      "road_address": "서울 강남구 테헤란로39길 40",
+      "phone": "010-2349-1440",
+      "website_url": "http://place.map.kakao.com/954924197",
+      "source_url": "https://place.map.kakao.com/954924197",
+      "lat": 37.505127572194944,
+      "lng": 127.04080552495789,
+      "status": "active"
+    },
+    "search_filters": {
+      "service_types": [
+        "본식스냅"
+      ],
+      "video_style": [
+        "감성",
+        "시네마틱"
+      ],
+      "photo_style": [
+        "자연스러운",
+        "다큐형"
+      ],
+      "district": "강남구",
+      "price_min": 2000000,
+      "price_max": 3600000,
+      "price_level": "high",
+      "highlight_video_included": true,
+      "full_video_included": true
+    },
+    "details": {
+      "service_types": [
+        "본식스냅"
+      ],
+      "photo_details": {
+        "photographer_count": 1,
+        "delivered_photos": 500,
+        "retouched_photos": 20
+      },
+      "video_details": {
+        "videographer_count": 1,
+        "highlight_video_duration_minutes": 3,
+        "full_video_included": true
+      },
+      "equipment_level": "전문 장비",
+      "specialties": [
+        "감성 영상",
+        "자연스러운 스냅"
+      ],
+      "recommended_for": [
+        "감성적인 웨딩 기록을 원하는 커플"
+      ]
+    },
+    "pricing": {
+      "currency": "KRW",
+      "price_min": 2000000,
+      "price_max": 3600000,
+      "pricing_type": "package",
+      "includes": [
+        "본식 촬영",
+        "보정 사진",
+        "하이라이트 영상"
+      ],
+      "additional_costs": [
+        "촬영 인원 추가 비용",
+        "원본 전체 제공 비용"
+      ],
+      "price_note": "지역 기준 더미 추정값 (정확한 확인 필요)"
+    },
+    "content": {
+      "short_description": "본식 스냅 및 웨딩 촬영 전문 업체",
+      "review_summary_positive": [
+        "감성 연출에 적합",
+        "기록용 서비스 비교 가능"
+      ],
+      "review_summary_negative": [
+        "정확한 실제 후기 확인 필요"
+      ],
+      "tags": [
+        "웨딩영상",
+        "본식스냅",
+        "감성",
+        "강남구"
+      ],
+      "thumbnail_url": "//img1.kakaocdn.net/cthumb/local/C800x400.q50/?fname=https%3A%2F%2Fpostfiles.pstatic.net%2FMjAyNTEwMTRfODkg%2FMDAxNzYwNDIxMjI5NzE1.NMY2ZS5_bF0oaSRHXqSag_hud0gJT04xU-JL79X1P7sg.3DE9YNuwLK2g9B_CUZMqOi7S10Vebe7f277fFsPzbnMg.JPEG%2FSE-c18b3976-71ea-4352-8b71-dffeb14d33aa.jpg%3Ftype%3Dw386",
+      "image_urls": [
+        "//img1.kakaocdn.net/cthumb/local/C800x400.q50/?fname=https%3A%2F%2Fpostfiles.pstatic.net%2FMjAyNTEwMTRfODkg%2FMDAxNzYwNDIxMjI5NzE1.NMY2ZS5_bF0oaSRHXqSag_hud0gJT04xU-JL79X1P7sg.3DE9YNuwLK2g9B_CUZMqOi7S10Vebe7f277fFsPzbnMg.JPEG%2FSE-c18b3976-71ea-4352-8b71-dffeb14d33aa.jpg%3Ftype%3Dw386"
+      ],
+      "rating_avg": null,
+      "review_count": 0,
+      "rating_info": {
+        "rating_avg": null,
+        "rating_scale": 5,
+        "review_count": 0,
+        "rating_display": "평점 없음",
+        "rating_source": "kakao_place_page",
+        "rating_confidence": "none",
+        "rating_reliability": "none"
+      },
+      "search_text": "가격대는 약 2000000원에서 3600000원 수준입니다. 정확한 구성은 업체에 문의가 필요합니다."
+    },
+    "quality_control": {
+      "is_dummy_enriched": true,
+      "dummy_fields": [
+        "price_min",
+        "price_max",
+        "delivered_photos",
+        "highlight_video_duration_minutes"
+      ],
+      "verification_notes": [
+        "촬영 구성은 업체별 상이",
+        "가격은 지역 및 스타일 기준 더미 보정"
+      ],
+      "last_updated_at": "2026-03-26T02:16:05.251527Z",
+      "asset_source": "kakao_place_page",
+      "asset_note": "상세 페이지 기반 추출값으로 구조 변경 시 재조정 필요"
+    }
+  },
+  {
+    "basic_info": {
+      "vendor_id": "video_snap_2111941414",
+      "source": "kakao",
+      "source_id": "2111941414",
+      "name": "케이와이포토웍스",
+      "category": "video_snap",
+      "raw_category": "가정,생활 > 결혼 > 웨딩스튜디오",
+      "region": "서울",
+      "district": "강남구",
+      "neighborhood": "역삼동",
+      "address": "서울 강남구 역삼동 649-8",
+      "road_address": "서울 강남구 강남대로92길 31",
+      "phone": "010-8176-0045",
+      "website_url": "http://place.map.kakao.com/2111941414",
+      "source_url": "https://place.map.kakao.com/2111941414",
+      "lat": 37.4994572012018,
+      "lng": 127.029906333542,
+      "status": "active"
+    },
+    "search_filters": {
+      "service_types": [
+        "본식스냅"
+      ],
+      "video_style": [
+        "감성",
+        "시네마틱"
+      ],
+      "photo_style": [
+        "자연스러운",
+        "다큐형"
+      ],
+      "district": "강남구",
+      "price_min": 2000000,
+      "price_max": 3600000,
+      "price_level": "high",
+      "highlight_video_included": true,
+      "full_video_included": true
+    },
+    "details": {
+      "service_types": [
+        "본식스냅"
+      ],
+      "photo_details": {
+        "photographer_count": 1,
+        "delivered_photos": 500,
+        "retouched_photos": 20
+      },
+      "video_details": {
+        "videographer_count": 1,
+        "highlight_video_duration_minutes": 3,
+        "full_video_included": true
+      },
+      "equipment_level": "전문 장비",
+      "specialties": [
+        "감성 영상",
+        "자연스러운 스냅"
+      ],
+      "recommended_for": [
+        "감성적인 웨딩 기록을 원하는 커플"
+      ]
+    },
+    "pricing": {
+      "currency": "KRW",
+      "price_min": 2000000,
+      "price_max": 3600000,
+      "pricing_type": "package",
+      "includes": [
+        "본식 촬영",
+        "보정 사진",
+        "하이라이트 영상"
+      ],
+      "additional_costs": [
+        "촬영 인원 추가 비용",
+        "원본 전체 제공 비용"
+      ],
+      "price_note": "지역 기준 더미 추정값 (정확한 확인 필요)"
+    },
+    "content": {
+      "short_description": "본식 스냅 및 웨딩 촬영 전문 업체",
+      "review_summary_positive": [
+        "감성 연출에 적합",
+        "기록용 서비스 비교 가능"
+      ],
+      "review_summary_negative": [
+        "정확한 실제 후기 확인 필요"
+      ],
+      "tags": [
+        "웨딩영상",
+        "본식스냅",
+        "감성",
+        "강남구"
+      ],
+      "thumbnail_url": "http://staticmap.kakao.com/staticmap/og?type=place&srs=wgs84&size=400x200&service=placeweb&m=127.02990520301401%2C37.499458102501286",
+      "image_urls": [
+        "http://staticmap.kakao.com/staticmap/og?type=place&srs=wgs84&size=400x200&service=placeweb&m=127.02990520301401%2C37.499458102501286"
+      ],
+      "rating_avg": null,
+      "review_count": 0,
+      "rating_info": {
+        "rating_avg": null,
+        "rating_scale": 5,
+        "review_count": 0,
+        "rating_display": "평점 없음",
+        "rating_source": "kakao_place_page",
+        "rating_confidence": "none",
+        "rating_reliability": "none"
+      },
+      "search_text": "가격대는 약 2000000원에서 3600000원 수준입니다. 정확한 구성은 업체에 문의가 필요합니다."
+    },
+    "quality_control": {
+      "is_dummy_enriched": true,
+      "dummy_fields": [
+        "price_min",
+        "price_max",
+        "delivered_photos",
+        "highlight_video_duration_minutes"
+      ],
+      "verification_notes": [
+        "촬영 구성은 업체별 상이",
+        "가격은 지역 및 스타일 기준 더미 보정"
+      ],
+      "last_updated_at": "2026-03-26T02:16:05.486013Z",
+      "asset_source": "kakao_place_page",
+      "asset_note": "상세 페이지 기반 추출값으로 구조 변경 시 재조정 필요"
+    }
+  },
+  {
+    "basic_info": {
+      "vendor_id": "video_snap_1286118620",
+      "source": "kakao",
+      "source_id": "1286118620",
+      "name": "시환코퍼레이션",
+      "category": "video_snap",
+      "raw_category": "가정,생활 > 결혼 > 웨딩스튜디오",
+      "region": "서울",
+      "district": "강남구",
+      "neighborhood": "논현동",
+      "address": "서울 강남구 논현동 59-6",
+      "road_address": "서울 강남구 도산대로30길 4",
+      "phone": "0502-5550-2675",
+      "website_url": "http://place.map.kakao.com/1286118620",
+      "source_url": "https://place.map.kakao.com/1286118620",
+      "lat": 37.5194867205711,
+      "lng": 127.029162084147,
+      "status": "active"
+    },
+    "search_filters": {
+      "service_types": [
+        "본식스냅"
+      ],
+      "video_style": [
+        "감성",
+        "시네마틱"
+      ],
+      "photo_style": [
+        "자연스러운",
+        "다큐형"
+      ],
+      "district": "강남구",
+      "price_min": 2300000,
+      "price_max": 3900000,
+      "price_level": "high",
+      "highlight_video_included": true,
+      "full_video_included": true
+    },
+    "details": {
+      "service_types": [
+        "본식스냅"
+      ],
+      "photo_details": {
+        "photographer_count": 1,
+        "delivered_photos": 500,
+        "retouched_photos": 20
+      },
+      "video_details": {
+        "videographer_count": 1,
+        "highlight_video_duration_minutes": 3,
+        "full_video_included": true
+      },
+      "equipment_level": "전문 장비",
+      "specialties": [
+        "감성 영상",
+        "자연스러운 스냅"
+      ],
+      "recommended_for": [
+        "감성적인 웨딩 기록을 원하는 커플"
+      ]
+    },
+    "pricing": {
+      "currency": "KRW",
+      "price_min": 2300000,
+      "price_max": 3900000,
+      "pricing_type": "package",
+      "includes": [
+        "본식 촬영",
+        "보정 사진",
+        "하이라이트 영상"
+      ],
+      "additional_costs": [
+        "촬영 인원 추가 비용",
+        "원본 전체 제공 비용"
+      ],
+      "price_note": "지역 기준 더미 추정값 (정확한 확인 필요)"
+    },
+    "content": {
+      "short_description": "본식 스냅 및 웨딩 촬영 전문 업체",
+      "review_summary_positive": [
+        "감성 연출에 적합",
+        "기록용 서비스 비교 가능"
+      ],
+      "review_summary_negative": [
+        "정확한 실제 후기 확인 필요"
+      ],
+      "tags": [
+        "웨딩영상",
+        "본식스냅",
+        "감성",
+        "강남구"
+      ],
+      "thumbnail_url": "//img1.kakaocdn.net/cthumb/local/C800x400.q50/?fname=http%3A%2F%2Ft1.kakaocdn.net%2Fmystore%2FB6C7A68DBE6C430984FEA52A4E0B878E",
+      "image_urls": [
+        "//img1.kakaocdn.net/cthumb/local/C800x400.q50/?fname=http%3A%2F%2Ft1.kakaocdn.net%2Fmystore%2FB6C7A68DBE6C430984FEA52A4E0B878E"
+      ],
+      "rating_avg": null,
+      "review_count": 0,
+      "rating_info": {
+        "rating_avg": null,
+        "rating_scale": 5,
+        "review_count": 0,
+        "rating_display": "평점 없음",
+        "rating_source": "kakao_place_page",
+        "rating_confidence": "none",
+        "rating_reliability": "none"
+      },
+      "search_text": "가격대는 약 2300000원에서 3900000원 수준입니다. 정확한 구성은 업체에 문의가 필요합니다."
+    },
+    "quality_control": {
+      "is_dummy_enriched": true,
+      "dummy_fields": [
+        "price_min",
+        "price_max",
+        "delivered_photos",
+        "highlight_video_duration_minutes"
+      ],
+      "verification_notes": [
+        "촬영 구성은 업체별 상이",
+        "가격은 지역 및 스타일 기준 더미 보정"
+      ],
+      "last_updated_at": "2026-03-26T02:16:05.717234Z",
+      "asset_source": "kakao_place_page",
+      "asset_note": "상세 페이지 기반 추출값으로 구조 변경 시 재조정 필요"
+    }
+  },
+  {
+    "basic_info": {
+      "vendor_id": "video_snap_1751738708",
+      "source": "kakao",
+      "source_id": "1751738708",
+      "name": "디와이피포토",
+      "category": "video_snap",
+      "raw_category": "가정,생활 > 결혼 > 웨딩스튜디오",
+      "region": "서울",
+      "district": "마포구",
+      "neighborhood": "동교동",
+      "address": "서울 마포구 동교동 146-8",
+      "road_address": "서울 마포구 연희로 11",
+      "phone": "0502-5553-8363",
+      "website_url": "http://place.map.kakao.com/1751738708",
+      "source_url": "https://place.map.kakao.com/1751738708",
+      "lat": 37.55987176506043,
+      "lng": 126.92630055165895,
+      "status": "active"
+    },
+    "search_filters": {
+      "service_types": [
+        "본식스냅"
+      ],
+      "video_style": [
+        "감성",
+        "시네마틱"
+      ],
+      "photo_style": [
+        "자연스러운",
+        "다큐형"
+      ],
+      "district": "마포구",
+      "price_min": 800000,
+      "price_max": 1500000,
+      "price_level": "mid_high",
+      "highlight_video_included": true,
+      "full_video_included": true
+    },
+    "details": {
+      "service_types": [
+        "본식스냅"
+      ],
+      "photo_details": {
+        "photographer_count": 1,
+        "delivered_photos": 500,
+        "retouched_photos": 20
+      },
+      "video_details": {
+        "videographer_count": 1,
+        "highlight_video_duration_minutes": 3,
+        "full_video_included": true
+      },
+      "equipment_level": "전문 장비",
+      "specialties": [
+        "감성 영상",
+        "자연스러운 스냅"
+      ],
+      "recommended_for": [
+        "감성적인 웨딩 기록을 원하는 커플"
+      ]
+    },
+    "pricing": {
+      "currency": "KRW",
+      "price_min": 800000,
+      "price_max": 1500000,
+      "pricing_type": "package",
+      "includes": [
+        "본식 촬영",
+        "보정 사진",
+        "하이라이트 영상"
+      ],
+      "additional_costs": [
+        "촬영 인원 추가 비용",
+        "원본 전체 제공 비용"
+      ],
+      "price_note": "지역 기준 더미 추정값 (정확한 확인 필요)"
+    },
+    "content": {
+      "short_description": "본식 스냅 및 웨딩 촬영 전문 업체",
+      "review_summary_positive": [
+        "감성 연출에 적합",
+        "기록용 서비스 비교 가능"
+      ],
+      "review_summary_negative": [
+        "정확한 실제 후기 확인 필요"
+      ],
+      "tags": [
+        "웨딩영상",
+        "본식스냅",
+        "감성",
+        "마포구"
+      ],
+      "thumbnail_url": "//img1.kakaocdn.net/cthumb/local/C800x400.q50/?fname=http%3A%2F%2Ft1.kakaocdn.net%2Fmystore%2FDDBD71793C1846E1937A849703E0C625",
+      "image_urls": [
+        "//img1.kakaocdn.net/cthumb/local/C800x400.q50/?fname=http%3A%2F%2Ft1.kakaocdn.net%2Fmystore%2FDDBD71793C1846E1937A849703E0C625"
+      ],
+      "rating_avg": null,
+      "review_count": 0,
+      "rating_info": {
+        "rating_avg": null,
+        "rating_scale": 5,
+        "review_count": 0,
+        "rating_display": "평점 없음",
+        "rating_source": "kakao_place_page",
+        "rating_confidence": "none",
+        "rating_reliability": "none"
+      },
+      "search_text": "가격대는 약 800000원에서 1500000원 수준입니다. 정확한 구성은 업체에 문의가 필요합니다."
+    },
+    "quality_control": {
+      "is_dummy_enriched": true,
+      "dummy_fields": [
+        "price_min",
+        "price_max",
+        "delivered_photos",
+        "highlight_video_duration_minutes"
+      ],
+      "verification_notes": [
+        "촬영 구성은 업체별 상이",
+        "가격은 지역 및 스타일 기준 더미 보정"
+      ],
+      "last_updated_at": "2026-03-26T02:16:06.648313Z",
+      "asset_source": "kakao_place_page",
+      "asset_note": "상세 페이지 기반 추출값으로 구조 변경 시 재조정 필요"
+    }
+  },
+  {
+    "basic_info": {
+      "vendor_id": "video_snap_1294165368",
+      "source": "kakao",
+      "source_id": "1294165368",
+      "name": "로렌필름",
+      "category": "video_snap",
+      "raw_category": "가정,생활 > 결혼 > 웨딩스튜디오",
+      "region": "서울",
+      "district": "마포구",
+      "neighborhood": "합정동",
+      "address": "서울 마포구 합정동 372-28",
+      "road_address": "서울 마포구 성지길 25-11",
+      "phone": "0507-1358-8051",
+      "website_url": "http://place.map.kakao.com/1294165368",
+      "source_url": "https://place.map.kakao.com/1294165368",
+      "lat": 37.5473666265525,
+      "lng": 126.91402469993,
+      "status": "active"
+    },
+    "search_filters": {
+      "service_types": [
+        "본식스냅"
+      ],
+      "video_style": [
+        "감성",
+        "시네마틱"
+      ],
+      "photo_style": [
+        "자연스러운",
+        "다큐형"
+      ],
+      "district": "마포구",
+      "price_min": 1100000,
+      "price_max": 2500000,
+      "price_level": "mid_high",
+      "highlight_video_included": true,
+      "full_video_included": true
+    },
+    "details": {
+      "service_types": [
+        "본식스냅"
+      ],
+      "photo_details": {
+        "photographer_count": 1,
+        "delivered_photos": 500,
+        "retouched_photos": 20
+      },
+      "video_details": {
+        "videographer_count": 1,
+        "highlight_video_duration_minutes": 3,
+        "full_video_included": true
+      },
+      "equipment_level": "전문 장비",
+      "specialties": [
+        "감성 영상",
+        "자연스러운 스냅"
+      ],
+      "recommended_for": [
+        "감성적인 웨딩 기록을 원하는 커플"
+      ]
+    },
+    "pricing": {
+      "currency": "KRW",
+      "price_min": 1100000,
+      "price_max": 2500000,
+      "pricing_type": "package",
+      "includes": [
+        "본식 촬영",
+        "보정 사진",
+        "하이라이트 영상"
+      ],
+      "additional_costs": [
+        "촬영 인원 추가 비용",
+        "원본 전체 제공 비용"
+      ],
+      "price_note": "지역 기준 더미 추정값 (정확한 확인 필요)"
+    },
+    "content": {
+      "short_description": "본식 스냅 및 웨딩 촬영 전문 업체",
+      "review_summary_positive": [
+        "감성 연출에 적합",
+        "기록용 서비스 비교 가능"
+      ],
+      "review_summary_negative": [
+        "정확한 실제 후기 확인 필요"
+      ],
+      "tags": [
+        "웨딩영상",
+        "본식스냅",
+        "감성",
+        "마포구"
+      ],
+      "thumbnail_url": "//img1.kakaocdn.net/cthumb/local/C800x400.q50/?fname=http%3A%2F%2Ft1.kakaocdn.net%2Fmystore%2F259ADF6D4BDA47C988E223D397B57F28",
+      "image_urls": [
+        "//img1.kakaocdn.net/cthumb/local/C800x400.q50/?fname=http%3A%2F%2Ft1.kakaocdn.net%2Fmystore%2F259ADF6D4BDA47C988E223D397B57F28"
+      ],
+      "rating_avg": null,
+      "review_count": 0,
+      "rating_info": {
+        "rating_avg": null,
+        "rating_scale": 5,
+        "review_count": 0,
+        "rating_display": "평점 없음",
+        "rating_source": "kakao_place_page",
+        "rating_confidence": "none",
+        "rating_reliability": "none"
+      },
+      "search_text": "가격대는 약 1100000원에서 2500000원 수준입니다. 정확한 구성은 업체에 문의가 필요합니다."
+    },
+    "quality_control": {
+      "is_dummy_enriched": true,
+      "dummy_fields": [
+        "price_min",
+        "price_max",
+        "delivered_photos",
+        "highlight_video_duration_minutes"
+      ],
+      "verification_notes": [
+        "촬영 구성은 업체별 상이",
+        "가격은 지역 및 스타일 기준 더미 보정"
+      ],
+      "last_updated_at": "2026-03-26T02:16:06.887991Z",
+      "asset_source": "kakao_place_page",
+      "asset_note": "상세 페이지 기반 추출값으로 구조 변경 시 재조정 필요"
+    }
+  },
+  {
+    "basic_info": {
+      "vendor_id": "video_snap_658435191",
+      "source": "kakao",
+      "source_id": "658435191",
+      "name": "그렉앤맷",
+      "category": "video_snap",
+      "raw_category": "가정,생활 > 결혼 > 웨딩스튜디오",
+      "region": "서울",
+      "district": "마포구",
+      "neighborhood": "성산동",
+      "address": "서울 마포구 성산동 591-4",
+      "road_address": "서울 마포구 월드컵로 196",
+      "phone": "0507-1489-1436",
+      "website_url": "http://place.map.kakao.com/658435191",
+      "source_url": "https://place.map.kakao.com/658435191",
+      "lat": 37.56479938352657,
+      "lng": 126.90275043946562,
+      "status": "active"
+    },
+    "search_filters": {
+      "service_types": [
+        "본식스냅"
+      ],
+      "video_style": [
+        "감성",
+        "시네마틱"
+      ],
+      "photo_style": [
+        "자연스러운",
+        "다큐형"
+      ],
+      "district": "마포구",
+      "price_min": 1200000,
+      "price_max": 2300000,
+      "price_level": "mid_high",
+      "highlight_video_included": true,
+      "full_video_included": true
+    },
+    "details": {
+      "service_types": [
+        "본식스냅"
+      ],
+      "photo_details": {
+        "photographer_count": 1,
+        "delivered_photos": 500,
+        "retouched_photos": 20
+      },
+      "video_details": {
+        "videographer_count": 1,
+        "highlight_video_duration_minutes": 3,
+        "full_video_included": true
+      },
+      "equipment_level": "전문 장비",
+      "specialties": [
+        "감성 영상",
+        "자연스러운 스냅"
+      ],
+      "recommended_for": [
+        "감성적인 웨딩 기록을 원하는 커플"
+      ]
+    },
+    "pricing": {
+      "currency": "KRW",
+      "price_min": 1200000,
+      "price_max": 2300000,
+      "pricing_type": "package",
+      "includes": [
+        "본식 촬영",
+        "보정 사진",
+        "하이라이트 영상"
+      ],
+      "additional_costs": [
+        "촬영 인원 추가 비용",
+        "원본 전체 제공 비용"
+      ],
+      "price_note": "지역 기준 더미 추정값 (정확한 확인 필요)"
+    },
+    "content": {
+      "short_description": "본식 스냅 및 웨딩 촬영 전문 업체",
+      "review_summary_positive": [
+        "감성 연출에 적합",
+        "기록용 서비스 비교 가능"
+      ],
+      "review_summary_negative": [
+        "정확한 실제 후기 확인 필요"
+      ],
+      "tags": [
+        "웨딩영상",
+        "본식스냅",
+        "감성",
+        "마포구"
+      ],
+      "thumbnail_url": "//img1.kakaocdn.net/cthumb/local/C800x400.q50/?fname=http%3A%2F%2Ft1.kakaocdn.net%2Fmystore%2F0B5B6CCD900347A99569A62B96E35F84",
+      "image_urls": [
+        "//img1.kakaocdn.net/cthumb/local/C800x400.q50/?fname=http%3A%2F%2Ft1.kakaocdn.net%2Fmystore%2F0B5B6CCD900347A99569A62B96E35F84"
+      ],
+      "rating_avg": null,
+      "review_count": 0,
+      "rating_info": {
+        "rating_avg": null,
+        "rating_scale": 5,
+        "review_count": 0,
+        "rating_display": "평점 없음",
+        "rating_source": "kakao_place_page",
+        "rating_confidence": "none",
+        "rating_reliability": "none"
+      },
+      "search_text": "가격대는 약 1200000원에서 2300000원 수준입니다. 정확한 구성은 업체에 문의가 필요합니다."
+    },
+    "quality_control": {
+      "is_dummy_enriched": true,
+      "dummy_fields": [
+        "price_min",
+        "price_max",
+        "delivered_photos",
+        "highlight_video_duration_minutes"
+      ],
+      "verification_notes": [
+        "촬영 구성은 업체별 상이",
+        "가격은 지역 및 스타일 기준 더미 보정"
+      ],
+      "last_updated_at": "2026-03-26T02:16:07.125810Z",
+      "asset_source": "kakao_place_page",
+      "asset_note": "상세 페이지 기반 추출값으로 구조 변경 시 재조정 필요"
+    }
+  },
+  {
+    "basic_info": {
+      "vendor_id": "video_snap_1791432816",
+      "source": "kakao",
+      "source_id": "1791432816",
+      "name": "클래식",
+      "category": "video_snap",
+      "raw_category": "가정,생활 > 결혼 > 웨딩스튜디오",
+      "region": "서울",
+      "district": "마포구",
+      "neighborhood": "성산동",
+      "address": "서울 마포구 성산동 275-1",
+      "road_address": "서울 마포구 성산로 124",
+      "phone": "0503-7151-7454",
+      "website_url": "http://place.map.kakao.com/1791432816",
+      "source_url": "https://place.map.kakao.com/1791432816",
+      "lat": 37.5638373395467,
+      "lng": 126.907508898026,
+      "status": "active"
+    },
+    "search_filters": {
+      "service_types": [
+        "본식스냅"
+      ],
+      "video_style": [
+        "감성",
+        "시네마틱"
+      ],
+      "photo_style": [
+        "자연스러운",
+        "다큐형"
+      ],
+      "district": "마포구",
+      "price_min": 800000,
+      "price_max": 1700000,
+      "price_level": "mid_high",
+      "highlight_video_included": true,
+      "full_video_included": true
+    },
+    "details": {
+      "service_types": [
+        "본식스냅"
+      ],
+      "photo_details": {
+        "photographer_count": 1,
+        "delivered_photos": 500,
+        "retouched_photos": 20
+      },
+      "video_details": {
+        "videographer_count": 1,
+        "highlight_video_duration_minutes": 3,
+        "full_video_included": true
+      },
+      "equipment_level": "전문 장비",
+      "specialties": [
+        "감성 영상",
+        "자연스러운 스냅"
+      ],
+      "recommended_for": [
+        "감성적인 웨딩 기록을 원하는 커플"
+      ]
+    },
+    "pricing": {
+      "currency": "KRW",
+      "price_min": 800000,
+      "price_max": 1700000,
+      "pricing_type": "package",
+      "includes": [
+        "본식 촬영",
+        "보정 사진",
+        "하이라이트 영상"
+      ],
+      "additional_costs": [
+        "촬영 인원 추가 비용",
+        "원본 전체 제공 비용"
+      ],
+      "price_note": "지역 기준 더미 추정값 (정확한 확인 필요)"
+    },
+    "content": {
+      "short_description": "본식 스냅 및 웨딩 촬영 전문 업체",
+      "review_summary_positive": [
+        "감성 연출에 적합",
+        "기록용 서비스 비교 가능"
+      ],
+      "review_summary_negative": [
+        "정확한 실제 후기 확인 필요"
+      ],
+      "tags": [
+        "웨딩영상",
+        "본식스냅",
+        "감성",
+        "마포구"
+      ],
+      "thumbnail_url": "http://staticmap.kakao.com/staticmap/og?type=place&srs=wgs84&size=400x200&service=placeweb&m=126.90750889913885%2C37.56383643855772",
+      "image_urls": [
+        "http://staticmap.kakao.com/staticmap/og?type=place&srs=wgs84&size=400x200&service=placeweb&m=126.90750889913885%2C37.56383643855772"
+      ],
+      "rating_avg": null,
+      "review_count": 0,
+      "rating_info": {
+        "rating_avg": null,
+        "rating_scale": 5,
+        "review_count": 0,
+        "rating_display": "평점 없음",
+        "rating_source": "kakao_place_page",
+        "rating_confidence": "none",
+        "rating_reliability": "none"
+      },
+      "search_text": "가격대는 약 800000원에서 1700000원 수준입니다. 정확한 구성은 업체에 문의가 필요합니다."
+    },
+    "quality_control": {
+      "is_dummy_enriched": true,
+      "dummy_fields": [
+        "price_min",
+        "price_max",
+        "delivered_photos",
+        "highlight_video_duration_minutes"
+      ],
+      "verification_notes": [
+        "촬영 구성은 업체별 상이",
+        "가격은 지역 및 스타일 기준 더미 보정"
+      ],
+      "last_updated_at": "2026-03-26T02:16:07.357663Z",
+      "asset_source": "kakao_place_page",
+      "asset_note": "상세 페이지 기반 추출값으로 구조 변경 시 재조정 필요"
+    }
+  },
+  {
+    "basic_info": {
+      "vendor_id": "video_snap_656281037",
+      "source": "kakao",
+      "source_id": "656281037",
+      "name": "로엔스냅",
+      "category": "video_snap",
+      "raw_category": "가정,생활 > 결혼 > 웨딩스튜디오",
+      "region": "서울",
+      "district": "마포구",
+      "neighborhood": "상암동",
+      "address": "서울 마포구 상암동 1660",
+      "road_address": "서울 마포구 상암산로1길 92",
+      "phone": "02-306-4300",
+      "website_url": "http://place.map.kakao.com/656281037",
+      "source_url": "https://place.map.kakao.com/656281037",
+      "lat": 37.5827563050924,
+      "lng": 126.882099379551,
+      "status": "active"
+    },
+    "search_filters": {
+      "service_types": [
+        "본식스냅"
+      ],
+      "video_style": [
+        "감성",
+        "시네마틱"
+      ],
+      "photo_style": [
+        "자연스러운",
+        "다큐형"
+      ],
+      "district": "마포구",
+      "price_min": 1200000,
+      "price_max": 2500000,
+      "price_level": "mid_high",
+      "highlight_video_included": true,
+      "full_video_included": true
+    },
+    "details": {
+      "service_types": [
+        "본식스냅"
+      ],
+      "photo_details": {
+        "photographer_count": 1,
+        "delivered_photos": 500,
+        "retouched_photos": 20
+      },
+      "video_details": {
+        "videographer_count": 1,
+        "highlight_video_duration_minutes": 3,
+        "full_video_included": true
+      },
+      "equipment_level": "전문 장비",
+      "specialties": [
+        "감성 영상",
+        "자연스러운 스냅"
+      ],
+      "recommended_for": [
+        "감성적인 웨딩 기록을 원하는 커플"
+      ]
+    },
+    "pricing": {
+      "currency": "KRW",
+      "price_min": 1200000,
+      "price_max": 2500000,
+      "pricing_type": "package",
+      "includes": [
+        "본식 촬영",
+        "보정 사진",
+        "하이라이트 영상"
+      ],
+      "additional_costs": [
+        "촬영 인원 추가 비용",
+        "원본 전체 제공 비용"
+      ],
+      "price_note": "지역 기준 더미 추정값 (정확한 확인 필요)"
+    },
+    "content": {
+      "short_description": "본식 스냅 및 웨딩 촬영 전문 업체",
+      "review_summary_positive": [
+        "감성 연출에 적합",
+        "기록용 서비스 비교 가능"
+      ],
+      "review_summary_negative": [
+        "정확한 실제 후기 확인 필요"
+      ],
+      "tags": [
+        "웨딩영상",
+        "본식스냅",
+        "감성",
+        "마포구"
+      ],
+      "thumbnail_url": "//img1.kakaocdn.net/cthumb/local/C800x400.q50/?fname=http%3A%2F%2Ft1.kakaocdn.net%2Fmystore%2FB35FFEA1A22B428B9D87F71A9DEA83D9",
+      "image_urls": [
+        "//img1.kakaocdn.net/cthumb/local/C800x400.q50/?fname=http%3A%2F%2Ft1.kakaocdn.net%2Fmystore%2FB35FFEA1A22B428B9D87F71A9DEA83D9"
+      ],
+      "rating_avg": null,
+      "review_count": 0,
+      "rating_info": {
+        "rating_avg": null,
+        "rating_scale": 5,
+        "review_count": 0,
+        "rating_display": "평점 없음",
+        "rating_source": "kakao_place_page",
+        "rating_confidence": "none",
+        "rating_reliability": "none"
+      },
+      "search_text": "가격대는 약 1200000원에서 2500000원 수준입니다. 정확한 구성은 업체에 문의가 필요합니다."
+    },
+    "quality_control": {
+      "is_dummy_enriched": true,
+      "dummy_fields": [
+        "price_min",
+        "price_max",
+        "delivered_photos",
+        "highlight_video_duration_minutes"
+      ],
+      "verification_notes": [
+        "촬영 구성은 업체별 상이",
+        "가격은 지역 및 스타일 기준 더미 보정"
+      ],
+      "last_updated_at": "2026-03-26T02:16:07.586029Z",
+      "asset_source": "kakao_place_page",
+      "asset_note": "상세 페이지 기반 추출값으로 구조 변경 시 재조정 필요"
+    }
+  },
+  {
+    "basic_info": {
+      "vendor_id": "video_snap_1860489063",
+      "source": "kakao",
+      "source_id": "1860489063",
+      "name": "에이투스튜디오",
+      "category": "video_snap",
+      "raw_category": "문화,예술 > 사진 > 사진관,포토스튜디오",
+      "region": "서울",
+      "district": "마포구",
+      "neighborhood": "동교동",
+      "address": "서울 마포구 동교동 175-19",
+      "road_address": "서울 마포구 신촌로2길 5-14",
+      "phone": "0502-5552-5661",
+      "website_url": "http://place.map.kakao.com/1860489063",
+      "source_url": "https://place.map.kakao.com/1860489063",
+      "lat": 37.55767716497932,
+      "lng": 126.92813278053403,
+      "status": "active"
+    },
+    "search_filters": {
+      "service_types": [
+        "본식스냅"
+      ],
+      "video_style": [
+        "감성",
+        "시네마틱"
+      ],
+      "photo_style": [
+        "자연스러운",
+        "다큐형"
+      ],
+      "district": "마포구",
+      "price_min": 1100000,
+      "price_max": 1500000,
+      "price_level": "mid_high",
+      "highlight_video_included": true,
+      "full_video_included": true
+    },
+    "details": {
+      "service_types": [
+        "본식스냅"
+      ],
+      "photo_details": {
+        "photographer_count": 1,
+        "delivered_photos": 500,
+        "retouched_photos": 20
+      },
+      "video_details": {
+        "videographer_count": 1,
+        "highlight_video_duration_minutes": 3,
+        "full_video_included": true
+      },
+      "equipment_level": "전문 장비",
+      "specialties": [
+        "감성 영상",
+        "자연스러운 스냅"
+      ],
+      "recommended_for": [
+        "감성적인 웨딩 기록을 원하는 커플"
+      ]
+    },
+    "pricing": {
+      "currency": "KRW",
+      "price_min": 1100000,
+      "price_max": 1500000,
+      "pricing_type": "package",
+      "includes": [
+        "본식 촬영",
+        "보정 사진",
+        "하이라이트 영상"
+      ],
+      "additional_costs": [
+        "촬영 인원 추가 비용",
+        "원본 전체 제공 비용"
+      ],
+      "price_note": "지역 기준 더미 추정값 (정확한 확인 필요)"
+    },
+    "content": {
+      "short_description": "본식 스냅 및 웨딩 촬영 전문 업체",
+      "review_summary_positive": [
+        "감성 연출에 적합",
+        "기록용 서비스 비교 가능"
+      ],
+      "review_summary_negative": [
+        "정확한 실제 후기 확인 필요"
+      ],
+      "tags": [
+        "웨딩영상",
+        "본식스냅",
+        "감성",
+        "마포구"
+      ],
+      "thumbnail_url": "//img1.kakaocdn.net/cthumb/local/C800x400.q50/?fname=http%3A%2F%2Ft1.kakaocdn.net%2Fmystore%2FEA2D05EC0840463C83EC48269719A821",
+      "image_urls": [
+        "//img1.kakaocdn.net/cthumb/local/C800x400.q50/?fname=http%3A%2F%2Ft1.kakaocdn.net%2Fmystore%2FEA2D05EC0840463C83EC48269719A821"
+      ],
+      "rating_avg": null,
+      "review_count": 0,
+      "rating_info": {
+        "rating_avg": null,
+        "rating_scale": 5,
+        "review_count": 0,
+        "rating_display": "평점 없음",
+        "rating_source": "kakao_place_page",
+        "rating_confidence": "none",
+        "rating_reliability": "none"
+      },
+      "search_text": "가격대는 약 1100000원에서 1500000원 수준입니다. 정확한 구성은 업체에 문의가 필요합니다."
+    },
+    "quality_control": {
+      "is_dummy_enriched": true,
+      "dummy_fields": [
+        "price_min",
+        "price_max",
+        "delivered_photos",
+        "highlight_video_duration_minutes"
+      ],
+      "verification_notes": [
+        "촬영 구성은 업체별 상이",
+        "가격은 지역 및 스타일 기준 더미 보정"
+      ],
+      "last_updated_at": "2026-03-26T02:16:07.821665Z",
+      "asset_source": "kakao_place_page",
+      "asset_note": "상세 페이지 기반 추출값으로 구조 변경 시 재조정 필요"
+    }
+  },
+  {
+    "basic_info": {
+      "vendor_id": "video_snap_60172267",
+      "source": "kakao",
+      "source_id": "60172267",
+      "name": "벨로데이즈",
+      "category": "video_snap",
+      "raw_category": "가정,생활 > 결혼 > 웨딩스튜디오",
+      "region": "서울",
+      "district": "송파구",
+      "neighborhood": "잠실동",
+      "address": "서울 송파구 잠실동 191-10",
+      "road_address": "서울 송파구 백제고분로7길 24-18",
+      "phone": "0502-5551-4044",
+      "website_url": "http://place.map.kakao.com/60172267",
+      "source_url": "https://place.map.kakao.com/60172267",
+      "lat": 37.509913250079194,
+      "lng": 127.08166715163361,
+      "status": "active"
+    },
+    "search_filters": {
+      "service_types": [
+        "본식스냅"
+      ],
+      "video_style": [
+        "감성",
+        "시네마틱"
+      ],
+      "photo_style": [
+        "자연스러운",
+        "다큐형"
+      ],
+      "district": "송파구",
+      "price_min": 1200000,
+      "price_max": 1700000,
+      "price_level": "mid_high",
+      "highlight_video_included": true,
+      "full_video_included": true
+    },
+    "details": {
+      "service_types": [
+        "본식스냅"
+      ],
+      "photo_details": {
+        "photographer_count": 1,
+        "delivered_photos": 500,
+        "retouched_photos": 20
+      },
+      "video_details": {
+        "videographer_count": 1,
+        "highlight_video_duration_minutes": 3,
+        "full_video_included": true
+      },
+      "equipment_level": "전문 장비",
+      "specialties": [
+        "감성 영상",
+        "자연스러운 스냅"
+      ],
+      "recommended_for": [
+        "감성적인 웨딩 기록을 원하는 커플"
+      ]
+    },
+    "pricing": {
+      "currency": "KRW",
+      "price_min": 1200000,
+      "price_max": 1700000,
+      "pricing_type": "package",
+      "includes": [
+        "본식 촬영",
+        "보정 사진",
+        "하이라이트 영상"
+      ],
+      "additional_costs": [
+        "촬영 인원 추가 비용",
+        "원본 전체 제공 비용"
+      ],
+      "price_note": "지역 기준 더미 추정값 (정확한 확인 필요)"
+    },
+    "content": {
+      "short_description": "본식 스냅 및 웨딩 촬영 전문 업체",
+      "review_summary_positive": [
+        "감성 연출에 적합",
+        "기록용 서비스 비교 가능"
+      ],
+      "review_summary_negative": [
+        "정확한 실제 후기 확인 필요"
+      ],
+      "tags": [
+        "웨딩영상",
+        "본식스냅",
+        "감성",
+        "송파구"
+      ],
+      "thumbnail_url": "//img1.kakaocdn.net/cthumb/local/C800x400.q50/?fname=https%3A%2F%2Fpostfiles.pstatic.net%2FMjAyNTA1MTFfMjg3%2FMDAxNzQ2OTQ4MTg1OTQ2.O6G51zJi8-NIP622n-W_P_MVLToefhUXJ318kITcrU4g.HVq13lFEK1vcy9FVzv0vy2WVztN1QPG50V84Cd7XSjIg.JPEG%2FSE-9d9cc239-533c-4bfb-aaeb-c1fccb6e5df5.jpg%3Ftype%3Dw966",
+      "image_urls": [
+        "//img1.kakaocdn.net/cthumb/local/C800x400.q50/?fname=https%3A%2F%2Fpostfiles.pstatic.net%2FMjAyNTA1MTFfMjg3%2FMDAxNzQ2OTQ4MTg1OTQ2.O6G51zJi8-NIP622n-W_P_MVLToefhUXJ318kITcrU4g.HVq13lFEK1vcy9FVzv0vy2WVztN1QPG50V84Cd7XSjIg.JPEG%2FSE-9d9cc239-533c-4bfb-aaeb-c1fccb6e5df5.jpg%3Ftype%3Dw966"
+      ],
+      "rating_avg": null,
+      "review_count": 0,
+      "rating_info": {
+        "rating_avg": null,
+        "rating_scale": 5,
+        "review_count": 0,
+        "rating_display": "평점 없음",
+        "rating_source": "kakao_place_page",
+        "rating_confidence": "none",
+        "rating_reliability": "none"
+      },
+      "search_text": "가격대는 약 1200000원에서 1700000원 수준입니다. 정확한 구성은 업체에 문의가 필요합니다."
+    },
+    "quality_control": {
+      "is_dummy_enriched": true,
+      "dummy_fields": [
+        "price_min",
+        "price_max",
+        "delivered_photos",
+        "highlight_video_duration_minutes"
+      ],
+      "verification_notes": [
+        "촬영 구성은 업체별 상이",
+        "가격은 지역 및 스타일 기준 더미 보정"
+      ],
+      "last_updated_at": "2026-03-26T02:16:08.397025Z",
+      "asset_source": "kakao_place_page",
+      "asset_note": "상세 페이지 기반 추출값으로 구조 변경 시 재조정 필요"
+    }
+  },
+  {
+    "basic_info": {
+      "vendor_id": "video_snap_1919798936",
+      "source": "kakao",
+      "source_id": "1919798936",
+      "name": "리프레쉬샷",
+      "category": "video_snap",
+      "raw_category": "문화,예술 > 사진 > 사진관,포토스튜디오",
+      "region": "서울",
+      "district": "강서구",
+      "neighborhood": "화곡동",
+      "address": "서울 강서구 화곡동 1068-23",
+      "road_address": "서울 강서구 화곡로 119",
+      "phone": "010-2046-1874",
+      "website_url": "http://place.map.kakao.com/1919798936",
+      "source_url": "https://place.map.kakao.com/1919798936",
+      "lat": 37.5404442127918,
+      "lng": 126.835104444332,
+      "status": "active"
+    },
+    "search_filters": {
+      "service_types": [
+        "본식스냅"
+      ],
+      "video_style": [
+        "감성",
+        "시네마틱"
+      ],
+      "photo_style": [
+        "자연스러운",
+        "다큐형"
+      ],
+      "district": "강서구",
+      "price_min": 800000,
+      "price_max": 1500000,
+      "price_level": "mid",
+      "highlight_video_included": true,
+      "full_video_included": true
+    },
+    "details": {
+      "service_types": [
+        "본식스냅"
+      ],
+      "photo_details": {
+        "photographer_count": 1,
+        "delivered_photos": 500,
+        "retouched_photos": 20
+      },
+      "video_details": {
+        "videographer_count": 1,
+        "highlight_video_duration_minutes": 3,
+        "full_video_included": true
+      },
+      "equipment_level": "전문 장비",
+      "specialties": [
+        "감성 영상",
+        "자연스러운 스냅"
+      ],
+      "recommended_for": [
+        "감성적인 웨딩 기록을 원하는 커플"
+      ]
+    },
+    "pricing": {
+      "currency": "KRW",
+      "price_min": 800000,
+      "price_max": 1500000,
+      "pricing_type": "package",
+      "includes": [
+        "본식 촬영",
+        "보정 사진",
+        "하이라이트 영상"
+      ],
+      "additional_costs": [
+        "촬영 인원 추가 비용",
+        "원본 전체 제공 비용"
+      ],
+      "price_note": "지역 기준 더미 추정값 (정확한 확인 필요)"
+    },
+    "content": {
+      "short_description": "본식 스냅 및 웨딩 촬영 전문 업체",
+      "review_summary_positive": [
+        "감성 연출에 적합",
+        "기록용 서비스 비교 가능"
+      ],
+      "review_summary_negative": [
+        "정확한 실제 후기 확인 필요"
+      ],
+      "tags": [
+        "웨딩영상",
+        "본식스냅",
+        "감성",
+        "강서구"
+      ],
+      "thumbnail_url": "//img1.kakaocdn.net/cthumb/local/C800x400.q50/?fname=http%3A%2F%2Ft1.kakaocdn.net%2Fmystore%2F108820272DE849439DD172A538D13B25",
+      "image_urls": [
+        "//img1.kakaocdn.net/cthumb/local/C800x400.q50/?fname=http%3A%2F%2Ft1.kakaocdn.net%2Fmystore%2F108820272DE849439DD172A538D13B25"
+      ],
+      "rating_avg": null,
+      "review_count": 0,
+      "rating_info": {
+        "rating_avg": null,
+        "rating_scale": 5,
+        "review_count": 0,
+        "rating_display": "평점 없음",
+        "rating_source": "kakao_place_page",
+        "rating_confidence": "none",
+        "rating_reliability": "none"
+      },
+      "search_text": "가격대는 약 800000원에서 1500000원 수준입니다. 정확한 구성은 업체에 문의가 필요합니다."
+    },
+    "quality_control": {
+      "is_dummy_enriched": true,
+      "dummy_fields": [
+        "price_min",
+        "price_max",
+        "delivered_photos",
+        "highlight_video_duration_minutes"
+      ],
+      "verification_notes": [
+        "촬영 구성은 업체별 상이",
+        "가격은 지역 및 스타일 기준 더미 보정"
+      ],
+      "last_updated_at": "2026-03-26T02:16:09.069459Z",
+      "asset_source": "kakao_place_page",
+      "asset_note": "상세 페이지 기반 추출값으로 구조 변경 시 재조정 필요"
+    }
+  },
+  {
+    "basic_info": {
+      "vendor_id": "video_snap_1344283255",
+      "source": "kakao",
+      "source_id": "1344283255",
+      "name": "더러비엔",
+      "category": "video_snap",
+      "raw_category": "가정,생활 > 결혼 > 웨딩스튜디오",
+      "region": "서울",
+      "district": "영등포구",
+      "neighborhood": "영등포동7가",
+      "address": "서울 영등포구 영등포동7가 94-13",
+      "road_address": "서울 영등포구 버드나루로11길 5",
+      "phone": "010-6606-3187",
+      "website_url": "http://place.map.kakao.com/1344283255",
+      "source_url": "https://place.map.kakao.com/1344283255",
+      "lat": 37.5245997275667,
+      "lng": 126.908661477045,
+      "status": "active"
+    },
+    "search_filters": {
+      "service_types": [
+        "본식스냅"
+      ],
+      "video_style": [
+        "감성",
+        "시네마틱"
+      ],
+      "photo_style": [
+        "자연스러운",
+        "다큐형"
+      ],
+      "district": "영등포구",
+      "price_min": 800000,
+      "price_max": 2500000,
+      "price_level": "mid_high",
+      "highlight_video_included": true,
+      "full_video_included": true
+    },
+    "details": {
+      "service_types": [
+        "본식스냅"
+      ],
+      "photo_details": {
+        "photographer_count": 1,
+        "delivered_photos": 500,
+        "retouched_photos": 20
+      },
+      "video_details": {
+        "videographer_count": 1,
+        "highlight_video_duration_minutes": 3,
+        "full_video_included": true
+      },
+      "equipment_level": "전문 장비",
+      "specialties": [
+        "감성 영상",
+        "자연스러운 스냅"
+      ],
+      "recommended_for": [
+        "감성적인 웨딩 기록을 원하는 커플"
+      ]
+    },
+    "pricing": {
+      "currency": "KRW",
+      "price_min": 800000,
+      "price_max": 2500000,
+      "pricing_type": "package",
+      "includes": [
+        "본식 촬영",
+        "보정 사진",
+        "하이라이트 영상"
+      ],
+      "additional_costs": [
+        "촬영 인원 추가 비용",
+        "원본 전체 제공 비용"
+      ],
+      "price_note": "지역 기준 더미 추정값 (정확한 확인 필요)"
+    },
+    "content": {
+      "short_description": "본식 스냅 및 웨딩 촬영 전문 업체",
+      "review_summary_positive": [
+        "감성 연출에 적합",
+        "기록용 서비스 비교 가능"
+      ],
+      "review_summary_negative": [
+        "정확한 실제 후기 확인 필요"
+      ],
+      "tags": [
+        "웨딩영상",
+        "본식스냅",
+        "감성",
+        "영등포구"
+      ],
+      "thumbnail_url": "//img1.kakaocdn.net/cthumb/local/C800x400.q50/?fname=http%3A%2F%2Ft1.kakaocdn.net%2Fmystore%2F180EF34CCDD64090905C4772210B9DA7",
+      "image_urls": [
+        "//img1.kakaocdn.net/cthumb/local/C800x400.q50/?fname=http%3A%2F%2Ft1.kakaocdn.net%2Fmystore%2F180EF34CCDD64090905C4772210B9DA7"
+      ],
+      "rating_avg": null,
+      "review_count": 0,
+      "rating_info": {
+        "rating_avg": null,
+        "rating_scale": 5,
+        "review_count": 0,
+        "rating_display": "평점 없음",
+        "rating_source": "kakao_place_page",
+        "rating_confidence": "none",
+        "rating_reliability": "none"
+      },
+      "search_text": "가격대는 약 800000원에서 2500000원 수준입니다. 정확한 구성은 업체에 문의가 필요합니다."
+    },
+    "quality_control": {
+      "is_dummy_enriched": true,
+      "dummy_fields": [
+        "price_min",
+        "price_max",
+        "delivered_photos",
+        "highlight_video_duration_minutes"
+      ],
+      "verification_notes": [
+        "촬영 구성은 업체별 상이",
+        "가격은 지역 및 스타일 기준 더미 보정"
+      ],
+      "last_updated_at": "2026-03-26T02:16:09.646481Z",
+      "asset_source": "kakao_place_page",
+      "asset_note": "상세 페이지 기반 추출값으로 구조 변경 시 재조정 필요"
+    }
+  },
+  {
+    "basic_info": {
+      "vendor_id": "video_snap_383274771",
+      "source": "kakao",
+      "source_id": "383274771",
+      "name": "감성필름",
+      "category": "video_snap",
+      "raw_category": "가정,생활 > 결혼 > 웨딩스튜디오",
+      "region": "서울",
+      "district": "구로구",
+      "neighborhood": "구로동",
+      "address": "서울 구로구 구로동 3-25",
+      "road_address": "서울 구로구 새말로 97",
+      "phone": "02-2111-7357",
+      "website_url": "http://place.map.kakao.com/383274771",
+      "source_url": "https://place.map.kakao.com/383274771",
+      "lat": 37.5070442017817,
+      "lng": 126.8902271799,
+      "status": "active"
+    },
+    "search_filters": {
+      "service_types": [
+        "본식스냅"
+      ],
+      "video_style": [
+        "감성",
+        "시네마틱"
+      ],
+      "photo_style": [
+        "자연스러운",
+        "다큐형"
+      ],
+      "district": "구로구",
+      "price_min": 1100000,
+      "price_max": 2100000,
+      "price_level": "mid",
+      "highlight_video_included": true,
+      "full_video_included": true
+    },
+    "details": {
+      "service_types": [
+        "본식스냅"
+      ],
+      "photo_details": {
+        "photographer_count": 1,
+        "delivered_photos": 500,
+        "retouched_photos": 20
+      },
+      "video_details": {
+        "videographer_count": 1,
+        "highlight_video_duration_minutes": 3,
+        "full_video_included": true
+      },
+      "equipment_level": "전문 장비",
+      "specialties": [
+        "감성 영상",
+        "자연스러운 스냅"
+      ],
+      "recommended_for": [
+        "감성적인 웨딩 기록을 원하는 커플"
+      ]
+    },
+    "pricing": {
+      "currency": "KRW",
+      "price_min": 1100000,
+      "price_max": 2100000,
+      "pricing_type": "package",
+      "includes": [
+        "본식 촬영",
+        "보정 사진",
+        "하이라이트 영상"
+      ],
+      "additional_costs": [
+        "촬영 인원 추가 비용",
+        "원본 전체 제공 비용"
+      ],
+      "price_note": "지역 기준 더미 추정값 (정확한 확인 필요)"
+    },
+    "content": {
+      "short_description": "본식 스냅 및 웨딩 촬영 전문 업체",
+      "review_summary_positive": [
+        "감성 연출에 적합",
+        "기록용 서비스 비교 가능"
+      ],
+      "review_summary_negative": [
+        "정확한 실제 후기 확인 필요"
+      ],
+      "tags": [
+        "웨딩영상",
+        "본식스냅",
+        "감성",
+        "구로구"
+      ],
+      "thumbnail_url": "//img1.kakaocdn.net/cthumb/local/C800x400.q50/?fname=http%3A%2F%2Ft1.kakaocdn.net%2Fmystore%2F46DE08191A6E491B871568BB9353D23C",
+      "image_urls": [
+        "//img1.kakaocdn.net/cthumb/local/C800x400.q50/?fname=http%3A%2F%2Ft1.kakaocdn.net%2Fmystore%2F46DE08191A6E491B871568BB9353D23C"
+      ],
+      "rating_avg": null,
+      "review_count": 0,
+      "rating_info": {
+        "rating_avg": null,
+        "rating_scale": 5,
+        "review_count": 0,
+        "rating_display": "평점 없음",
+        "rating_source": "kakao_place_page",
+        "rating_confidence": "none",
+        "rating_reliability": "none"
+      },
+      "search_text": "가격대는 약 1100000원에서 2100000원 수준입니다. 정확한 구성은 업체에 문의가 필요합니다."
+    },
+    "quality_control": {
+      "is_dummy_enriched": true,
+      "dummy_fields": [
+        "price_min",
+        "price_max",
+        "delivered_photos",
+        "highlight_video_duration_minutes"
+      ],
+      "verification_notes": [
+        "촬영 구성은 업체별 상이",
+        "가격은 지역 및 스타일 기준 더미 보정"
+      ],
+      "last_updated_at": "2026-03-26T02:16:09.882072Z",
+      "asset_source": "kakao_place_page",
+      "asset_note": "상세 페이지 기반 추출값으로 구조 변경 시 재조정 필요"
+    }
+  },
+  {
+    "basic_info": {
+      "vendor_id": "video_snap_1805734376",
+      "source": "kakao",
+      "source_id": "1805734376",
+      "name": "얼리언스",
+      "category": "video_snap",
+      "raw_category": "문화,예술 > 영화,영상 > 영상제작,배급",
+      "region": "서울",
+      "district": "강남구",
+      "neighborhood": "역삼동",
+      "address": "서울 강남구 역삼동 619-28",
+      "road_address": "서울 강남구 강남대로98길 11",
+      "phone": "0502-5550-5487",
+      "website_url": "http://place.map.kakao.com/1805734376",
+      "source_url": "https://place.map.kakao.com/1805734376",
+      "lat": 37.5008831818796,
+      "lng": 127.027481101398,
+      "status": "active"
+    },
+    "search_filters": {
+      "service_types": [
+        "본식스냅"
+      ],
+      "video_style": [
+        "감성",
+        "시네마틱"
+      ],
+      "photo_style": [
+        "자연스러운",
+        "다큐형"
+      ],
+      "district": "강남구",
+      "price_min": 2000000,
+      "price_max": 3600000,
+      "price_level": "high",
+      "highlight_video_included": true,
+      "full_video_included": true
+    },
+    "details": {
+      "service_types": [
+        "본식스냅"
+      ],
+      "photo_details": {
+        "photographer_count": 1,
+        "delivered_photos": 500,
+        "retouched_photos": 20
+      },
+      "video_details": {
+        "videographer_count": 1,
+        "highlight_video_duration_minutes": 3,
+        "full_video_included": true
+      },
+      "equipment_level": "전문 장비",
+      "specialties": [
+        "감성 영상",
+        "자연스러운 스냅"
+      ],
+      "recommended_for": [
+        "감성적인 웨딩 기록을 원하는 커플"
+      ]
+    },
+    "pricing": {
+      "currency": "KRW",
+      "price_min": 2000000,
+      "price_max": 3600000,
+      "pricing_type": "package",
+      "includes": [
+        "본식 촬영",
+        "보정 사진",
+        "하이라이트 영상"
+      ],
+      "additional_costs": [
+        "촬영 인원 추가 비용",
+        "원본 전체 제공 비용"
+      ],
+      "price_note": "지역 기준 더미 추정값 (정확한 확인 필요)"
+    },
+    "content": {
+      "short_description": "본식 스냅 및 웨딩 촬영 전문 업체",
+      "review_summary_positive": [
+        "감성 연출에 적합",
+        "기록용 서비스 비교 가능"
+      ],
+      "review_summary_negative": [
+        "정확한 실제 후기 확인 필요"
+      ],
+      "tags": [
+        "웨딩영상",
+        "본식스냅",
+        "감성",
+        "강남구"
+      ],
+      "thumbnail_url": "//img1.kakaocdn.net/cthumb/local/C800x400.q50/?fname=http%3A%2F%2Ft1.kakaocdn.net%2Fmystore%2FA20F7BEFFF4D416A932CBBECE0CAE440",
+      "image_urls": [
+        "//img1.kakaocdn.net/cthumb/local/C800x400.q50/?fname=http%3A%2F%2Ft1.kakaocdn.net%2Fmystore%2FA20F7BEFFF4D416A932CBBECE0CAE440"
+      ],
+      "rating_avg": null,
+      "review_count": 0,
+      "rating_info": {
+        "rating_avg": null,
+        "rating_scale": 5,
+        "review_count": 0,
+        "rating_display": "평점 없음",
+        "rating_source": "kakao_place_page",
+        "rating_confidence": "none",
+        "rating_reliability": "none"
+      },
+      "search_text": "가격대는 약 2000000원에서 3600000원 수준입니다. 정확한 구성은 업체에 문의가 필요합니다."
+    },
+    "quality_control": {
+      "is_dummy_enriched": true,
+      "dummy_fields": [
+        "price_min",
+        "price_max",
+        "delivered_photos",
+        "highlight_video_duration_minutes"
+      ],
+      "verification_notes": [
+        "촬영 구성은 업체별 상이",
+        "가격은 지역 및 스타일 기준 더미 보정"
+      ],
+      "last_updated_at": "2026-03-26T02:16:10.442674Z",
+      "asset_source": "kakao_place_page",
+      "asset_note": "상세 페이지 기반 추출값으로 구조 변경 시 재조정 필요"
+    }
+  },
+  {
+    "basic_info": {
+      "vendor_id": "video_snap_932677549",
+      "source": "kakao",
+      "source_id": "932677549",
+      "name": "바텀드로어",
+      "category": "video_snap",
+      "raw_category": "가정,생활 > 결혼 > 웨딩스튜디오",
+      "region": "서울",
+      "district": "서초구",
+      "neighborhood": "양재동",
+      "address": "서울 서초구 양재동 115",
+      "road_address": "서울 서초구 강남대로25길 65",
+      "phone": "0502-5551-0542",
+      "website_url": "http://place.map.kakao.com/932677549",
+      "source_url": "https://place.map.kakao.com/932677549",
+      "lat": 37.47534651345897,
+      "lng": 127.0353899424749,
+      "status": "active"
+    },
+    "search_filters": {
+      "service_types": [
+        "본식스냅"
+      ],
+      "video_style": [
+        "감성",
+        "시네마틱"
+      ],
+      "photo_style": [
+        "자연스러운",
+        "다큐형"
+      ],
+      "district": "서초구",
+      "price_min": 2000000,
+      "price_max": 3900000,
+      "price_level": "high",
+      "highlight_video_included": true,
+      "full_video_included": true
+    },
+    "details": {
+      "service_types": [
+        "본식스냅"
+      ],
+      "photo_details": {
+        "photographer_count": 1,
+        "delivered_photos": 500,
+        "retouched_photos": 20
+      },
+      "video_details": {
+        "videographer_count": 1,
+        "highlight_video_duration_minutes": 3,
+        "full_video_included": true
+      },
+      "equipment_level": "전문 장비",
+      "specialties": [
+        "감성 영상",
+        "자연스러운 스냅"
+      ],
+      "recommended_for": [
+        "감성적인 웨딩 기록을 원하는 커플"
+      ]
+    },
+    "pricing": {
+      "currency": "KRW",
+      "price_min": 2000000,
+      "price_max": 3900000,
+      "pricing_type": "package",
+      "includes": [
+        "본식 촬영",
+        "보정 사진",
+        "하이라이트 영상"
+      ],
+      "additional_costs": [
+        "촬영 인원 추가 비용",
+        "원본 전체 제공 비용"
+      ],
+      "price_note": "지역 기준 더미 추정값 (정확한 확인 필요)"
+    },
+    "content": {
+      "short_description": "본식 스냅 및 웨딩 촬영 전문 업체",
+      "review_summary_positive": [
+        "감성 연출에 적합",
+        "기록용 서비스 비교 가능"
+      ],
+      "review_summary_negative": [
+        "정확한 실제 후기 확인 필요"
+      ],
+      "tags": [
+        "웨딩영상",
+        "본식스냅",
+        "감성",
+        "서초구"
+      ],
+      "thumbnail_url": "//img1.kakaocdn.net/cthumb/local/C800x400.q50/?fname=http%3A%2F%2Ft1.kakaocdn.net%2Fmystore%2F35AE007961C747DFB5FADDA6A5EB2531",
+      "image_urls": [
+        "//img1.kakaocdn.net/cthumb/local/C800x400.q50/?fname=http%3A%2F%2Ft1.kakaocdn.net%2Fmystore%2F35AE007961C747DFB5FADDA6A5EB2531"
+      ],
+      "rating_avg": null,
+      "review_count": 0,
+      "rating_info": {
+        "rating_avg": null,
+        "rating_scale": 5,
+        "review_count": 0,
+        "rating_display": "평점 없음",
+        "rating_source": "kakao_place_page",
+        "rating_confidence": "none",
+        "rating_reliability": "none"
+      },
+      "search_text": "가격대는 약 2000000원에서 3900000원 수준입니다. 정확한 구성은 업체에 문의가 필요합니다."
+    },
+    "quality_control": {
+      "is_dummy_enriched": true,
+      "dummy_fields": [
+        "price_min",
+        "price_max",
+        "delivered_photos",
+        "highlight_video_duration_minutes"
+      ],
+      "verification_notes": [
+        "촬영 구성은 업체별 상이",
+        "가격은 지역 및 스타일 기준 더미 보정"
+      ],
+      "last_updated_at": "2026-03-26T02:16:11.006381Z",
+      "asset_source": "kakao_place_page",
+      "asset_note": "상세 페이지 기반 추출값으로 구조 변경 시 재조정 필요"
+    }
+  },
+  {
+    "basic_info": {
+      "vendor_id": "video_snap_1326032763",
+      "source": "kakao",
+      "source_id": "1326032763",
+      "name": "애즈레브",
+      "category": "video_snap",
+      "raw_category": "가정,생활 > 결혼 > 웨딩스튜디오",
+      "region": "서울",
+      "district": "서초구",
+      "neighborhood": "서초동",
+      "address": "서울 서초구 서초동 1595-1",
+      "road_address": "서울 서초구 효령로53길 50",
+      "phone": "0502-5554-0653",
+      "website_url": "http://place.map.kakao.com/1326032763",
+      "source_url": "https://place.map.kakao.com/1326032763",
+      "lat": 37.4870650285905,
+      "lng": 127.013771940566,
+      "status": "active"
+    },
+    "search_filters": {
+      "service_types": [
+        "본식스냅"
+      ],
+      "video_style": [
+        "감성",
+        "시네마틱"
+      ],
+      "photo_style": [
+        "자연스러운",
+        "다큐형"
+      ],
+      "district": "서초구",
+      "price_min": 2500000,
+      "price_max": 3600000,
+      "price_level": "high",
+      "highlight_video_included": true,
+      "full_video_included": true
+    },
+    "details": {
+      "service_types": [
+        "본식스냅"
+      ],
+      "photo_details": {
+        "photographer_count": 1,
+        "delivered_photos": 500,
+        "retouched_photos": 20
+      },
+      "video_details": {
+        "videographer_count": 1,
+        "highlight_video_duration_minutes": 3,
+        "full_video_included": true
+      },
+      "equipment_level": "전문 장비",
+      "specialties": [
+        "감성 영상",
+        "자연스러운 스냅"
+      ],
+      "recommended_for": [
+        "감성적인 웨딩 기록을 원하는 커플"
+      ]
+    },
+    "pricing": {
+      "currency": "KRW",
+      "price_min": 2500000,
+      "price_max": 3600000,
+      "pricing_type": "package",
+      "includes": [
+        "본식 촬영",
+        "보정 사진",
+        "하이라이트 영상"
+      ],
+      "additional_costs": [
+        "촬영 인원 추가 비용",
+        "원본 전체 제공 비용"
+      ],
+      "price_note": "지역 기준 더미 추정값 (정확한 확인 필요)"
+    },
+    "content": {
+      "short_description": "본식 스냅 및 웨딩 촬영 전문 업체",
+      "review_summary_positive": [
+        "감성 연출에 적합",
+        "기록용 서비스 비교 가능"
+      ],
+      "review_summary_negative": [
+        "정확한 실제 후기 확인 필요"
+      ],
+      "tags": [
+        "웨딩영상",
+        "본식스냅",
+        "감성",
+        "서초구"
+      ],
+      "thumbnail_url": "http://staticmap.kakao.com/staticmap/og?type=place&srs=wgs84&size=400x200&service=placeweb&m=127.01377194089704%2C37.48706683061394",
+      "image_urls": [
+        "http://staticmap.kakao.com/staticmap/og?type=place&srs=wgs84&size=400x200&service=placeweb&m=127.01377194089704%2C37.48706683061394"
+      ],
+      "rating_avg": null,
+      "review_count": 0,
+      "rating_info": {
+        "rating_avg": null,
+        "rating_scale": 5,
+        "review_count": 0,
+        "rating_display": "평점 없음",
+        "rating_source": "kakao_place_page",
+        "rating_confidence": "none",
+        "rating_reliability": "none"
+      },
+      "search_text": "가격대는 약 2500000원에서 3600000원 수준입니다. 정확한 구성은 업체에 문의가 필요합니다."
+    },
+    "quality_control": {
+      "is_dummy_enriched": true,
+      "dummy_fields": [
+        "price_min",
+        "price_max",
+        "delivered_photos",
+        "highlight_video_duration_minutes"
+      ],
+      "verification_notes": [
+        "촬영 구성은 업체별 상이",
+        "가격은 지역 및 스타일 기준 더미 보정"
+      ],
+      "last_updated_at": "2026-03-26T02:16:11.243186Z",
+      "asset_source": "kakao_place_page",
+      "asset_note": "상세 페이지 기반 추출값으로 구조 변경 시 재조정 필요"
+    }
+  },
+  {
+    "basic_info": {
+      "vendor_id": "video_snap_1355747317",
+      "source": "kakao",
+      "source_id": "1355747317",
+      "name": "이안로맨스",
+      "category": "video_snap",
+      "raw_category": "가정,생활 > 결혼 > 웨딩스튜디오",
+      "region": "서울",
+      "district": "마포구",
+      "neighborhood": "상수동",
+      "address": "서울 마포구 상수동 333-16",
+      "road_address": "서울 마포구 와우산로5길 17-5",
+      "phone": "0503-7151-8310",
+      "website_url": "http://place.map.kakao.com/1355747317",
+      "source_url": "https://place.map.kakao.com/1355747317",
+      "lat": 37.5467485785594,
+      "lng": 126.921857225575,
+      "status": "active"
+    },
+    "search_filters": {
+      "service_types": [
+        "본식스냅"
+      ],
+      "video_style": [
+        "감성",
+        "시네마틱"
+      ],
+      "photo_style": [
+        "자연스러운",
+        "다큐형"
+      ],
+      "district": "마포구",
+      "price_min": 800000,
+      "price_max": 1800000,
+      "price_level": "mid_high",
+      "highlight_video_included": true,
+      "full_video_included": true
+    },
+    "details": {
+      "service_types": [
+        "본식스냅"
+      ],
+      "photo_details": {
+        "photographer_count": 1,
+        "delivered_photos": 500,
+        "retouched_photos": 20
+      },
+      "video_details": {
+        "videographer_count": 1,
+        "highlight_video_duration_minutes": 3,
+        "full_video_included": true
+      },
+      "equipment_level": "전문 장비",
+      "specialties": [
+        "감성 영상",
+        "자연스러운 스냅"
+      ],
+      "recommended_for": [
+        "감성적인 웨딩 기록을 원하는 커플"
+      ]
+    },
+    "pricing": {
+      "currency": "KRW",
+      "price_min": 800000,
+      "price_max": 1800000,
+      "pricing_type": "package",
+      "includes": [
+        "본식 촬영",
+        "보정 사진",
+        "하이라이트 영상"
+      ],
+      "additional_costs": [
+        "촬영 인원 추가 비용",
+        "원본 전체 제공 비용"
+      ],
+      "price_note": "지역 기준 더미 추정값 (정확한 확인 필요)"
+    },
+    "content": {
+      "short_description": "본식 스냅 및 웨딩 촬영 전문 업체",
+      "review_summary_positive": [
+        "감성 연출에 적합",
+        "기록용 서비스 비교 가능"
+      ],
+      "review_summary_negative": [
+        "정확한 실제 후기 확인 필요"
+      ],
+      "tags": [
+        "웨딩영상",
+        "본식스냅",
+        "감성",
+        "마포구"
+      ],
+      "thumbnail_url": "//img1.kakaocdn.net/cthumb/local/C800x400.q50/?fname=http%3A%2F%2Ft1.kakaocdn.net%2Fmystore%2F163BC97415D743CC9BBB1A00560C8B30",
+      "image_urls": [
+        "//img1.kakaocdn.net/cthumb/local/C800x400.q50/?fname=http%3A%2F%2Ft1.kakaocdn.net%2Fmystore%2F163BC97415D743CC9BBB1A00560C8B30"
+      ],
+      "rating_avg": null,
+      "review_count": 0,
+      "rating_info": {
+        "rating_avg": null,
+        "rating_scale": 5,
+        "review_count": 0,
+        "rating_display": "평점 없음",
+        "rating_source": "kakao_place_page",
+        "rating_confidence": "none",
+        "rating_reliability": "none"
+      },
+      "search_text": "가격대는 약 800000원에서 1800000원 수준입니다. 정확한 구성은 업체에 문의가 필요합니다."
+    },
+    "quality_control": {
+      "is_dummy_enriched": true,
+      "dummy_fields": [
+        "price_min",
+        "price_max",
+        "delivered_photos",
+        "highlight_video_duration_minutes"
+      ],
+      "verification_notes": [
+        "촬영 구성은 업체별 상이",
+        "가격은 지역 및 스타일 기준 더미 보정"
+      ],
+      "last_updated_at": "2026-03-26T02:16:11.810071Z",
+      "asset_source": "kakao_place_page",
+      "asset_note": "상세 페이지 기반 추출값으로 구조 변경 시 재조정 필요"
+    }
+  },
+  {
+    "basic_info": {
+      "vendor_id": "video_snap_1076691284",
+      "source": "kakao",
+      "source_id": "1076691284",
+      "name": "스튜디오 비보호좌회전",
+      "category": "video_snap",
+      "raw_category": "가정,생활 > 결혼 > 웨딩스튜디오",
+      "region": "서울",
+      "district": "용산구",
+      "neighborhood": "원효로2가",
+      "address": "서울 용산구 원효로2가 30-4",
+      "road_address": "서울 용산구 원효로 187",
+      "phone": "010-7733-8362",
+      "website_url": "http://place.map.kakao.com/1076691284",
+      "source_url": "https://place.map.kakao.com/1076691284",
+      "lat": 37.5364369196553,
+      "lng": 126.963145402572,
+      "status": "active"
+    },
+    "search_filters": {
+      "service_types": [
+        "본식스냅"
+      ],
+      "video_style": [
+        "감성",
+        "시네마틱"
+      ],
+      "photo_style": [
+        "자연스러운",
+        "다큐형"
+      ],
+      "district": "용산구",
+      "price_min": 1000000,
+      "price_max": 1800000,
+      "price_level": "mid_high",
+      "highlight_video_included": true,
+      "full_video_included": true
+    },
+    "details": {
+      "service_types": [
+        "본식스냅"
+      ],
+      "photo_details": {
+        "photographer_count": 1,
+        "delivered_photos": 500,
+        "retouched_photos": 20
+      },
+      "video_details": {
+        "videographer_count": 1,
+        "highlight_video_duration_minutes": 3,
+        "full_video_included": true
+      },
+      "equipment_level": "전문 장비",
+      "specialties": [
+        "감성 영상",
+        "자연스러운 스냅"
+      ],
+      "recommended_for": [
+        "감성적인 웨딩 기록을 원하는 커플"
+      ]
+    },
+    "pricing": {
+      "currency": "KRW",
+      "price_min": 1000000,
+      "price_max": 1800000,
+      "pricing_type": "package",
+      "includes": [
+        "본식 촬영",
+        "보정 사진",
+        "하이라이트 영상"
+      ],
+      "additional_costs": [
+        "촬영 인원 추가 비용",
+        "원본 전체 제공 비용"
+      ],
+      "price_note": "지역 기준 더미 추정값 (정확한 확인 필요)"
+    },
+    "content": {
+      "short_description": "본식 스냅 및 웨딩 촬영 전문 업체",
+      "review_summary_positive": [
+        "감성 연출에 적합",
+        "기록용 서비스 비교 가능"
+      ],
+      "review_summary_negative": [
+        "정확한 실제 후기 확인 필요"
+      ],
+      "tags": [
+        "웨딩영상",
+        "본식스냅",
+        "감성",
+        "용산구"
+      ],
+      "thumbnail_url": "//img1.kakaocdn.net/cthumb/local/C800x400.q50/?fname=http%3A%2F%2Ft1.kakaocdn.net%2Fmystore%2FC497491B8973420D8D442AE3B82BBC64",
+      "image_urls": [
+        "//img1.kakaocdn.net/cthumb/local/C800x400.q50/?fname=http%3A%2F%2Ft1.kakaocdn.net%2Fmystore%2FC497491B8973420D8D442AE3B82BBC64"
+      ],
+      "rating_avg": null,
+      "review_count": 0,
+      "rating_info": {
+        "rating_avg": null,
+        "rating_scale": 5,
+        "review_count": 0,
+        "rating_display": "평점 없음",
+        "rating_source": "kakao_place_page",
+        "rating_confidence": "none",
+        "rating_reliability": "none"
+      },
+      "search_text": "가격대는 약 1000000원에서 1800000원 수준입니다. 정확한 구성은 업체에 문의가 필요합니다."
+    },
+    "quality_control": {
+      "is_dummy_enriched": true,
+      "dummy_fields": [
+        "price_min",
+        "price_max",
+        "delivered_photos",
+        "highlight_video_duration_minutes"
+      ],
+      "verification_notes": [
+        "촬영 구성은 업체별 상이",
+        "가격은 지역 및 스타일 기준 더미 보정"
+      ],
+      "last_updated_at": "2026-03-26T02:16:12.470507Z",
+      "asset_source": "kakao_place_page",
+      "asset_note": "상세 페이지 기반 추출값으로 구조 변경 시 재조정 필요"
+    }
+  }
+]

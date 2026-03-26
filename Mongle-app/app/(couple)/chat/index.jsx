@@ -30,6 +30,27 @@ export default function ChatScreen() {
   const [isCreateModalVisible, setCreateModalVisible] = useState(false);
   const [newRoomTitle, setNewRoomTitle] = useState('');
 
+  const AIAssistantEntry = () => (
+    <TouchableOpacity
+      style={styles.aiRoomItem}
+      onPress={() => router.push('/(couple)/chat/ai')}
+      activeOpacity={0.7}
+    >
+      <View style={styles.aiRoomIcon}>
+        <Ionicons name="sparkles" size={20} color="#fff" />
+      </View>
+      <View style={styles.roomInfo}>
+        <View style={styles.roomHeader}>
+          <Text style={styles.roomTitle}>AI 어시스턴트</Text>
+          <View style={styles.aiBadge}>
+            <Text style={styles.aiBadgeText}>AI</Text>
+          </View>
+        </View>
+        <Text style={styles.roomMessage}>스튜디오, 드레스, 웨딩홀, 플래너를 추천해드려요</Text>
+      </View>
+    </TouchableOpacity>
+  );
+
   const handleCreateRoom = async () => {
     if (!newRoomTitle.trim()) {
       Alert.alert('알림', '채팅방 제목을 입력해주세요.');
@@ -101,19 +122,19 @@ export default function ChatScreen() {
         <Text style={styles.headerTitle}>채팅</Text>
       </View>
 
-      {rooms.length === 0 ? (
-        <View style={styles.emptyContainer}>
-          <Ionicons name="chatbubble-ellipses-outline" size={48} color="#e8e0dc" />
-          <Text style={styles.emptyText}>참여 중인 채팅방이 없습니다.</Text>
-        </View>
-      ) : (
-        <FlatList
-          data={rooms}
-          keyExtractor={(item) => item.id?.toString() || Math.random().toString()}
-          renderItem={renderRoom}
-          contentContainerStyle={styles.listContainer}
-        />
-      )}
+      <FlatList
+        data={rooms}
+        keyExtractor={(item) => item.id?.toString() || Math.random().toString()}
+        renderItem={renderRoom}
+        contentContainerStyle={styles.listContainer}
+        ListHeaderComponent={<AIAssistantEntry />}
+        ListEmptyComponent={
+          <View style={styles.emptyContainer}>
+            <Ionicons name="chatbubble-ellipses-outline" size={48} color="#e8e0dc" />
+            <Text style={styles.emptyText}>참여 중인 채팅방이 없습니다.</Text>
+          </View>
+        }
+      />
 
       {/* FAB - 방 생성 버튼 */}
       <TouchableOpacity
@@ -305,6 +326,35 @@ const styles = StyleSheet.create({
   },
   modalCreateBtnText: {
     color: '#fff',
+    fontWeight: '600',
+  },
+  aiRoomItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f5f0ee',
+    marginBottom: 4,
+  },
+  aiRoomIcon: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: '#c9a98e',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
+  },
+  aiBadge: {
+    backgroundColor: '#f5f0ee',
+    borderRadius: 6,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    marginLeft: 6,
+  },
+  aiBadgeText: {
+    fontSize: 11,
+    color: '#c9a98e',
     fontWeight: '600',
   },
 });

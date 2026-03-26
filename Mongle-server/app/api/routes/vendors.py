@@ -8,23 +8,20 @@ router = APIRouter()
 class VendorCreate(BaseModel):
     name: str
     category: str
-    region: str
-    project_id: Optional[str] = None
-    phone: Optional[str] = None
-    url: Optional[str] = None
+    location: Optional[str] = None
+    rating: Optional[float] = 0.0
+    contact_info: Optional[dict] = None
 
 class VendorUpdate(BaseModel):
     name: Optional[str] = None
     category: Optional[str] = None
-    region: Optional[str] = None
-    phone: Optional[str] = None
-    url: Optional[str] = None
+    location: Optional[str] = None
+    rating: Optional[float] = None
+    contact_info: Optional[dict] = None
 
 @router.get('/')
-def get_vendors(project_id: Optional[str] = None):
+def get_vendors():
     query = supabase.table('vendors').select('*')
-    if project_id:
-        query = query.eq('project_id', project_id)
     result = query.execute()
     return result.data
 

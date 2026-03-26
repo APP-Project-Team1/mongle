@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import {
+  useBudget,
   useBudgetItems,
   useCreateBudgetItem,
   useUpdateBudgetItem,
@@ -22,7 +23,10 @@ import { useProjectStore } from '../../stores';
 export default function BudgetScreen() {
   const projectId = useProjectStore((state) => state.currentProjectId) || '1';
 
-  const { data: budgetItems = [], isLoading, error, refetch } = useBudgetItems(projectId);
+  const { data: budget } = useBudget(projectId);
+  const budgetId = budget?.id;
+
+  const { data: budgetItems = [], isLoading, error, refetch } = useBudgetItems(budgetId);
   const createBudgetItemMutation = useCreateBudgetItem();
   const updateBudgetItemMutation = useUpdateBudgetItem();
   const deleteBudgetItemMutation = useDeleteBudgetItem();
@@ -31,10 +35,9 @@ export default function BudgetScreen() {
   const [editingItem, setEditingItem] = useState(null);
 
   const [form, setForm] = useState({
-    title: '',
-    amount: '',
     category: '',
-    memo: '',
+    amount: '',
+    spent: '',
   });
 
   const totalAmount = useMemo(() => {
@@ -44,10 +47,9 @@ export default function BudgetScreen() {
   const openCreateModal = () => {
     setEditingItem(null);
     setForm({
-      title: '',
-      amount: '',
       category: '',
-      memo: '',
+      amount: '',
+      spent: '',
     });
     setModalVisible(true);
   };
@@ -55,10 +57,9 @@ export default function BudgetScreen() {
   const openEditModal = (item) => {
     setEditingItem(item);
     setForm({
-      title: item.title ?? '',
-      amount: item.amount != null ? String(item.amount) : '',
       category: item.category ?? '',
-      memo: item.memo ?? '',
+      amount: item.amount != null ? String(item.amount) : '',
+      spent: item.spent != null ? String(item.spent) : '',
     });
     setModalVisible(true);
   };
@@ -67,10 +68,9 @@ export default function BudgetScreen() {
     setModalVisible(false);
     setEditingItem(null);
     setForm({
-      title: '',
-      amount: '',
       category: '',
-      memo: '',
+      amount: '',
+      spent: '',
     });
   };
 
@@ -82,13 +82,13 @@ export default function BudgetScreen() {
   };
 
   const handleSave = async () => {
-    if (!form.title.trim()) {
-      Alert.alert('입력 확인', '항목명을 입력해주세요.');
+    if (!form.category.trim()) {
+      Alert.alert('입력 확인', '카테고리를 입력해주세요.');
       return;
     }
 
     if (!form.amount.trim()) {
-      Alert.alert('입력 확인', '금액을 입력해주세요.');
+      Alert.alert('입력 확인', '예산 금액을 입력해주세요.');
       return;
     }
 
@@ -98,12 +98,13 @@ export default function BudgetScreen() {
       return;
     }
 
+    const parsedSpent = Number(form.spent) || 0;
+
     const payload = {
-      project_id: projectId,
-      title: form.title.trim(),
-      amount: parsedAmount,
+      budget_id: budgetId,
       category: form.category.trim(),
-      memo: form.memo.trim(),
+      amount: parsedAmount,
+      spent: parsedSpent,
     };
 
     try {
@@ -148,12 +149,13 @@ export default function BudgetScreen() {
       onPress={() => openEditModal(item)}
     >
       <View style={styles.itemLeft}>
-        <Text style={styles.itemTitle}>{item.title}</Text>
+        <Text style={styles.itemTitle}>{item.category}</Text>
         <Text style={styles.itemValue}>
-          {item.category ? `${item.category} · ` : ''}
-          {Number(item.amount || 0).toLocaleString()}원
+          예산: {Number(item.amount || 0).toLocaleString()}원
         </Text>
-        {!!item.memo && <Text style={styles.memoText}>{item.memo}</Text>}
+        <Text style={styles.itemValue}>
+          지출: {Number(item.spent || 0).toLocaleString()}원
+        </Text>
       </View>
 
       <TouchableOpacity
@@ -225,14 +227,14 @@ export default function BudgetScreen() {
 
             <TextInput
               style={styles.input}
-              placeholder="항목명"
-              value={form.title}
-              onChangeText={(text) => handleChange('title', text)}
+              placeholder="카테고리 (예: 식장, 스튜디오, 드레스)"
+              value={form.category}
+              onChangeText={(text) => handleChange('category', text)}
             />
 
             <TextInput
               style={styles.input}
-              placeholder="금액"
+              placeholder="예산 금액"
               value={form.amount}
               onChangeText={(text) => handleChange('amount', text)}
               keyboardType="numeric"
@@ -240,17 +242,10 @@ export default function BudgetScreen() {
 
             <TextInput
               style={styles.input}
-              placeholder="카테고리 (예: 식장, 스튜디오, 드레스)"
-              value={form.category}
-              onChangeText={(text) => handleChange('category', text)}
-            />
-
-            <TextInput
-              style={[styles.input, styles.memoInput]}
-              placeholder="메모"
-              value={form.memo}
-              onChangeText={(text) => handleChange('memo', text)}
-              multiline
+              placeholder="지출 금액 (선택)"
+              value={form.spent}
+              onChangeText={(text) => handleChange('spent', text)}
+              keyboardType="numeric"
             />
 
             <TouchableOpacity style={styles.saveButton} onPress={handleSave}>

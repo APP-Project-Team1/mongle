@@ -1,0 +1,2414 @@
+[
+  {
+    "name": "김서연",
+    "brand_name": "루미에르 디렉트",
+    "title": "웨딩 플래너",
+    "profile_image_url": "https://picsum.photos/seed/planner-1/400/400",
+    "one_liner": "예산 맞춤형 웨딩 플래닝",
+    "specialties": ["럭셔리웨딩", "하우스웨딩", "가든웨딩"],
+    "style_keywords": ["로맨틱", "미니멀"],
+    "career_years": 5,
+    "weddings_completed": 46,
+    "major_experiences": [
+      "웨딩 박람회 VIP 고객 전담",
+      "소규모 프라이빗 웨딩 다수 진행",
+      "신혼여행 연계 상담 경험"
+    ],
+    "rating": 4.3,
+    "reviews": [
+      {
+        "rating": 4.9,
+        "content": "준비 과정이 복잡할 줄 알았는데 정말 체계적으로 도와주셨어요."
+      },
+      {
+        "rating": 4.5,
+        "content": "스몰웨딩인데도 정말 풍성하고 특별하게 만들어주셨어요."
+      }
+    ],
+    "base_price_krw": 2780000,
+    "service_scope": {
+      "included": ["스냅/영상 업체 연계", "예산 관리", "청첩장/답례품 가이드", "당일 진행"],
+      "extra_cost_possible": false
+    },
+    "portfolio_images": [
+      "https://picsum.photos/seed/planner-1-1/1200/800",
+      "https://picsum.photos/seed/planner-1-2/1200/800",
+      "https://picsum.photos/seed/planner-1-3/1200/800",
+      "https://picsum.photos/seed/planner-1-4/1200/800"
+    ],
+    "service_features": ["예산 최적화 전문", "계약서 검토 지원", "체크리스트 제공"],
+    "activity_regions": ["부산"],
+    "cta": "포트폴리오 보기",
+    "created_at": "2026-03-25T01:13:16.732Z"
+  },
+  {
+    "name": "이하린",
+    "brand_name": "라루체 브라이드",
+    "title": "브라이덜 디렉터",
+    "profile_image_url": "https://picsum.photos/seed/planner-2/400/400",
+    "one_liner": "작지만 완성도 높은 스몰웨딩 전문",
+    "specialties": ["야외웨딩", "채플웨딩", "하우스웨딩"],
+    "style_keywords": ["유니크", "세련된", "감성"],
+    "career_years": 11,
+    "weddings_completed": 341,
+    "major_experiences": ["웨딩 박람회 VIP 고객 전담", "신혼여행 연계 상담 경험"],
+    "rating": 4.6,
+    "reviews": [
+      {
+        "rating": 4.7,
+        "content": "예산 안에서 최고의 선택지를 제안해주셔서 만족했습니다."
+      },
+      {
+        "rating": 5,
+        "content": "업체 추천 퀄리티가 좋고 강요가 없어서 편했어요."
+      }
+    ],
+    "base_price_krw": 2710000,
+    "service_scope": {
+      "included": [
+        "당일 진행",
+        "드레스/메이크업 상담",
+        "예산 관리",
+        "혼주 가이드",
+        "일정 관리",
+        "스냅/영상 업체 연계",
+        "청첩장/답례품 가이드"
+      ],
+      "extra_cost_possible": false
+    },
+    "portfolio_images": [
+      "https://picsum.photos/seed/planner-2-1/1200/800",
+      "https://picsum.photos/seed/planner-2-2/1200/800",
+      "https://picsum.photos/seed/planner-2-3/1200/800",
+      "https://picsum.photos/seed/planner-2-4/1200/800"
+    ],
+    "service_features": [
+      "계약서 검토 지원",
+      "비동행 진행 가능",
+      "1:1 맞춤 컨설팅",
+      "야간 상담 가능"
+    ],
+    "activity_regions": ["광주", "인천"],
+    "cta": "1:1 상담 예약",
+    "created_at": "2026-03-25T01:13:16.733Z"
+  },
+  {
+    "name": "박지우",
+    "brand_name": "메종 디렉트",
+    "title": "브라이덜 디렉터",
+    "profile_image_url": "https://picsum.photos/seed/planner-3/400/400",
+    "one_liner": "트렌디하고 세련된 웨딩 연출",
+    "specialties": ["호텔웨딩", "채플웨딩", "셀프웨딩", "리마인드웨딩"],
+    "style_keywords": ["럭셔리", "클래식", "따뜻한", "로맨틱"],
+    "career_years": 4,
+    "weddings_completed": 116,
+    "major_experiences": [
+      "야외 웨딩 전문 운영 경험",
+      "예산 최적화 플래닝 노하우 보유",
+      "5성급 호텔 웨딩 제휴 경험"
+    ],
+    "rating": 4.6,
+    "reviews": [
+      {
+        "rating": 4.9,
+        "content": "업체 추천 퀄리티가 좋고 강요가 없어서 편했어요."
+      },
+      {
+        "rating": 4.5,
+        "content": "스타일 제안이 탁월해서 원하는 분위기를 정확히 구현했어요."
+      }
+    ],
+    "base_price_krw": 2600000,
+    "service_scope": {
+      "included": [
+        "청첩장/답례품 가이드",
+        "스냅/영상 업체 연계",
+        "업체 추천",
+        "일정 관리",
+        "드레스/메이크업 상담",
+        "식순 컨설팅"
+      ],
+      "extra_cost_possible": false
+    },
+    "portfolio_images": [
+      "https://picsum.photos/seed/planner-3-1/1200/800",
+      "https://picsum.photos/seed/planner-3-2/1200/800",
+      "https://picsum.photos/seed/planner-3-3/1200/800",
+      "https://picsum.photos/seed/planner-3-4/1200/800"
+    ],
+    "service_features": [
+      "당일 긴급 대응",
+      "실시간 카톡 상담",
+      "체크리스트 제공",
+      "예산 최적화 전문",
+      "신랑신부 성향 분석 기반 추천"
+    ],
+    "activity_regions": ["경기", "부산"],
+    "cta": "견적 받기",
+    "created_at": "2026-03-25T01:13:16.733Z"
+  },
+  {
+    "name": "최민서",
+    "brand_name": "비쥬 디렉트",
+    "title": "수석 플래너",
+    "profile_image_url": "https://picsum.photos/seed/planner-4/400/400",
+    "one_liner": "하우스웨딩 감성 연출 전문",
+    "specialties": ["스몰웨딩", "야외웨딩", "채플웨딩", "리마인드웨딩"],
+    "style_keywords": ["감성", "유니크", "모던"],
+    "career_years": 9,
+    "weddings_completed": 145,
+    "major_experiences": [
+      "예산 최적화 플래닝 노하우 보유",
+      "신혼여행 연계 상담 경험",
+      "웨딩홀 비교 컨설팅 특화"
+    ],
+    "rating": 4.6,
+    "reviews": [
+      {
+        "rating": 5,
+        "content": "진짜 친구처럼 세심하게 챙겨주셔서 너무 든든했어요."
+      },
+      {
+        "rating": 4.8,
+        "content": "준비 과정이 복잡할 줄 알았는데 정말 체계적으로 도와주셨어요."
+      }
+    ],
+    "base_price_krw": 2760000,
+    "service_scope": {
+      "included": [
+        "일정 관리",
+        "예산 관리",
+        "업체 추천",
+        "당일 진행",
+        "식순 컨설팅",
+        "드레스/메이크업 상담"
+      ],
+      "extra_cost_possible": false
+    },
+    "portfolio_images": [
+      "https://picsum.photos/seed/planner-4-1/1200/800",
+      "https://picsum.photos/seed/planner-4-2/1200/800",
+      "https://picsum.photos/seed/planner-4-3/1200/800",
+      "https://picsum.photos/seed/planner-4-4/1200/800"
+    ],
+    "service_features": [
+      "1:1 맞춤 컨설팅",
+      "웨딩홀 동행 가능",
+      "실시간 카톡 상담",
+      "당일 긴급 대응"
+    ],
+    "activity_regions": ["제주"],
+    "cta": "포트폴리오 보기",
+    "created_at": "2026-03-25T01:13:16.733Z"
+  },
+  {
+    "name": "정수빈",
+    "brand_name": "비쥬 컴퍼니",
+    "title": "웨딩 컨설턴트",
+    "profile_image_url": "https://picsum.photos/seed/planner-5/400/400",
+    "one_liner": "하우스웨딩 감성 연출 전문",
+    "specialties": ["한옥웨딩", "리마인드웨딩", "셀프웨딩", "하우스웨딩"],
+    "style_keywords": ["따뜻한", "모던"],
+    "career_years": 8,
+    "weddings_completed": 105,
+    "major_experiences": [
+      "유명 드레스샵 협업 진행",
+      "브랜드 스냅 업체와 다수 협업",
+      "신혼여행 연계 상담 경험"
+    ],
+    "rating": 4.5,
+    "reviews": [
+      {
+        "rating": 4.8,
+        "content": "진짜 친구처럼 세심하게 챙겨주셔서 너무 든든했어요."
+      },
+      {
+        "rating": 4.5,
+        "content": "준비 과정이 복잡할 줄 알았는데 정말 체계적으로 도와주셨어요."
+      }
+    ],
+    "base_price_krw": 2970000,
+    "service_scope": {
+      "included": [
+        "예산 관리",
+        "당일 진행",
+        "스냅/영상 업체 연계",
+        "웨딩홀 비교",
+        "혼주 가이드",
+        "일정 관리"
+      ],
+      "extra_cost_possible": true
+    },
+    "portfolio_images": [
+      "https://picsum.photos/seed/planner-5-1/1200/800",
+      "https://picsum.photos/seed/planner-5-2/1200/800",
+      "https://picsum.photos/seed/planner-5-3/1200/800",
+      "https://picsum.photos/seed/planner-5-4/1200/800"
+    ],
+    "service_features": ["당일 긴급 대응", "웨딩홀 동행 가능", "1:1 맞춤 컨설팅"],
+    "activity_regions": ["전국", "인천", "대전"],
+    "cta": "카톡 문의",
+    "created_at": "2026-03-25T01:13:16.733Z"
+  },
+  {
+    "name": "한유진",
+    "brand_name": "엘르 플래닝",
+    "title": "브라이덜 디렉터",
+    "profile_image_url": "https://picsum.photos/seed/planner-6/400/400",
+    "one_liner": "럭셔리 웨딩부터 미니멀 웨딩까지",
+    "specialties": ["야외웨딩", "채플웨딩", "호텔웨딩"],
+    "style_keywords": ["클래식", "트렌디"],
+    "career_years": 8,
+    "weddings_completed": 164,
+    "major_experiences": ["브랜드 스냅 업체와 다수 협업", "유명 드레스샵 협업 진행"],
+    "rating": 4.9,
+    "reviews": [
+      {
+        "rating": 4.8,
+        "content": "진짜 친구처럼 세심하게 챙겨주셔서 너무 든든했어요."
+      },
+      {
+        "rating": 4.9,
+        "content": "하나하나 취향을 반영해주셔서 만족도가 높았습니다."
+      }
+    ],
+    "base_price_krw": 1840000,
+    "service_scope": {
+      "included": [
+        "혼주 가이드",
+        "청첩장/답례품 가이드",
+        "스냅/영상 업체 연계",
+        "드레스/메이크업 상담"
+      ],
+      "extra_cost_possible": true
+    },
+    "portfolio_images": [
+      "https://picsum.photos/seed/planner-6-1/1200/800",
+      "https://picsum.photos/seed/planner-6-2/1200/800",
+      "https://picsum.photos/seed/planner-6-3/1200/800",
+      "https://picsum.photos/seed/planner-6-4/1200/800"
+    ],
+    "service_features": ["당일 긴급 대응", "체크리스트 제공", "야간 상담 가능", "실시간 카톡 상담"],
+    "activity_regions": ["대구"],
+    "cta": "카톡 문의",
+    "created_at": "2026-03-25T01:13:16.733Z"
+  },
+  {
+    "name": "오채린",
+    "brand_name": "플로라 브라이드",
+    "title": "웨딩 플래너",
+    "profile_image_url": "https://picsum.photos/seed/planner-7/400/400",
+    "one_liner": "신랑신부 취향 중심의 1:1 플래닝",
+    "specialties": ["호텔웨딩", "스몰웨딩", "야외웨딩"],
+    "style_keywords": ["클래식", "세련된", "감성"],
+    "career_years": 5,
+    "weddings_completed": 137,
+    "major_experiences": [
+      "웨딩홀 비교 컨설팅 특화",
+      "웨딩 박람회 VIP 고객 전담",
+      "유명 드레스샵 협업 진행"
+    ],
+    "rating": 4.5,
+    "reviews": [
+      {
+        "rating": 4.5,
+        "content": "당일 진행이 매끄러워서 아무 걱정 없이 결혼식 했습니다."
+      },
+      {
+        "rating": 5,
+        "content": "예산 안에서 최고의 선택지를 제안해주셔서 만족했습니다."
+      }
+    ],
+    "base_price_krw": 2490000,
+    "service_scope": {
+      "included": [
+        "당일 진행",
+        "예산 관리",
+        "스냅/영상 업체 연계",
+        "일정 관리",
+        "혼주 가이드",
+        "드레스/메이크업 상담"
+      ],
+      "extra_cost_possible": false
+    },
+    "portfolio_images": [
+      "https://picsum.photos/seed/planner-7-1/1200/800",
+      "https://picsum.photos/seed/planner-7-2/1200/800",
+      "https://picsum.photos/seed/planner-7-3/1200/800",
+      "https://picsum.photos/seed/planner-7-4/1200/800"
+    ],
+    "service_features": [
+      "1:1 맞춤 컨설팅",
+      "비동행 진행 가능",
+      "신랑신부 성향 분석 기반 추천",
+      "웨딩홀 동행 가능"
+    ],
+    "activity_regions": ["서울", "제주", "전국"],
+    "cta": "상담 신청",
+    "created_at": "2026-03-25T01:13:16.733Z"
+  },
+  {
+    "name": "서은아",
+    "brand_name": "오브 브라이드",
+    "title": "수석 플래너",
+    "profile_image_url": "https://picsum.photos/seed/planner-8/400/400",
+    "one_liner": "실속과 분위기를 모두 잡는 웨딩 플래닝",
+    "specialties": ["가든웨딩", "한옥웨딩"],
+    "style_keywords": ["화려한", "감성", "유니크"],
+    "career_years": 7,
+    "weddings_completed": 107,
+    "major_experiences": [
+      "신혼여행 연계 상담 경험",
+      "예산 최적화 플래닝 노하우 보유",
+      "하우스웨딩 기획 디렉팅 경험"
+    ],
+    "rating": 4.5,
+    "reviews": [
+      {
+        "rating": 5,
+        "content": "예산 안에서 최고의 선택지를 제안해주셔서 만족했습니다."
+      },
+      {
+        "rating": 4.9,
+        "content": "스타일 제안이 탁월해서 원하는 분위기를 정확히 구현했어요."
+      }
+    ],
+    "base_price_krw": 2760000,
+    "service_scope": {
+      "included": [
+        "당일 진행",
+        "청첩장/답례품 가이드",
+        "일정 관리",
+        "혼주 가이드",
+        "업체 추천",
+        "스냅/영상 업체 연계",
+        "드레스/메이크업 상담"
+      ],
+      "extra_cost_possible": false
+    },
+    "portfolio_images": [
+      "https://picsum.photos/seed/planner-8-1/1200/800",
+      "https://picsum.photos/seed/planner-8-2/1200/800",
+      "https://picsum.photos/seed/planner-8-3/1200/800",
+      "https://picsum.photos/seed/planner-8-4/1200/800"
+    ],
+    "service_features": [
+      "1:1 맞춤 컨설팅",
+      "신랑신부 성향 분석 기반 추천",
+      "비동행 진행 가능",
+      "야간 상담 가능",
+      "웨딩홀 동행 가능"
+    ],
+    "activity_regions": ["대전"],
+    "cta": "포트폴리오 보기",
+    "created_at": "2026-03-25T01:13:16.733Z"
+  },
+  {
+    "name": "윤가은",
+    "brand_name": "아르떼 웨딩",
+    "title": "웨딩 컨설턴트",
+    "profile_image_url": "https://picsum.photos/seed/planner-9/400/400",
+    "one_liner": "준비 과정까지 편안한 웨딩 메이트",
+    "specialties": ["가든웨딩", "럭셔리웨딩"],
+    "style_keywords": ["럭셔리", "내추럴", "트렌디", "세련된"],
+    "career_years": 2,
+    "weddings_completed": 229,
+    "major_experiences": ["웨딩홀 비교 컨설팅 특화", "야외 웨딩 전문 운영 경험"],
+    "rating": 4.5,
+    "reviews": [
+      {
+        "rating": 4.6,
+        "content": "업체 추천 퀄리티가 좋고 강요가 없어서 편했어요."
+      },
+      {
+        "rating": 4.6,
+        "content": "진짜 친구처럼 세심하게 챙겨주셔서 너무 든든했어요."
+      }
+    ],
+    "base_price_krw": 990000,
+    "service_scope": {
+      "included": [
+        "일정 관리",
+        "업체 추천",
+        "청첩장/답례품 가이드",
+        "당일 진행",
+        "드레스/메이크업 상담",
+        "식순 컨설팅",
+        "스냅/영상 업체 연계"
+      ],
+      "extra_cost_possible": false
+    },
+    "portfolio_images": [
+      "https://picsum.photos/seed/planner-9-1/1200/800",
+      "https://picsum.photos/seed/planner-9-2/1200/800",
+      "https://picsum.photos/seed/planner-9-3/1200/800",
+      "https://picsum.photos/seed/planner-9-4/1200/800"
+    ],
+    "service_features": [
+      "계약서 검토 지원",
+      "웨딩홀 동행 가능",
+      "체크리스트 제공",
+      "야간 상담 가능"
+    ],
+    "activity_regions": ["서울", "경기"],
+    "cta": "견적 받기",
+    "created_at": "2026-03-25T01:13:16.733Z"
+  },
+  {
+    "name": "신하율",
+    "brand_name": "오브 컴퍼니",
+    "title": "웨딩 컨설턴트",
+    "profile_image_url": "https://picsum.photos/seed/planner-10/400/400",
+    "one_liner": "호텔 웨딩 디테일에 강한 플래너",
+    "specialties": ["럭셔리웨딩", "가든웨딩", "채플웨딩"],
+    "style_keywords": ["세련된", "내추럴", "럭셔리", "미니멀"],
+    "career_years": 5,
+    "weddings_completed": 312,
+    "major_experiences": ["5성급 호텔 웨딩 제휴 경험", "소규모 프라이빗 웨딩 다수 진행"],
+    "rating": 4.9,
+    "reviews": [
+      {
+        "rating": 4.8,
+        "content": "예산 안에서 최고의 선택지를 제안해주셔서 만족했습니다."
+      },
+      {
+        "rating": 4.8,
+        "content": "진짜 친구처럼 세심하게 챙겨주셔서 너무 든든했어요."
+      }
+    ],
+    "base_price_krw": 950000,
+    "service_scope": {
+      "included": [
+        "혼주 가이드",
+        "청첩장/답례품 가이드",
+        "업체 추천",
+        "일정 관리",
+        "웨딩홀 비교",
+        "예산 관리"
+      ],
+      "extra_cost_possible": false
+    },
+    "portfolio_images": [
+      "https://picsum.photos/seed/planner-10-1/1200/800",
+      "https://picsum.photos/seed/planner-10-2/1200/800",
+      "https://picsum.photos/seed/planner-10-3/1200/800",
+      "https://picsum.photos/seed/planner-10-4/1200/800"
+    ],
+    "service_features": [
+      "계약서 검토 지원",
+      "1:1 맞춤 컨설팅",
+      "신랑신부 성향 분석 기반 추천",
+      "비동행 진행 가능"
+    ],
+    "activity_regions": ["광주", "전국"],
+    "cta": "카톡 문의",
+    "created_at": "2026-03-25T01:13:16.733Z"
+  },
+  {
+    "name": "강다은",
+    "brand_name": "세레나 하우스",
+    "title": "웨딩 디렉터",
+    "profile_image_url": "https://picsum.photos/seed/planner-11/400/400",
+    "one_liner": "하우스웨딩 감성 연출 전문",
+    "specialties": ["럭셔리웨딩", "스몰웨딩", "한옥웨딩", "하우스웨딩"],
+    "style_keywords": ["트렌디", "화려한"],
+    "career_years": 4,
+    "weddings_completed": 277,
+    "major_experiences": [
+      "소규모 프라이빗 웨딩 다수 진행",
+      "신혼여행 연계 상담 경험",
+      "웨딩홀 비교 컨설팅 특화"
+    ],
+    "rating": 4.9,
+    "reviews": [
+      {
+        "rating": 5,
+        "content": "스타일 제안이 탁월해서 원하는 분위기를 정확히 구현했어요."
+      },
+      {
+        "rating": 4.5,
+        "content": "스몰웨딩인데도 정말 풍성하고 특별하게 만들어주셨어요."
+      }
+    ],
+    "base_price_krw": 1800000,
+    "service_scope": {
+      "included": [
+        "업체 추천",
+        "스냅/영상 업체 연계",
+        "예산 관리",
+        "당일 진행",
+        "일정 관리",
+        "웨딩홀 비교",
+        "드레스/메이크업 상담"
+      ],
+      "extra_cost_possible": false
+    },
+    "portfolio_images": [
+      "https://picsum.photos/seed/planner-11-1/1200/800",
+      "https://picsum.photos/seed/planner-11-2/1200/800",
+      "https://picsum.photos/seed/planner-11-3/1200/800",
+      "https://picsum.photos/seed/planner-11-4/1200/800"
+    ],
+    "service_features": ["웨딩홀 동행 가능", "비동행 진행 가능", "계약서 검토 지원"],
+    "activity_regions": ["대구", "인천", "전국"],
+    "cta": "상담 신청",
+    "created_at": "2026-03-25T01:13:16.733Z"
+  },
+  {
+    "name": "조예린",
+    "brand_name": "오브 컴퍼니",
+    "title": "브라이덜 디렉터",
+    "profile_image_url": "https://picsum.photos/seed/planner-12/400/400",
+    "one_liner": "하우스웨딩 감성 연출 전문",
+    "specialties": ["하우스웨딩", "야외웨딩", "가든웨딩", "한옥웨딩"],
+    "style_keywords": ["트렌디", "미니멀", "유니크", "내추럴"],
+    "career_years": 12,
+    "weddings_completed": 51,
+    "major_experiences": ["하우스웨딩 기획 디렉팅 경험", "신혼여행 연계 상담 경험"],
+    "rating": 4.4,
+    "reviews": [
+      {
+        "rating": 4.7,
+        "content": "스몰웨딩인데도 정말 풍성하고 특별하게 만들어주셨어요."
+      },
+      {
+        "rating": 4.7,
+        "content": "진짜 친구처럼 세심하게 챙겨주셔서 너무 든든했어요."
+      }
+    ],
+    "base_price_krw": 1920000,
+    "service_scope": {
+      "included": ["웨딩홀 비교", "스냅/영상 업체 연계", "식순 컨설팅", "예산 관리"],
+      "extra_cost_possible": true
+    },
+    "portfolio_images": [
+      "https://picsum.photos/seed/planner-12-1/1200/800",
+      "https://picsum.photos/seed/planner-12-2/1200/800",
+      "https://picsum.photos/seed/planner-12-3/1200/800",
+      "https://picsum.photos/seed/planner-12-4/1200/800"
+    ],
+    "service_features": [
+      "신랑신부 성향 분석 기반 추천",
+      "체크리스트 제공",
+      "계약서 검토 지원",
+      "1:1 맞춤 컨설팅",
+      "비동행 진행 가능"
+    ],
+    "activity_regions": ["경기", "대구", "서울"],
+    "cta": "상담 신청",
+    "created_at": "2026-03-25T01:13:16.733Z"
+  },
+  {
+    "name": "임소윤",
+    "brand_name": "플로라 플래닝",
+    "title": "브라이덜 디렉터",
+    "profile_image_url": "https://picsum.photos/seed/planner-13/400/400",
+    "one_liner": "트렌디하고 세련된 웨딩 연출",
+    "specialties": ["스몰웨딩", "하우스웨딩"],
+    "style_keywords": ["화려한", "로맨틱"],
+    "career_years": 6,
+    "weddings_completed": 64,
+    "major_experiences": ["웨딩홀 비교 컨설팅 특화", "5성급 호텔 웨딩 제휴 경험"],
+    "rating": 4.7,
+    "reviews": [
+      {
+        "rating": 4.5,
+        "content": "실무 경험이 많아서 판단이 빠르고 정확했습니다."
+      },
+      {
+        "rating": 4.7,
+        "content": "스몰웨딩인데도 정말 풍성하고 특별하게 만들어주셨어요."
+      }
+    ],
+    "base_price_krw": 820000,
+    "service_scope": {
+      "included": ["청첩장/답례품 가이드", "당일 진행", "스냅/영상 업체 연계", "일정 관리"],
+      "extra_cost_possible": true
+    },
+    "portfolio_images": [
+      "https://picsum.photos/seed/planner-13-1/1200/800",
+      "https://picsum.photos/seed/planner-13-2/1200/800",
+      "https://picsum.photos/seed/planner-13-3/1200/800",
+      "https://picsum.photos/seed/planner-13-4/1200/800"
+    ],
+    "service_features": [
+      "웨딩홀 동행 가능",
+      "비동행 진행 가능",
+      "당일 긴급 대응",
+      "1:1 맞춤 컨설팅",
+      "계약서 검토 지원"
+    ],
+    "activity_regions": ["경기", "제주"],
+    "cta": "상담 신청",
+    "created_at": "2026-03-25T01:13:16.733Z"
+  },
+  {
+    "name": "장하린",
+    "brand_name": "세레나 브라이드",
+    "title": "수석 플래너",
+    "profile_image_url": "https://picsum.photos/seed/planner-14/400/400",
+    "one_liner": "호텔 웨딩 디테일에 강한 플래너",
+    "specialties": ["호텔웨딩", "채플웨딩", "야외웨딩"],
+    "style_keywords": ["로맨틱", "세련된", "클래식", "내추럴"],
+    "career_years": 4,
+    "weddings_completed": 314,
+    "major_experiences": [
+      "신혼여행 연계 상담 경험",
+      "웨딩 박람회 VIP 고객 전담",
+      "웨딩홀 비교 컨설팅 특화"
+    ],
+    "rating": 4.7,
+    "reviews": [
+      {
+        "rating": 4.7,
+        "content": "준비 과정이 복잡할 줄 알았는데 정말 체계적으로 도와주셨어요."
+      },
+      {
+        "rating": 4.8,
+        "content": "예산 안에서 최고의 선택지를 제안해주셔서 만족했습니다."
+      }
+    ],
+    "base_price_krw": 2140000,
+    "service_scope": {
+      "included": [
+        "당일 진행",
+        "일정 관리",
+        "혼주 가이드",
+        "드레스/메이크업 상담",
+        "업체 추천",
+        "예산 관리",
+        "청첩장/답례품 가이드"
+      ],
+      "extra_cost_possible": true
+    },
+    "portfolio_images": [
+      "https://picsum.photos/seed/planner-14-1/1200/800",
+      "https://picsum.photos/seed/planner-14-2/1200/800",
+      "https://picsum.photos/seed/planner-14-3/1200/800",
+      "https://picsum.photos/seed/planner-14-4/1200/800"
+    ],
+    "service_features": ["웨딩홀 동행 가능", "체크리스트 제공", "1:1 맞춤 컨설팅"],
+    "activity_regions": ["부산"],
+    "cta": "포트폴리오 보기",
+    "created_at": "2026-03-25T01:13:16.733Z"
+  },
+  {
+    "name": "문지안",
+    "brand_name": "루미에르 컴퍼니",
+    "title": "수석 플래너",
+    "profile_image_url": "https://picsum.photos/seed/planner-15/400/400",
+    "one_liner": "트렌디하고 세련된 웨딩 연출",
+    "specialties": ["럭셔리웨딩", "스몰웨딩"],
+    "style_keywords": ["럭셔리", "따뜻한", "감성", "미니멀"],
+    "career_years": 7,
+    "weddings_completed": 182,
+    "major_experiences": [
+      "유명 드레스샵 협업 진행",
+      "웨딩 박람회 VIP 고객 전담",
+      "신혼여행 연계 상담 경험"
+    ],
+    "rating": 5,
+    "reviews": [
+      {
+        "rating": 4.7,
+        "content": "진짜 친구처럼 세심하게 챙겨주셔서 너무 든든했어요."
+      },
+      {
+        "rating": 4.6,
+        "content": "스타일 제안이 탁월해서 원하는 분위기를 정확히 구현했어요."
+      }
+    ],
+    "base_price_krw": 2880000,
+    "service_scope": {
+      "included": ["업체 추천", "일정 관리", "웨딩홀 비교", "예산 관리", "식순 컨설팅"],
+      "extra_cost_possible": false
+    },
+    "portfolio_images": [
+      "https://picsum.photos/seed/planner-15-1/1200/800",
+      "https://picsum.photos/seed/planner-15-2/1200/800",
+      "https://picsum.photos/seed/planner-15-3/1200/800",
+      "https://picsum.photos/seed/planner-15-4/1200/800"
+    ],
+    "service_features": ["1:1 맞춤 컨설팅", "계약서 검토 지원", "비동행 진행 가능"],
+    "activity_regions": ["인천"],
+    "cta": "카톡 문의",
+    "created_at": "2026-03-25T01:13:16.733Z"
+  },
+  {
+    "name": "권나연",
+    "brand_name": "디어 모먼트",
+    "title": "브라이덜 디렉터",
+    "profile_image_url": "https://picsum.photos/seed/planner-16/400/400",
+    "one_liner": "신랑신부 취향 중심의 1:1 플래닝",
+    "specialties": ["스몰웨딩", "하우스웨딩", "호텔웨딩", "한옥웨딩"],
+    "style_keywords": ["내추럴", "클래식", "모던", "유니크"],
+    "career_years": 9,
+    "weddings_completed": 122,
+    "major_experiences": ["5성급 호텔 웨딩 제휴 경험", "유명 드레스샵 협업 진행"],
+    "rating": 4.7,
+    "reviews": [
+      {
+        "rating": 4.9,
+        "content": "스타일 제안이 탁월해서 원하는 분위기를 정확히 구현했어요."
+      },
+      {
+        "rating": 4.8,
+        "content": "진짜 친구처럼 세심하게 챙겨주셔서 너무 든든했어요."
+      }
+    ],
+    "base_price_krw": 1990000,
+    "service_scope": {
+      "included": [
+        "혼주 가이드",
+        "웨딩홀 비교",
+        "업체 추천",
+        "드레스/메이크업 상담",
+        "예산 관리",
+        "당일 진행",
+        "스냅/영상 업체 연계"
+      ],
+      "extra_cost_possible": false
+    },
+    "portfolio_images": [
+      "https://picsum.photos/seed/planner-16-1/1200/800",
+      "https://picsum.photos/seed/planner-16-2/1200/800",
+      "https://picsum.photos/seed/planner-16-3/1200/800",
+      "https://picsum.photos/seed/planner-16-4/1200/800"
+    ],
+    "service_features": [
+      "야간 상담 가능",
+      "실시간 카톡 상담",
+      "체크리스트 제공",
+      "신랑신부 성향 분석 기반 추천",
+      "비동행 진행 가능"
+    ],
+    "activity_regions": ["서울", "경기"],
+    "cta": "상담 신청",
+    "created_at": "2026-03-25T01:13:16.733Z"
+  },
+  {
+    "name": "송유나",
+    "brand_name": "아르떼 컴퍼니",
+    "title": "웨딩 디렉터",
+    "profile_image_url": "https://picsum.photos/seed/planner-17/400/400",
+    "one_liner": "감성 야외 웨딩 전문",
+    "specialties": ["럭셔리웨딩", "채플웨딩", "셀프웨딩", "가든웨딩"],
+    "style_keywords": ["트렌디", "모던", "감성", "유니크"],
+    "career_years": 2,
+    "weddings_completed": 258,
+    "major_experiences": [
+      "소규모 프라이빗 웨딩 다수 진행",
+      "브랜드 스냅 업체와 다수 협업",
+      "하우스웨딩 기획 디렉팅 경험"
+    ],
+    "rating": 4.5,
+    "reviews": [
+      {
+        "rating": 4.5,
+        "content": "준비 과정이 복잡할 줄 알았는데 정말 체계적으로 도와주셨어요."
+      },
+      {
+        "rating": 4.7,
+        "content": "진짜 친구처럼 세심하게 챙겨주셔서 너무 든든했어요."
+      }
+    ],
+    "base_price_krw": 960000,
+    "service_scope": {
+      "included": [
+        "청첩장/답례품 가이드",
+        "업체 추천",
+        "일정 관리",
+        "식순 컨설팅",
+        "드레스/메이크업 상담",
+        "스냅/영상 업체 연계",
+        "예산 관리"
+      ],
+      "extra_cost_possible": false
+    },
+    "portfolio_images": [
+      "https://picsum.photos/seed/planner-17-1/1200/800",
+      "https://picsum.photos/seed/planner-17-2/1200/800",
+      "https://picsum.photos/seed/planner-17-3/1200/800",
+      "https://picsum.photos/seed/planner-17-4/1200/800"
+    ],
+    "service_features": ["당일 긴급 대응", "체크리스트 제공", "1:1 맞춤 컨설팅"],
+    "activity_regions": ["부산"],
+    "cta": "상담 신청",
+    "created_at": "2026-03-25T01:13:16.733Z"
+  },
+  {
+    "name": "백하은",
+    "brand_name": "비쥬 브라이드",
+    "title": "웨딩 플래너",
+    "profile_image_url": "https://picsum.photos/seed/planner-18/400/400",
+    "one_liner": "호텔 웨딩 디테일에 강한 플래너",
+    "specialties": ["한옥웨딩", "호텔웨딩", "하우스웨딩", "셀프웨딩"],
+    "style_keywords": ["클래식", "로맨틱", "모던", "따뜻한"],
+    "career_years": 9,
+    "weddings_completed": 337,
+    "major_experiences": ["신혼여행 연계 상담 경험", "브랜드 스냅 업체와 다수 협업"],
+    "rating": 4.4,
+    "reviews": [
+      {
+        "rating": 5,
+        "content": "스몰웨딩인데도 정말 풍성하고 특별하게 만들어주셨어요."
+      },
+      {
+        "rating": 4.7,
+        "content": "당일 진행이 매끄러워서 아무 걱정 없이 결혼식 했습니다."
+      }
+    ],
+    "base_price_krw": 1560000,
+    "service_scope": {
+      "included": ["드레스/메이크업 상담", "업체 추천", "웨딩홀 비교", "일정 관리", "당일 진행"],
+      "extra_cost_possible": false
+    },
+    "portfolio_images": [
+      "https://picsum.photos/seed/planner-18-1/1200/800",
+      "https://picsum.photos/seed/planner-18-2/1200/800",
+      "https://picsum.photos/seed/planner-18-3/1200/800",
+      "https://picsum.photos/seed/planner-18-4/1200/800"
+    ],
+    "service_features": ["1:1 맞춤 컨설팅", "예산 최적화 전문", "비동행 진행 가능"],
+    "activity_regions": ["대전", "제주"],
+    "cta": "포트폴리오 보기",
+    "created_at": "2026-03-25T01:13:16.733Z"
+  },
+  {
+    "name": "전채원",
+    "brand_name": "모먼트 모먼트",
+    "title": "수석 플래너",
+    "profile_image_url": "https://picsum.photos/seed/planner-19/400/400",
+    "one_liner": "하우스웨딩 감성 연출 전문",
+    "specialties": ["한옥웨딩", "럭셔리웨딩"],
+    "style_keywords": ["화려한", "내추럴", "럭셔리", "세련된"],
+    "career_years": 4,
+    "weddings_completed": 251,
+    "major_experiences": ["5성급 호텔 웨딩 제휴 경험", "유명 드레스샵 협업 진행"],
+    "rating": 4.7,
+    "reviews": [
+      {
+        "rating": 4.9,
+        "content": "당일 진행이 매끄러워서 아무 걱정 없이 결혼식 했습니다."
+      },
+      {
+        "rating": 4.7,
+        "content": "준비 과정이 복잡할 줄 알았는데 정말 체계적으로 도와주셨어요."
+      }
+    ],
+    "base_price_krw": 2770000,
+    "service_scope": {
+      "included": [
+        "혼주 가이드",
+        "일정 관리",
+        "청첩장/답례품 가이드",
+        "업체 추천",
+        "드레스/메이크업 상담",
+        "당일 진행"
+      ],
+      "extra_cost_possible": true
+    },
+    "portfolio_images": [
+      "https://picsum.photos/seed/planner-19-1/1200/800",
+      "https://picsum.photos/seed/planner-19-2/1200/800",
+      "https://picsum.photos/seed/planner-19-3/1200/800",
+      "https://picsum.photos/seed/planner-19-4/1200/800"
+    ],
+    "service_features": [
+      "야간 상담 가능",
+      "1:1 맞춤 컨설팅",
+      "체크리스트 제공",
+      "신랑신부 성향 분석 기반 추천",
+      "실시간 카톡 상담"
+    ],
+    "activity_regions": ["대전", "인천"],
+    "cta": "1:1 상담 예약",
+    "created_at": "2026-03-25T01:13:16.733Z"
+  },
+  {
+    "name": "류아린",
+    "brand_name": "아르떼 컴퍼니",
+    "title": "웨딩 디렉터",
+    "profile_image_url": "https://picsum.photos/seed/planner-20/400/400",
+    "one_liner": "럭셔리 웨딩부터 미니멀 웨딩까지",
+    "specialties": ["스몰웨딩", "야외웨딩", "가든웨딩", "럭셔리웨딩"],
+    "style_keywords": ["로맨틱", "트렌디", "클래식"],
+    "career_years": 2,
+    "weddings_completed": 42,
+    "major_experiences": ["웨딩 박람회 VIP 고객 전담", "소규모 프라이빗 웨딩 다수 진행"],
+    "rating": 4.5,
+    "reviews": [
+      {
+        "rating": 5,
+        "content": "예산 안에서 최고의 선택지를 제안해주셔서 만족했습니다."
+      },
+      {
+        "rating": 4.6,
+        "content": "응답이 빨라서 준비 내내 불안함이 없었어요."
+      }
+    ],
+    "base_price_krw": 2300000,
+    "service_scope": {
+      "included": ["혼주 가이드", "업체 추천", "일정 관리", "식순 컨설팅"],
+      "extra_cost_possible": false
+    },
+    "portfolio_images": [
+      "https://picsum.photos/seed/planner-20-1/1200/800",
+      "https://picsum.photos/seed/planner-20-2/1200/800",
+      "https://picsum.photos/seed/planner-20-3/1200/800",
+      "https://picsum.photos/seed/planner-20-4/1200/800"
+    ],
+    "service_features": [
+      "당일 긴급 대응",
+      "계약서 검토 지원",
+      "실시간 카톡 상담",
+      "신랑신부 성향 분석 기반 추천"
+    ],
+    "activity_regions": ["인천"],
+    "cta": "카톡 문의",
+    "created_at": "2026-03-25T01:13:16.733Z"
+  },
+  {
+    "name": "김다희",
+    "brand_name": "아르떼 스튜디오",
+    "title": "웨딩 디렉터",
+    "profile_image_url": "https://picsum.photos/seed/planner-21/400/400",
+    "one_liner": "트렌디하고 세련된 웨딩 연출",
+    "specialties": ["호텔웨딩", "하우스웨딩", "리마인드웨딩"],
+    "style_keywords": ["럭셔리", "감성"],
+    "career_years": 11,
+    "weddings_completed": 96,
+    "major_experiences": ["야외 웨딩 전문 운영 경험", "소규모 프라이빗 웨딩 다수 진행"],
+    "rating": 4.7,
+    "reviews": [
+      {
+        "rating": 4.6,
+        "content": "당일 진행이 매끄러워서 아무 걱정 없이 결혼식 했습니다."
+      },
+      {
+        "rating": 4.9,
+        "content": "스몰웨딩인데도 정말 풍성하고 특별하게 만들어주셨어요."
+      }
+    ],
+    "base_price_krw": 2290000,
+    "service_scope": {
+      "included": [
+        "청첩장/답례품 가이드",
+        "업체 추천",
+        "혼주 가이드",
+        "웨딩홀 비교",
+        "당일 진행",
+        "일정 관리"
+      ],
+      "extra_cost_possible": true
+    },
+    "portfolio_images": [
+      "https://picsum.photos/seed/planner-21-1/1200/800",
+      "https://picsum.photos/seed/planner-21-2/1200/800",
+      "https://picsum.photos/seed/planner-21-3/1200/800",
+      "https://picsum.photos/seed/planner-21-4/1200/800"
+    ],
+    "service_features": [
+      "야간 상담 가능",
+      "예산 최적화 전문",
+      "웨딩홀 동행 가능",
+      "실시간 카톡 상담"
+    ],
+    "activity_regions": ["부산", "경기"],
+    "cta": "견적 받기",
+    "created_at": "2026-03-25T01:13:16.733Z"
+  },
+  {
+    "name": "이수아",
+    "brand_name": "엘르 스튜디오",
+    "title": "브라이덜 디렉터",
+    "profile_image_url": "https://picsum.photos/seed/planner-22/400/400",
+    "one_liner": "감성 야외 웨딩 전문",
+    "specialties": ["셀프웨딩", "스몰웨딩", "가든웨딩", "호텔웨딩"],
+    "style_keywords": ["내추럴", "미니멀", "화려한"],
+    "career_years": 3,
+    "weddings_completed": 335,
+    "major_experiences": ["웨딩 박람회 VIP 고객 전담", "브랜드 스냅 업체와 다수 협업"],
+    "rating": 4.5,
+    "reviews": [
+      {
+        "rating": 4.5,
+        "content": "스타일 제안이 탁월해서 원하는 분위기를 정확히 구현했어요."
+      },
+      {
+        "rating": 4.7,
+        "content": "진짜 친구처럼 세심하게 챙겨주셔서 너무 든든했어요."
+      }
+    ],
+    "base_price_krw": 2910000,
+    "service_scope": {
+      "included": [
+        "웨딩홀 비교",
+        "스냅/영상 업체 연계",
+        "드레스/메이크업 상담",
+        "당일 진행",
+        "청첩장/답례품 가이드"
+      ],
+      "extra_cost_possible": true
+    },
+    "portfolio_images": [
+      "https://picsum.photos/seed/planner-22-1/1200/800",
+      "https://picsum.photos/seed/planner-22-2/1200/800",
+      "https://picsum.photos/seed/planner-22-3/1200/800",
+      "https://picsum.photos/seed/planner-22-4/1200/800"
+    ],
+    "service_features": [
+      "1:1 맞춤 컨설팅",
+      "당일 긴급 대응",
+      "웨딩홀 동행 가능",
+      "비동행 진행 가능",
+      "신랑신부 성향 분석 기반 추천"
+    ],
+    "activity_regions": ["경기"],
+    "cta": "상담 신청",
+    "created_at": "2026-03-25T01:13:16.733Z"
+  },
+  {
+    "name": "박하연",
+    "brand_name": "모먼트 웨딩",
+    "title": "웨딩 컨설턴트",
+    "profile_image_url": "https://picsum.photos/seed/planner-23/400/400",
+    "one_liner": "감성 야외 웨딩 전문",
+    "specialties": ["럭셔리웨딩", "호텔웨딩"],
+    "style_keywords": ["클래식", "로맨틱", "유니크"],
+    "career_years": 4,
+    "weddings_completed": 226,
+    "major_experiences": ["브랜드 스냅 업체와 다수 협업", "웨딩 박람회 VIP 고객 전담"],
+    "rating": 4.4,
+    "reviews": [
+      {
+        "rating": 4.5,
+        "content": "진짜 친구처럼 세심하게 챙겨주셔서 너무 든든했어요."
+      },
+      {
+        "rating": 4.7,
+        "content": "예산 안에서 최고의 선택지를 제안해주셔서 만족했습니다."
+      }
+    ],
+    "base_price_krw": 2630000,
+    "service_scope": {
+      "included": [
+        "식순 컨설팅",
+        "당일 진행",
+        "드레스/메이크업 상담",
+        "청첩장/답례품 가이드",
+        "예산 관리"
+      ],
+      "extra_cost_possible": true
+    },
+    "portfolio_images": [
+      "https://picsum.photos/seed/planner-23-1/1200/800",
+      "https://picsum.photos/seed/planner-23-2/1200/800",
+      "https://picsum.photos/seed/planner-23-3/1200/800",
+      "https://picsum.photos/seed/planner-23-4/1200/800"
+    ],
+    "service_features": [
+      "체크리스트 제공",
+      "실시간 카톡 상담",
+      "웨딩홀 동행 가능",
+      "당일 긴급 대응"
+    ],
+    "activity_regions": ["전국", "부산", "해외"],
+    "cta": "포트폴리오 보기",
+    "created_at": "2026-03-25T01:13:16.733Z"
+  },
+  {
+    "name": "최예나",
+    "brand_name": "오브 웨딩",
+    "title": "브라이덜 디렉터",
+    "profile_image_url": "https://picsum.photos/seed/planner-24/400/400",
+    "one_liner": "감성 야외 웨딩 전문",
+    "specialties": ["럭셔리웨딩", "스몰웨딩", "채플웨딩", "리마인드웨딩"],
+    "style_keywords": ["세련된", "트렌디"],
+    "career_years": 12,
+    "weddings_completed": 331,
+    "major_experiences": [
+      "5성급 호텔 웨딩 제휴 경험",
+      "소규모 프라이빗 웨딩 다수 진행",
+      "유명 드레스샵 협업 진행"
+    ],
+    "rating": 4.9,
+    "reviews": [
+      {
+        "rating": 4.7,
+        "content": "당일 진행이 매끄러워서 아무 걱정 없이 결혼식 했습니다."
+      },
+      {
+        "rating": 4.6,
+        "content": "응답이 빨라서 준비 내내 불안함이 없었어요."
+      }
+    ],
+    "base_price_krw": 2750000,
+    "service_scope": {
+      "included": ["업체 추천", "일정 관리", "예산 관리", "혼주 가이드"],
+      "extra_cost_possible": false
+    },
+    "portfolio_images": [
+      "https://picsum.photos/seed/planner-24-1/1200/800",
+      "https://picsum.photos/seed/planner-24-2/1200/800",
+      "https://picsum.photos/seed/planner-24-3/1200/800",
+      "https://picsum.photos/seed/planner-24-4/1200/800"
+    ],
+    "service_features": ["실시간 카톡 상담", "예산 최적화 전문", "신랑신부 성향 분석 기반 추천"],
+    "activity_regions": ["경기", "광주", "대구"],
+    "cta": "상담 신청",
+    "created_at": "2026-03-25T01:13:16.733Z"
+  },
+  {
+    "name": "정유리",
+    "brand_name": "화이트 모먼트",
+    "title": "브라이덜 디렉터",
+    "profile_image_url": "https://picsum.photos/seed/planner-25/400/400",
+    "one_liner": "감성 야외 웨딩 전문",
+    "specialties": ["가든웨딩", "스몰웨딩", "호텔웨딩", "리마인드웨딩"],
+    "style_keywords": ["모던", "세련된", "럭셔리"],
+    "career_years": 12,
+    "weddings_completed": 248,
+    "major_experiences": [
+      "웨딩 박람회 VIP 고객 전담",
+      "브랜드 스냅 업체와 다수 협업",
+      "신혼여행 연계 상담 경험"
+    ],
+    "rating": 4.4,
+    "reviews": [
+      {
+        "rating": 4.8,
+        "content": "준비 과정이 복잡할 줄 알았는데 정말 체계적으로 도와주셨어요."
+      },
+      {
+        "rating": 4.7,
+        "content": "진짜 친구처럼 세심하게 챙겨주셔서 너무 든든했어요."
+      }
+    ],
+    "base_price_krw": 2540000,
+    "service_scope": {
+      "included": [
+        "스냅/영상 업체 연계",
+        "웨딩홀 비교",
+        "당일 진행",
+        "일정 관리",
+        "업체 추천",
+        "예산 관리",
+        "청첩장/답례품 가이드"
+      ],
+      "extra_cost_possible": false
+    },
+    "portfolio_images": [
+      "https://picsum.photos/seed/planner-25-1/1200/800",
+      "https://picsum.photos/seed/planner-25-2/1200/800",
+      "https://picsum.photos/seed/planner-25-3/1200/800",
+      "https://picsum.photos/seed/planner-25-4/1200/800"
+    ],
+    "service_features": [
+      "신랑신부 성향 분석 기반 추천",
+      "웨딩홀 동행 가능",
+      "1:1 맞춤 컨설팅",
+      "비동행 진행 가능"
+    ],
+    "activity_regions": ["제주", "광주"],
+    "cta": "포트폴리오 보기",
+    "created_at": "2026-03-25T01:13:16.734Z"
+  },
+  {
+    "name": "한지민",
+    "brand_name": "메종 웨딩",
+    "title": "웨딩 디렉터",
+    "profile_image_url": "https://picsum.photos/seed/planner-26/400/400",
+    "one_liner": "트렌디하고 세련된 웨딩 연출",
+    "specialties": ["채플웨딩", "한옥웨딩"],
+    "style_keywords": ["감성", "세련된", "트렌디", "화려한"],
+    "career_years": 6,
+    "weddings_completed": 294,
+    "major_experiences": ["야외 웨딩 전문 운영 경험", "하우스웨딩 기획 디렉팅 경험"],
+    "rating": 4.6,
+    "reviews": [
+      {
+        "rating": 4.6,
+        "content": "실무 경험이 많아서 판단이 빠르고 정확했습니다."
+      },
+      {
+        "rating": 4.7,
+        "content": "당일 진행이 매끄러워서 아무 걱정 없이 결혼식 했습니다."
+      }
+    ],
+    "base_price_krw": 2880000,
+    "service_scope": {
+      "included": ["당일 진행", "웨딩홀 비교", "혼주 가이드", "청첩장/답례품 가이드", "예산 관리"],
+      "extra_cost_possible": true
+    },
+    "portfolio_images": [
+      "https://picsum.photos/seed/planner-26-1/1200/800",
+      "https://picsum.photos/seed/planner-26-2/1200/800",
+      "https://picsum.photos/seed/planner-26-3/1200/800",
+      "https://picsum.photos/seed/planner-26-4/1200/800"
+    ],
+    "service_features": ["실시간 카톡 상담", "1:1 맞춤 컨설팅", "당일 긴급 대응"],
+    "activity_regions": ["제주", "광주", "서울"],
+    "cta": "카톡 문의",
+    "created_at": "2026-03-25T01:13:16.734Z"
+  },
+  {
+    "name": "오세린",
+    "brand_name": "엘르 웨딩",
+    "title": "웨딩 컨설턴트",
+    "profile_image_url": "https://picsum.photos/seed/planner-27/400/400",
+    "one_liner": "트렌디하고 세련된 웨딩 연출",
+    "specialties": ["스몰웨딩", "호텔웨딩"],
+    "style_keywords": ["클래식", "모던", "따뜻한", "미니멀"],
+    "career_years": 10,
+    "weddings_completed": 321,
+    "major_experiences": [
+      "5성급 호텔 웨딩 제휴 경험",
+      "소규모 프라이빗 웨딩 다수 진행",
+      "유명 드레스샵 협업 진행"
+    ],
+    "rating": 4.6,
+    "reviews": [
+      {
+        "rating": 5,
+        "content": "예산 안에서 최고의 선택지를 제안해주셔서 만족했습니다."
+      },
+      {
+        "rating": 4.7,
+        "content": "업체 추천 퀄리티가 좋고 강요가 없어서 편했어요."
+      }
+    ],
+    "base_price_krw": 890000,
+    "service_scope": {
+      "included": ["혼주 가이드", "당일 진행", "스냅/영상 업체 연계", "청첩장/답례품 가이드"],
+      "extra_cost_possible": true
+    },
+    "portfolio_images": [
+      "https://picsum.photos/seed/planner-27-1/1200/800",
+      "https://picsum.photos/seed/planner-27-2/1200/800",
+      "https://picsum.photos/seed/planner-27-3/1200/800",
+      "https://picsum.photos/seed/planner-27-4/1200/800"
+    ],
+    "service_features": [
+      "웨딩홀 동행 가능",
+      "1:1 맞춤 컨설팅",
+      "야간 상담 가능",
+      "당일 긴급 대응",
+      "비동행 진행 가능"
+    ],
+    "activity_regions": ["광주", "부산", "경기"],
+    "cta": "1:1 상담 예약",
+    "created_at": "2026-03-25T01:13:16.734Z"
+  },
+  {
+    "name": "서하늘",
+    "brand_name": "루미에르 디렉트",
+    "title": "웨딩 플래너",
+    "profile_image_url": "https://picsum.photos/seed/planner-28/400/400",
+    "one_liner": "실속과 분위기를 모두 잡는 웨딩 플래닝",
+    "specialties": ["스몰웨딩", "채플웨딩"],
+    "style_keywords": ["트렌디", "클래식", "유니크", "내추럴"],
+    "career_years": 4,
+    "weddings_completed": 266,
+    "major_experiences": [
+      "신혼여행 연계 상담 경험",
+      "브랜드 스냅 업체와 다수 협업",
+      "소규모 프라이빗 웨딩 다수 진행"
+    ],
+    "rating": 4.4,
+    "reviews": [
+      {
+        "rating": 5,
+        "content": "스타일 제안이 탁월해서 원하는 분위기를 정확히 구현했어요."
+      },
+      {
+        "rating": 4.9,
+        "content": "업체 추천 퀄리티가 좋고 강요가 없어서 편했어요."
+      }
+    ],
+    "base_price_krw": 2830000,
+    "service_scope": {
+      "included": ["식순 컨설팅", "예산 관리", "당일 진행", "혼주 가이드"],
+      "extra_cost_possible": true
+    },
+    "portfolio_images": [
+      "https://picsum.photos/seed/planner-28-1/1200/800",
+      "https://picsum.photos/seed/planner-28-2/1200/800",
+      "https://picsum.photos/seed/planner-28-3/1200/800",
+      "https://picsum.photos/seed/planner-28-4/1200/800"
+    ],
+    "service_features": [
+      "예산 최적화 전문",
+      "비동행 진행 가능",
+      "실시간 카톡 상담",
+      "웨딩홀 동행 가능"
+    ],
+    "activity_regions": ["인천", "제주"],
+    "cta": "카톡 문의",
+    "created_at": "2026-03-25T01:13:16.734Z"
+  },
+  {
+    "name": "윤소정",
+    "brand_name": "오브 플래닝",
+    "title": "수석 플래너",
+    "profile_image_url": "https://picsum.photos/seed/planner-29/400/400",
+    "one_liner": "작지만 완성도 높은 스몰웨딩 전문",
+    "specialties": ["가든웨딩", "채플웨딩"],
+    "style_keywords": ["감성", "화려한"],
+    "career_years": 9,
+    "weddings_completed": 263,
+    "major_experiences": [
+      "하우스웨딩 기획 디렉팅 경험",
+      "소규모 프라이빗 웨딩 다수 진행",
+      "웨딩 박람회 VIP 고객 전담"
+    ],
+    "rating": 4.5,
+    "reviews": [
+      {
+        "rating": 4.5,
+        "content": "스타일 제안이 탁월해서 원하는 분위기를 정확히 구현했어요."
+      },
+      {
+        "rating": 5,
+        "content": "하나하나 취향을 반영해주셔서 만족도가 높았습니다."
+      }
+    ],
+    "base_price_krw": 2290000,
+    "service_scope": {
+      "included": ["업체 추천", "혼주 가이드", "당일 진행", "드레스/메이크업 상담"],
+      "extra_cost_possible": true
+    },
+    "portfolio_images": [
+      "https://picsum.photos/seed/planner-29-1/1200/800",
+      "https://picsum.photos/seed/planner-29-2/1200/800",
+      "https://picsum.photos/seed/planner-29-3/1200/800",
+      "https://picsum.photos/seed/planner-29-4/1200/800"
+    ],
+    "service_features": [
+      "웨딩홀 동행 가능",
+      "실시간 카톡 상담",
+      "체크리스트 제공",
+      "예산 최적화 전문",
+      "신랑신부 성향 분석 기반 추천"
+    ],
+    "activity_regions": ["광주", "인천"],
+    "cta": "상담 신청",
+    "created_at": "2026-03-25T01:13:16.734Z"
+  },
+  {
+    "name": "신지우",
+    "brand_name": "엘르 디렉트",
+    "title": "브라이덜 디렉터",
+    "profile_image_url": "https://picsum.photos/seed/planner-30/400/400",
+    "one_liner": "럭셔리 웨딩부터 미니멀 웨딩까지",
+    "specialties": ["호텔웨딩", "채플웨딩", "리마인드웨딩", "한옥웨딩"],
+    "style_keywords": ["화려한", "내추럴"],
+    "career_years": 5,
+    "weddings_completed": 342,
+    "major_experiences": ["웨딩 박람회 VIP 고객 전담", "유명 드레스샵 협업 진행"],
+    "rating": 4.9,
+    "reviews": [
+      {
+        "rating": 4.7,
+        "content": "하나하나 취향을 반영해주셔서 만족도가 높았습니다."
+      },
+      {
+        "rating": 4.5,
+        "content": "진짜 친구처럼 세심하게 챙겨주셔서 너무 든든했어요."
+      }
+    ],
+    "base_price_krw": 1270000,
+    "service_scope": {
+      "included": [
+        "청첩장/답례품 가이드",
+        "웨딩홀 비교",
+        "업체 추천",
+        "일정 관리",
+        "당일 진행",
+        "드레스/메이크업 상담"
+      ],
+      "extra_cost_possible": false
+    },
+    "portfolio_images": [
+      "https://picsum.photos/seed/planner-30-1/1200/800",
+      "https://picsum.photos/seed/planner-30-2/1200/800",
+      "https://picsum.photos/seed/planner-30-3/1200/800",
+      "https://picsum.photos/seed/planner-30-4/1200/800"
+    ],
+    "service_features": [
+      "1:1 맞춤 컨설팅",
+      "체크리스트 제공",
+      "비동행 진행 가능",
+      "신랑신부 성향 분석 기반 추천"
+    ],
+    "activity_regions": ["서울", "경기", "전국"],
+    "cta": "1:1 상담 예약",
+    "created_at": "2026-03-25T01:13:16.734Z"
+  },
+  {
+    "name": "강수연",
+    "brand_name": "블룸 모먼트",
+    "title": "웨딩 디렉터",
+    "profile_image_url": "https://picsum.photos/seed/planner-31/400/400",
+    "one_liner": "하우스웨딩 감성 연출 전문",
+    "specialties": ["야외웨딩", "채플웨딩", "리마인드웨딩", "셀프웨딩"],
+    "style_keywords": ["트렌디", "로맨틱", "감성", "내추럴"],
+    "career_years": 11,
+    "weddings_completed": 131,
+    "major_experiences": ["브랜드 스냅 업체와 다수 협업", "야외 웨딩 전문 운영 경험"],
+    "rating": 4.9,
+    "reviews": [
+      {
+        "rating": 4.7,
+        "content": "진짜 친구처럼 세심하게 챙겨주셔서 너무 든든했어요."
+      },
+      {
+        "rating": 4.9,
+        "content": "예산 안에서 최고의 선택지를 제안해주셔서 만족했습니다."
+      }
+    ],
+    "base_price_krw": 1440000,
+    "service_scope": {
+      "included": [
+        "청첩장/답례품 가이드",
+        "당일 진행",
+        "업체 추천",
+        "스냅/영상 업체 연계",
+        "일정 관리",
+        "웨딩홀 비교"
+      ],
+      "extra_cost_possible": false
+    },
+    "portfolio_images": [
+      "https://picsum.photos/seed/planner-31-1/1200/800",
+      "https://picsum.photos/seed/planner-31-2/1200/800",
+      "https://picsum.photos/seed/planner-31-3/1200/800",
+      "https://picsum.photos/seed/planner-31-4/1200/800"
+    ],
+    "service_features": [
+      "계약서 검토 지원",
+      "야간 상담 가능",
+      "실시간 카톡 상담",
+      "예산 최적화 전문",
+      "비동행 진행 가능"
+    ],
+    "activity_regions": ["제주", "해외"],
+    "cta": "1:1 상담 예약",
+    "created_at": "2026-03-25T01:13:16.734Z"
+  },
+  {
+    "name": "조은별",
+    "brand_name": "로맨틱 컨설팅",
+    "title": "브라이덜 디렉터",
+    "profile_image_url": "https://picsum.photos/seed/planner-32/400/400",
+    "one_liner": "실속과 분위기를 모두 잡는 웨딩 플래닝",
+    "specialties": ["야외웨딩", "채플웨딩"],
+    "style_keywords": ["세련된", "트렌디"],
+    "career_years": 10,
+    "weddings_completed": 101,
+    "major_experiences": [
+      "하우스웨딩 기획 디렉팅 경험",
+      "5성급 호텔 웨딩 제휴 경험",
+      "유명 드레스샵 협업 진행"
+    ],
+    "rating": 4.5,
+    "reviews": [
+      {
+        "rating": 4.5,
+        "content": "준비 과정이 복잡할 줄 알았는데 정말 체계적으로 도와주셨어요."
+      },
+      {
+        "rating": 4.7,
+        "content": "예산 안에서 최고의 선택지를 제안해주셔서 만족했습니다."
+      }
+    ],
+    "base_price_krw": 2380000,
+    "service_scope": {
+      "included": [
+        "업체 추천",
+        "일정 관리",
+        "예산 관리",
+        "식순 컨설팅",
+        "당일 진행",
+        "드레스/메이크업 상담",
+        "혼주 가이드"
+      ],
+      "extra_cost_possible": false
+    },
+    "portfolio_images": [
+      "https://picsum.photos/seed/planner-32-1/1200/800",
+      "https://picsum.photos/seed/planner-32-2/1200/800",
+      "https://picsum.photos/seed/planner-32-3/1200/800",
+      "https://picsum.photos/seed/planner-32-4/1200/800"
+    ],
+    "service_features": [
+      "체크리스트 제공",
+      "계약서 검토 지원",
+      "야간 상담 가능",
+      "신랑신부 성향 분석 기반 추천"
+    ],
+    "activity_regions": ["부산"],
+    "cta": "포트폴리오 보기",
+    "created_at": "2026-03-25T01:13:16.734Z"
+  },
+  {
+    "name": "임가영",
+    "brand_name": "메종 하우스",
+    "title": "수석 플래너",
+    "profile_image_url": "https://picsum.photos/seed/planner-33/400/400",
+    "one_liner": "트렌디하고 세련된 웨딩 연출",
+    "specialties": ["야외웨딩", "채플웨딩", "셀프웨딩", "한옥웨딩"],
+    "style_keywords": ["내추럴", "감성", "유니크", "럭셔리"],
+    "career_years": 8,
+    "weddings_completed": 83,
+    "major_experiences": [
+      "5성급 호텔 웨딩 제휴 경험",
+      "브랜드 스냅 업체와 다수 협업",
+      "웨딩홀 비교 컨설팅 특화"
+    ],
+    "rating": 4.4,
+    "reviews": [
+      {
+        "rating": 5,
+        "content": "업체 추천 퀄리티가 좋고 강요가 없어서 편했어요."
+      },
+      {
+        "rating": 4.6,
+        "content": "예산 안에서 최고의 선택지를 제안해주셔서 만족했습니다."
+      }
+    ],
+    "base_price_krw": 2350000,
+    "service_scope": {
+      "included": [
+        "웨딩홀 비교",
+        "청첩장/답례품 가이드",
+        "혼주 가이드",
+        "식순 컨설팅",
+        "드레스/메이크업 상담"
+      ],
+      "extra_cost_possible": false
+    },
+    "portfolio_images": [
+      "https://picsum.photos/seed/planner-33-1/1200/800",
+      "https://picsum.photos/seed/planner-33-2/1200/800",
+      "https://picsum.photos/seed/planner-33-3/1200/800",
+      "https://picsum.photos/seed/planner-33-4/1200/800"
+    ],
+    "service_features": [
+      "야간 상담 가능",
+      "실시간 카톡 상담",
+      "체크리스트 제공",
+      "계약서 검토 지원"
+    ],
+    "activity_regions": ["경기", "해외", "부산"],
+    "cta": "상담 신청",
+    "created_at": "2026-03-25T01:13:16.734Z"
+  },
+  {
+    "name": "장예림",
+    "brand_name": "루미에르 하우스",
+    "title": "웨딩 플래너",
+    "profile_image_url": "https://picsum.photos/seed/planner-34/400/400",
+    "one_liner": "실속과 분위기를 모두 잡는 웨딩 플래닝",
+    "specialties": ["한옥웨딩", "스몰웨딩"],
+    "style_keywords": ["트렌디", "모던"],
+    "career_years": 4,
+    "weddings_completed": 141,
+    "major_experiences": ["웨딩 박람회 VIP 고객 전담", "브랜드 스냅 업체와 다수 협업"],
+    "rating": 4.9,
+    "reviews": [
+      {
+        "rating": 4.9,
+        "content": "예산 안에서 최고의 선택지를 제안해주셔서 만족했습니다."
+      },
+      {
+        "rating": 4.6,
+        "content": "스타일 제안이 탁월해서 원하는 분위기를 정확히 구현했어요."
+      }
+    ],
+    "base_price_krw": 2090000,
+    "service_scope": {
+      "included": ["스냅/영상 업체 연계", "웨딩홀 비교", "당일 진행", "혼주 가이드"],
+      "extra_cost_possible": false
+    },
+    "portfolio_images": [
+      "https://picsum.photos/seed/planner-34-1/1200/800",
+      "https://picsum.photos/seed/planner-34-2/1200/800",
+      "https://picsum.photos/seed/planner-34-3/1200/800",
+      "https://picsum.photos/seed/planner-34-4/1200/800"
+    ],
+    "service_features": [
+      "계약서 검토 지원",
+      "1:1 맞춤 컨설팅",
+      "비동행 진행 가능",
+      "실시간 카톡 상담",
+      "신랑신부 성향 분석 기반 추천"
+    ],
+    "activity_regions": ["대구", "인천", "전국"],
+    "cta": "견적 받기",
+    "created_at": "2026-03-25T01:13:16.734Z"
+  },
+  {
+    "name": "문서희",
+    "brand_name": "화이트 웨딩",
+    "title": "브라이덜 디렉터",
+    "profile_image_url": "https://picsum.photos/seed/planner-35/400/400",
+    "one_liner": "준비 과정까지 편안한 웨딩 메이트",
+    "specialties": ["셀프웨딩", "하우스웨딩"],
+    "style_keywords": ["유니크", "클래식", "세련된"],
+    "career_years": 7,
+    "weddings_completed": 201,
+    "major_experiences": ["웨딩 박람회 VIP 고객 전담", "야외 웨딩 전문 운영 경험"],
+    "rating": 4.3,
+    "reviews": [
+      {
+        "rating": 4.9,
+        "content": "업체 추천 퀄리티가 좋고 강요가 없어서 편했어요."
+      },
+      {
+        "rating": 4.7,
+        "content": "준비 과정이 복잡할 줄 알았는데 정말 체계적으로 도와주셨어요."
+      }
+    ],
+    "base_price_krw": 2070000,
+    "service_scope": {
+      "included": [
+        "웨딩홀 비교",
+        "업체 추천",
+        "일정 관리",
+        "스냅/영상 업체 연계",
+        "예산 관리",
+        "당일 진행",
+        "드레스/메이크업 상담"
+      ],
+      "extra_cost_possible": false
+    },
+    "portfolio_images": [
+      "https://picsum.photos/seed/planner-35-1/1200/800",
+      "https://picsum.photos/seed/planner-35-2/1200/800",
+      "https://picsum.photos/seed/planner-35-3/1200/800",
+      "https://picsum.photos/seed/planner-35-4/1200/800"
+    ],
+    "service_features": ["1:1 맞춤 컨설팅", "계약서 검토 지원", "비동행 진행 가능"],
+    "activity_regions": ["제주"],
+    "cta": "포트폴리오 보기",
+    "created_at": "2026-03-25T01:13:16.734Z"
+  },
+  {
+    "name": "권도연",
+    "brand_name": "라루체 디렉트",
+    "title": "브라이덜 디렉터",
+    "profile_image_url": "https://picsum.photos/seed/planner-36/400/400",
+    "one_liner": "감성 야외 웨딩 전문",
+    "specialties": ["럭셔리웨딩", "야외웨딩", "셀프웨딩"],
+    "style_keywords": ["로맨틱", "유니크", "내추럴"],
+    "career_years": 11,
+    "weddings_completed": 334,
+    "major_experiences": ["웨딩 박람회 VIP 고객 전담", "소규모 프라이빗 웨딩 다수 진행"],
+    "rating": 4.8,
+    "reviews": [
+      {
+        "rating": 4.9,
+        "content": "진짜 친구처럼 세심하게 챙겨주셔서 너무 든든했어요."
+      },
+      {
+        "rating": 4.9,
+        "content": "예산 안에서 최고의 선택지를 제안해주셔서 만족했습니다."
+      }
+    ],
+    "base_price_krw": 2970000,
+    "service_scope": {
+      "included": [
+        "웨딩홀 비교",
+        "당일 진행",
+        "드레스/메이크업 상담",
+        "업체 추천",
+        "일정 관리",
+        "식순 컨설팅",
+        "예산 관리"
+      ],
+      "extra_cost_possible": true
+    },
+    "portfolio_images": [
+      "https://picsum.photos/seed/planner-36-1/1200/800",
+      "https://picsum.photos/seed/planner-36-2/1200/800",
+      "https://picsum.photos/seed/planner-36-3/1200/800",
+      "https://picsum.photos/seed/planner-36-4/1200/800"
+    ],
+    "service_features": [
+      "계약서 검토 지원",
+      "1:1 맞춤 컨설팅",
+      "웨딩홀 동행 가능",
+      "비동행 진행 가능",
+      "예산 최적화 전문"
+    ],
+    "activity_regions": ["인천", "경기"],
+    "cta": "상담 신청",
+    "created_at": "2026-03-25T01:13:16.734Z"
+  },
+  {
+    "name": "송나리",
+    "brand_name": "엘르 웨딩",
+    "title": "웨딩 디렉터",
+    "profile_image_url": "https://picsum.photos/seed/planner-37/400/400",
+    "one_liner": "럭셔리 웨딩부터 미니멀 웨딩까지",
+    "specialties": ["한옥웨딩", "호텔웨딩", "가든웨딩", "스몰웨딩"],
+    "style_keywords": ["따뜻한", "로맨틱"],
+    "career_years": 7,
+    "weddings_completed": 334,
+    "major_experiences": ["5성급 호텔 웨딩 제휴 경험", "유명 드레스샵 협업 진행"],
+    "rating": 4.7,
+    "reviews": [
+      {
+        "rating": 4.5,
+        "content": "당일 진행이 매끄러워서 아무 걱정 없이 결혼식 했습니다."
+      },
+      {
+        "rating": 4.8,
+        "content": "업체 추천 퀄리티가 좋고 강요가 없어서 편했어요."
+      }
+    ],
+    "base_price_krw": 2660000,
+    "service_scope": {
+      "included": [
+        "식순 컨설팅",
+        "혼주 가이드",
+        "스냅/영상 업체 연계",
+        "당일 진행",
+        "일정 관리",
+        "예산 관리",
+        "드레스/메이크업 상담"
+      ],
+      "extra_cost_possible": true
+    },
+    "portfolio_images": [
+      "https://picsum.photos/seed/planner-37-1/1200/800",
+      "https://picsum.photos/seed/planner-37-2/1200/800",
+      "https://picsum.photos/seed/planner-37-3/1200/800",
+      "https://picsum.photos/seed/planner-37-4/1200/800"
+    ],
+    "service_features": ["야간 상담 가능", "1:1 맞춤 컨설팅", "비동행 진행 가능"],
+    "activity_regions": ["부산", "해외", "제주"],
+    "cta": "상담 신청",
+    "created_at": "2026-03-25T01:13:16.734Z"
+  },
+  {
+    "name": "백유진",
+    "brand_name": "모먼트 모먼트",
+    "title": "웨딩 디렉터",
+    "profile_image_url": "https://picsum.photos/seed/planner-38/400/400",
+    "one_liner": "준비 과정까지 편안한 웨딩 메이트",
+    "specialties": ["셀프웨딩", "채플웨딩", "스몰웨딩", "가든웨딩"],
+    "style_keywords": ["유니크", "트렌디", "따뜻한", "세련된"],
+    "career_years": 4,
+    "weddings_completed": 204,
+    "major_experiences": ["5성급 호텔 웨딩 제휴 경험", "브랜드 스냅 업체와 다수 협업"],
+    "rating": 4.4,
+    "reviews": [
+      {
+        "rating": 4.5,
+        "content": "하나하나 취향을 반영해주셔서 만족도가 높았습니다."
+      },
+      {
+        "rating": 4.7,
+        "content": "진짜 친구처럼 세심하게 챙겨주셔서 너무 든든했어요."
+      }
+    ],
+    "base_price_krw": 2130000,
+    "service_scope": {
+      "included": [
+        "당일 진행",
+        "스냅/영상 업체 연계",
+        "예산 관리",
+        "드레스/메이크업 상담",
+        "식순 컨설팅"
+      ],
+      "extra_cost_possible": true
+    },
+    "portfolio_images": [
+      "https://picsum.photos/seed/planner-38-1/1200/800",
+      "https://picsum.photos/seed/planner-38-2/1200/800",
+      "https://picsum.photos/seed/planner-38-3/1200/800",
+      "https://picsum.photos/seed/planner-38-4/1200/800"
+    ],
+    "service_features": [
+      "웨딩홀 동행 가능",
+      "계약서 검토 지원",
+      "실시간 카톡 상담",
+      "신랑신부 성향 분석 기반 추천"
+    ],
+    "activity_regions": ["해외", "부산"],
+    "cta": "상담 신청",
+    "created_at": "2026-03-25T01:13:16.734Z"
+  },
+  {
+    "name": "전하린",
+    "brand_name": "벨라 브라이드",
+    "title": "웨딩 플래너",
+    "profile_image_url": "https://picsum.photos/seed/planner-39/400/400",
+    "one_liner": "감성 야외 웨딩 전문",
+    "specialties": ["가든웨딩", "채플웨딩", "하우스웨딩"],
+    "style_keywords": ["클래식", "유니크", "세련된"],
+    "career_years": 8,
+    "weddings_completed": 170,
+    "major_experiences": ["유명 드레스샵 협업 진행", "소규모 프라이빗 웨딩 다수 진행"],
+    "rating": 4.3,
+    "reviews": [
+      {
+        "rating": 4.9,
+        "content": "진짜 친구처럼 세심하게 챙겨주셔서 너무 든든했어요."
+      },
+      {
+        "rating": 4.8,
+        "content": "예산 안에서 최고의 선택지를 제안해주셔서 만족했습니다."
+      }
+    ],
+    "base_price_krw": 2900000,
+    "service_scope": {
+      "included": ["당일 진행", "식순 컨설팅", "스냅/영상 업체 연계", "혼주 가이드"],
+      "extra_cost_possible": true
+    },
+    "portfolio_images": [
+      "https://picsum.photos/seed/planner-39-1/1200/800",
+      "https://picsum.photos/seed/planner-39-2/1200/800",
+      "https://picsum.photos/seed/planner-39-3/1200/800",
+      "https://picsum.photos/seed/planner-39-4/1200/800"
+    ],
+    "service_features": ["신랑신부 성향 분석 기반 추천", "실시간 카톡 상담", "1:1 맞춤 컨설팅"],
+    "activity_regions": ["제주"],
+    "cta": "포트폴리오 보기",
+    "created_at": "2026-03-25T01:13:16.734Z"
+  },
+  {
+    "name": "류채은",
+    "brand_name": "모먼트 브라이드",
+    "title": "웨딩 플래너",
+    "profile_image_url": "https://picsum.photos/seed/planner-40/400/400",
+    "one_liner": "준비 과정까지 편안한 웨딩 메이트",
+    "specialties": ["럭셔리웨딩", "스몰웨딩"],
+    "style_keywords": ["감성", "트렌디", "로맨틱"],
+    "career_years": 7,
+    "weddings_completed": 109,
+    "major_experiences": ["5성급 호텔 웨딩 제휴 경험", "유명 드레스샵 협업 진행"],
+    "rating": 4.6,
+    "reviews": [
+      {
+        "rating": 4.9,
+        "content": "진짜 친구처럼 세심하게 챙겨주셔서 너무 든든했어요."
+      },
+      {
+        "rating": 4.6,
+        "content": "예산 안에서 최고의 선택지를 제안해주셔서 만족했습니다."
+      }
+    ],
+    "base_price_krw": 2950000,
+    "service_scope": {
+      "included": [
+        "당일 진행",
+        "업체 추천",
+        "식순 컨설팅",
+        "웨딩홀 비교",
+        "드레스/메이크업 상담",
+        "일정 관리",
+        "청첩장/답례품 가이드"
+      ],
+      "extra_cost_possible": true
+    },
+    "portfolio_images": [
+      "https://picsum.photos/seed/planner-40-1/1200/800",
+      "https://picsum.photos/seed/planner-40-2/1200/800",
+      "https://picsum.photos/seed/planner-40-3/1200/800",
+      "https://picsum.photos/seed/planner-40-4/1200/800"
+    ],
+    "service_features": [
+      "계약서 검토 지원",
+      "실시간 카톡 상담",
+      "신랑신부 성향 분석 기반 추천",
+      "1:1 맞춤 컨설팅"
+    ],
+    "activity_regions": ["광주"],
+    "cta": "상담 신청",
+    "created_at": "2026-03-25T01:13:16.734Z"
+  },
+  {
+    "name": "김지원",
+    "brand_name": "아르떼 디렉트",
+    "title": "웨딩 디렉터",
+    "profile_image_url": "https://picsum.photos/seed/planner-41/400/400",
+    "one_liner": "예산 맞춤형 웨딩 플래닝",
+    "specialties": ["하우스웨딩", "야외웨딩"],
+    "style_keywords": ["미니멀", "클래식"],
+    "career_years": 10,
+    "weddings_completed": 70,
+    "major_experiences": ["웨딩홀 비교 컨설팅 특화", "신혼여행 연계 상담 경험"],
+    "rating": 4.7,
+    "reviews": [
+      {
+        "rating": 5,
+        "content": "업체 추천 퀄리티가 좋고 강요가 없어서 편했어요."
+      },
+      {
+        "rating": 4.7,
+        "content": "하나하나 취향을 반영해주셔서 만족도가 높았습니다."
+      }
+    ],
+    "base_price_krw": 1940000,
+    "service_scope": {
+      "included": ["일정 관리", "스냅/영상 업체 연계", "당일 진행", "예산 관리"],
+      "extra_cost_possible": true
+    },
+    "portfolio_images": [
+      "https://picsum.photos/seed/planner-41-1/1200/800",
+      "https://picsum.photos/seed/planner-41-2/1200/800",
+      "https://picsum.photos/seed/planner-41-3/1200/800",
+      "https://picsum.photos/seed/planner-41-4/1200/800"
+    ],
+    "service_features": ["1:1 맞춤 컨설팅", "비동행 진행 가능", "신랑신부 성향 분석 기반 추천"],
+    "activity_regions": ["광주", "제주", "인천"],
+    "cta": "상담 신청",
+    "created_at": "2026-03-25T01:13:16.734Z"
+  },
+  {
+    "name": "이예진",
+    "brand_name": "블룸 컨설팅",
+    "title": "웨딩 컨설턴트",
+    "profile_image_url": "https://picsum.photos/seed/planner-42/400/400",
+    "one_liner": "호텔 웨딩 디테일에 강한 플래너",
+    "specialties": ["가든웨딩", "하우스웨딩", "야외웨딩", "한옥웨딩"],
+    "style_keywords": ["트렌디", "감성", "따뜻한", "모던"],
+    "career_years": 12,
+    "weddings_completed": 44,
+    "major_experiences": [
+      "신혼여행 연계 상담 경험",
+      "유명 드레스샵 협업 진행",
+      "5성급 호텔 웨딩 제휴 경험"
+    ],
+    "rating": 4.6,
+    "reviews": [
+      {
+        "rating": 4.7,
+        "content": "스타일 제안이 탁월해서 원하는 분위기를 정확히 구현했어요."
+      },
+      {
+        "rating": 4.7,
+        "content": "하나하나 취향을 반영해주셔서 만족도가 높았습니다."
+      }
+    ],
+    "base_price_krw": 1050000,
+    "service_scope": {
+      "included": [
+        "당일 진행",
+        "청첩장/답례품 가이드",
+        "혼주 가이드",
+        "웨딩홀 비교",
+        "예산 관리",
+        "식순 컨설팅",
+        "스냅/영상 업체 연계"
+      ],
+      "extra_cost_possible": true
+    },
+    "portfolio_images": [
+      "https://picsum.photos/seed/planner-42-1/1200/800",
+      "https://picsum.photos/seed/planner-42-2/1200/800",
+      "https://picsum.photos/seed/planner-42-3/1200/800",
+      "https://picsum.photos/seed/planner-42-4/1200/800"
+    ],
+    "service_features": [
+      "실시간 카톡 상담",
+      "웨딩홀 동행 가능",
+      "신랑신부 성향 분석 기반 추천",
+      "당일 긴급 대응",
+      "예산 최적화 전문"
+    ],
+    "activity_regions": ["서울", "경기", "대전"],
+    "cta": "상담 신청",
+    "created_at": "2026-03-25T01:13:16.734Z"
+  },
+  {
+    "name": "박서윤",
+    "brand_name": "디어 브라이드",
+    "title": "브라이덜 디렉터",
+    "profile_image_url": "https://picsum.photos/seed/planner-43/400/400",
+    "one_liner": "하우스웨딩 감성 연출 전문",
+    "specialties": ["스몰웨딩", "호텔웨딩", "야외웨딩", "한옥웨딩"],
+    "style_keywords": ["미니멀", "트렌디"],
+    "career_years": 6,
+    "weddings_completed": 348,
+    "major_experiences": [
+      "유명 드레스샵 협업 진행",
+      "브랜드 스냅 업체와 다수 협업",
+      "웨딩홀 비교 컨설팅 특화"
+    ],
+    "rating": 4.5,
+    "reviews": [
+      {
+        "rating": 4.8,
+        "content": "준비 과정이 복잡할 줄 알았는데 정말 체계적으로 도와주셨어요."
+      },
+      {
+        "rating": 5,
+        "content": "진짜 친구처럼 세심하게 챙겨주셔서 너무 든든했어요."
+      }
+    ],
+    "base_price_krw": 990000,
+    "service_scope": {
+      "included": [
+        "당일 진행",
+        "업체 추천",
+        "웨딩홀 비교",
+        "혼주 가이드",
+        "예산 관리",
+        "드레스/메이크업 상담"
+      ],
+      "extra_cost_possible": true
+    },
+    "portfolio_images": [
+      "https://picsum.photos/seed/planner-43-1/1200/800",
+      "https://picsum.photos/seed/planner-43-2/1200/800",
+      "https://picsum.photos/seed/planner-43-3/1200/800",
+      "https://picsum.photos/seed/planner-43-4/1200/800"
+    ],
+    "service_features": [
+      "야간 상담 가능",
+      "계약서 검토 지원",
+      "예산 최적화 전문",
+      "신랑신부 성향 분석 기반 추천"
+    ],
+    "activity_regions": ["전국", "서울", "해외"],
+    "cta": "포트폴리오 보기",
+    "created_at": "2026-03-25T01:13:16.734Z"
+  },
+  {
+    "name": "최가은",
+    "brand_name": "화이트 컨설팅",
+    "title": "웨딩 디렉터",
+    "profile_image_url": "https://picsum.photos/seed/planner-44/400/400",
+    "one_liner": "감성 야외 웨딩 전문",
+    "specialties": ["리마인드웨딩", "가든웨딩"],
+    "style_keywords": ["화려한", "럭셔리", "감성", "유니크"],
+    "career_years": 7,
+    "weddings_completed": 210,
+    "major_experiences": ["웨딩홀 비교 컨설팅 특화", "5성급 호텔 웨딩 제휴 경험"],
+    "rating": 4.4,
+    "reviews": [
+      {
+        "rating": 4.8,
+        "content": "하나하나 취향을 반영해주셔서 만족도가 높았습니다."
+      },
+      {
+        "rating": 5,
+        "content": "응답이 빨라서 준비 내내 불안함이 없었어요."
+      }
+    ],
+    "base_price_krw": 2780000,
+    "service_scope": {
+      "included": [
+        "업체 추천",
+        "드레스/메이크업 상담",
+        "웨딩홀 비교",
+        "청첩장/답례품 가이드",
+        "당일 진행"
+      ],
+      "extra_cost_possible": false
+    },
+    "portfolio_images": [
+      "https://picsum.photos/seed/planner-44-1/1200/800",
+      "https://picsum.photos/seed/planner-44-2/1200/800",
+      "https://picsum.photos/seed/planner-44-3/1200/800",
+      "https://picsum.photos/seed/planner-44-4/1200/800"
+    ],
+    "service_features": [
+      "실시간 카톡 상담",
+      "1:1 맞춤 컨설팅",
+      "당일 긴급 대응",
+      "야간 상담 가능",
+      "웨딩홀 동행 가능"
+    ],
+    "activity_regions": ["제주", "서울"],
+    "cta": "상담 신청",
+    "created_at": "2026-03-25T01:13:16.734Z"
+  },
+  {
+    "name": "정다인",
+    "brand_name": "로맨틱 스튜디오",
+    "title": "웨딩 디렉터",
+    "profile_image_url": "https://picsum.photos/seed/planner-45/400/400",
+    "one_liner": "하우스웨딩 감성 연출 전문",
+    "specialties": ["럭셔리웨딩", "스몰웨딩", "하우스웨딩"],
+    "style_keywords": ["모던", "유니크", "세련된", "클래식"],
+    "career_years": 4,
+    "weddings_completed": 234,
+    "major_experiences": [
+      "예산 최적화 플래닝 노하우 보유",
+      "소규모 프라이빗 웨딩 다수 진행",
+      "하우스웨딩 기획 디렉팅 경험"
+    ],
+    "rating": 4.5,
+    "reviews": [
+      {
+        "rating": 4.7,
+        "content": "예산 안에서 최고의 선택지를 제안해주셔서 만족했습니다."
+      },
+      {
+        "rating": 4.6,
+        "content": "스타일 제안이 탁월해서 원하는 분위기를 정확히 구현했어요."
+      }
+    ],
+    "base_price_krw": 1280000,
+    "service_scope": {
+      "included": [
+        "웨딩홀 비교",
+        "드레스/메이크업 상담",
+        "혼주 가이드",
+        "당일 진행",
+        "식순 컨설팅",
+        "청첩장/답례품 가이드"
+      ],
+      "extra_cost_possible": true
+    },
+    "portfolio_images": [
+      "https://picsum.photos/seed/planner-45-1/1200/800",
+      "https://picsum.photos/seed/planner-45-2/1200/800",
+      "https://picsum.photos/seed/planner-45-3/1200/800",
+      "https://picsum.photos/seed/planner-45-4/1200/800"
+    ],
+    "service_features": ["당일 긴급 대응", "1:1 맞춤 컨설팅", "신랑신부 성향 분석 기반 추천"],
+    "activity_regions": ["인천"],
+    "cta": "포트폴리오 보기",
+    "created_at": "2026-03-25T01:13:16.734Z"
+  },
+  {
+    "name": "한예림",
+    "brand_name": "블룸 모먼트",
+    "title": "웨딩 플래너",
+    "profile_image_url": "https://picsum.photos/seed/planner-46/400/400",
+    "one_liner": "트렌디하고 세련된 웨딩 연출",
+    "specialties": ["채플웨딩", "스몰웨딩"],
+    "style_keywords": ["럭셔리", "감성", "내추럴", "모던"],
+    "career_years": 4,
+    "weddings_completed": 127,
+    "major_experiences": ["브랜드 스냅 업체와 다수 협업", "웨딩 박람회 VIP 고객 전담"],
+    "rating": 4.4,
+    "reviews": [
+      {
+        "rating": 4.8,
+        "content": "스타일 제안이 탁월해서 원하는 분위기를 정확히 구현했어요."
+      },
+      {
+        "rating": 4.9,
+        "content": "준비 과정이 복잡할 줄 알았는데 정말 체계적으로 도와주셨어요."
+      }
+    ],
+    "base_price_krw": 2510000,
+    "service_scope": {
+      "included": [
+        "청첩장/답례품 가이드",
+        "식순 컨설팅",
+        "스냅/영상 업체 연계",
+        "일정 관리",
+        "예산 관리",
+        "웨딩홀 비교"
+      ],
+      "extra_cost_possible": true
+    },
+    "portfolio_images": [
+      "https://picsum.photos/seed/planner-46-1/1200/800",
+      "https://picsum.photos/seed/planner-46-2/1200/800",
+      "https://picsum.photos/seed/planner-46-3/1200/800",
+      "https://picsum.photos/seed/planner-46-4/1200/800"
+    ],
+    "service_features": ["당일 긴급 대응", "계약서 검토 지원", "신랑신부 성향 분석 기반 추천"],
+    "activity_regions": ["제주", "해외", "인천"],
+    "cta": "카톡 문의",
+    "created_at": "2026-03-25T01:13:16.734Z"
+  },
+  {
+    "name": "오시은",
+    "brand_name": "디어 컴퍼니",
+    "title": "웨딩 컨설턴트",
+    "profile_image_url": "https://picsum.photos/seed/planner-47/400/400",
+    "one_liner": "실속과 분위기를 모두 잡는 웨딩 플래닝",
+    "specialties": ["스몰웨딩", "호텔웨딩", "셀프웨딩"],
+    "style_keywords": ["내추럴", "미니멀"],
+    "career_years": 3,
+    "weddings_completed": 173,
+    "major_experiences": ["소규모 프라이빗 웨딩 다수 진행", "유명 드레스샵 협업 진행"],
+    "rating": 4.6,
+    "reviews": [
+      {
+        "rating": 4.8,
+        "content": "준비 과정이 복잡할 줄 알았는데 정말 체계적으로 도와주셨어요."
+      },
+      {
+        "rating": 4.8,
+        "content": "실무 경험이 많아서 판단이 빠르고 정확했습니다."
+      }
+    ],
+    "base_price_krw": 1290000,
+    "service_scope": {
+      "included": ["식순 컨설팅", "웨딩홀 비교", "청첩장/답례품 가이드", "드레스/메이크업 상담"],
+      "extra_cost_possible": true
+    },
+    "portfolio_images": [
+      "https://picsum.photos/seed/planner-47-1/1200/800",
+      "https://picsum.photos/seed/planner-47-2/1200/800",
+      "https://picsum.photos/seed/planner-47-3/1200/800",
+      "https://picsum.photos/seed/planner-47-4/1200/800"
+    ],
+    "service_features": ["계약서 검토 지원", "신랑신부 성향 분석 기반 추천", "야간 상담 가능"],
+    "activity_regions": ["부산", "전국", "대전"],
+    "cta": "1:1 상담 예약",
+    "created_at": "2026-03-25T01:13:16.734Z"
+  },
+  {
+    "name": "서나연",
+    "brand_name": "오브 디렉트",
+    "title": "웨딩 플래너",
+    "profile_image_url": "https://picsum.photos/seed/planner-48/400/400",
+    "one_liner": "트렌디하고 세련된 웨딩 연출",
+    "specialties": ["럭셔리웨딩", "하우스웨딩", "채플웨딩", "한옥웨딩"],
+    "style_keywords": ["감성", "트렌디", "럭셔리", "유니크"],
+    "career_years": 8,
+    "weddings_completed": 93,
+    "major_experiences": [
+      "5성급 호텔 웨딩 제휴 경험",
+      "소규모 프라이빗 웨딩 다수 진행",
+      "브랜드 스냅 업체와 다수 협업"
+    ],
+    "rating": 4.3,
+    "reviews": [
+      {
+        "rating": 4.9,
+        "content": "진짜 친구처럼 세심하게 챙겨주셔서 너무 든든했어요."
+      },
+      {
+        "rating": 4.8,
+        "content": "당일 진행이 매끄러워서 아무 걱정 없이 결혼식 했습니다."
+      }
+    ],
+    "base_price_krw": 2700000,
+    "service_scope": {
+      "included": [
+        "청첩장/답례품 가이드",
+        "스냅/영상 업체 연계",
+        "일정 관리",
+        "식순 컨설팅",
+        "당일 진행",
+        "예산 관리"
+      ],
+      "extra_cost_possible": false
+    },
+    "portfolio_images": [
+      "https://picsum.photos/seed/planner-48-1/1200/800",
+      "https://picsum.photos/seed/planner-48-2/1200/800",
+      "https://picsum.photos/seed/planner-48-3/1200/800",
+      "https://picsum.photos/seed/planner-48-4/1200/800"
+    ],
+    "service_features": [
+      "1:1 맞춤 컨설팅",
+      "비동행 진행 가능",
+      "실시간 카톡 상담",
+      "계약서 검토 지원",
+      "체크리스트 제공"
+    ],
+    "activity_regions": ["해외", "서울", "부산"],
+    "cta": "견적 받기",
+    "created_at": "2026-03-25T01:13:16.734Z"
+  },
+  {
+    "name": "윤채아",
+    "brand_name": "세레나 모먼트",
+    "title": "브라이덜 디렉터",
+    "profile_image_url": "https://picsum.photos/seed/planner-49/400/400",
+    "one_liner": "호텔 웨딩 디테일에 강한 플래너",
+    "specialties": ["채플웨딩", "스몰웨딩"],
+    "style_keywords": ["세련된", "미니멀", "화려한", "따뜻한"],
+    "career_years": 2,
+    "weddings_completed": 247,
+    "major_experiences": [
+      "야외 웨딩 전문 운영 경험",
+      "웨딩홀 비교 컨설팅 특화",
+      "웨딩 박람회 VIP 고객 전담"
+    ],
+    "rating": 4.4,
+    "reviews": [
+      {
+        "rating": 4.8,
+        "content": "진짜 친구처럼 세심하게 챙겨주셔서 너무 든든했어요."
+      },
+      {
+        "rating": 4.9,
+        "content": "응답이 빨라서 준비 내내 불안함이 없었어요."
+      }
+    ],
+    "base_price_krw": 2930000,
+    "service_scope": {
+      "included": ["당일 진행", "청첩장/답례품 가이드", "혼주 가이드", "예산 관리"],
+      "extra_cost_possible": true
+    },
+    "portfolio_images": [
+      "https://picsum.photos/seed/planner-49-1/1200/800",
+      "https://picsum.photos/seed/planner-49-2/1200/800",
+      "https://picsum.photos/seed/planner-49-3/1200/800",
+      "https://picsum.photos/seed/planner-49-4/1200/800"
+    ],
+    "service_features": ["1:1 맞춤 컨설팅", "비동행 진행 가능", "예산 최적화 전문"],
+    "activity_regions": ["제주"],
+    "cta": "상담 신청",
+    "created_at": "2026-03-25T01:13:16.734Z"
+  },
+  {
+    "name": "신유빈",
+    "brand_name": "엘르 하우스",
+    "title": "웨딩 컨설턴트",
+    "profile_image_url": "https://picsum.photos/seed/planner-50/400/400",
+    "one_liner": "럭셔리 웨딩부터 미니멀 웨딩까지",
+    "specialties": ["채플웨딩", "야외웨딩", "하우스웨딩"],
+    "style_keywords": ["내추럴", "미니멀", "세련된"],
+    "career_years": 4,
+    "weddings_completed": 271,
+    "major_experiences": [
+      "브랜드 스냅 업체와 다수 협업",
+      "웨딩홀 비교 컨설팅 특화",
+      "5성급 호텔 웨딩 제휴 경험"
+    ],
+    "rating": 4.4,
+    "reviews": [
+      {
+        "rating": 4.6,
+        "content": "응답이 빨라서 준비 내내 불안함이 없었어요."
+      },
+      {
+        "rating": 4.5,
+        "content": "스타일 제안이 탁월해서 원하는 분위기를 정확히 구현했어요."
+      }
+    ],
+    "base_price_krw": 1860000,
+    "service_scope": {
+      "included": [
+        "업체 추천",
+        "청첩장/답례품 가이드",
+        "스냅/영상 업체 연계",
+        "웨딩홀 비교",
+        "혼주 가이드",
+        "일정 관리"
+      ],
+      "extra_cost_possible": true
+    },
+    "portfolio_images": [
+      "https://picsum.photos/seed/planner-50-1/1200/800",
+      "https://picsum.photos/seed/planner-50-2/1200/800",
+      "https://picsum.photos/seed/planner-50-3/1200/800",
+      "https://picsum.photos/seed/planner-50-4/1200/800"
+    ],
+    "service_features": [
+      "실시간 카톡 상담",
+      "신랑신부 성향 분석 기반 추천",
+      "예산 최적화 전문",
+      "당일 긴급 대응"
+    ],
+    "activity_regions": ["경기", "대전", "제주"],
+    "cta": "카톡 문의",
+    "created_at": "2026-03-25T01:13:16.734Z"
+  }
+]

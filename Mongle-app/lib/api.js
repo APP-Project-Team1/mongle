@@ -1,6 +1,21 @@
 import { supabase } from './supabase'
+import { Platform } from 'react-native';
+import Constants from 'expo-constants';
 
-const baseURL = process.env.EXPO_PUBLIC_API_BASE_URL || 'http://127.0.0.1:8001'
+// 개발 서버의 호스트 IP를 자동으로 추출
+function getBaseUrl() {
+  if (process.env.EXPO_PUBLIC_API_BASE_URL) {
+    return process.env.EXPO_PUBLIC_API_BASE_URL;
+  }
+  if (Platform.OS === 'android') {
+    const host = Constants.expoConfig?.hostUri?.split(':').shift();
+    return host ? `http://${host}:8001` : 'http://10.0.2.2:8001';
+  }
+  const host = Constants.expoConfig?.hostUri?.split(':').shift();
+  return host ? `http://${host}:8001` : 'http://127.0.0.1:8001';
+}
+
+const baseURL = getBaseUrl();
 
 const buildHeaders = async (extraHeaders = {}) => {
   const headers = {
@@ -128,3 +143,8 @@ export const authApi = {
   getCurrentUser: () => api.get('/auth/me'),
   resetPassword: (data) => api.post('/auth/reset-password', data),
 }
+
+export const BASE_URL = baseURL;
+export const API_ENDPOINTS = {
+  chat: `${BASE_URL}/api/chat`,
+};

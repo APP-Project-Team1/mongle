@@ -6,6 +6,8 @@ import { Calendar } from 'react-native-calendars';
 import { useProjectStore } from '../../stores';
 import { useTimelines, useBudget, useBudgetItems, useCreateTimeline, useUpdateTimeline, useDeleteTimeline } from '../../hooks';
 import ProjectSelector from './components/ProjectSelector';
+import LoadingSpinner from '../../components/common/LoadingSpinner';
+import ErrorView from '../../components/common/ErrorView';
 
 const { width } = Dimensions.get('window');
 
@@ -135,10 +137,7 @@ export default function TimelineScreen() {
   if (isLoading) {
     return (
       <SafeAreaView style={styles.safeArea}>
-        <View style={[styles.safeArea, { justifyContent: 'center', alignItems: 'center' }]}>
-          <ActivityIndicator size="large" color="#C9716A" />
-          <Text style={{ marginTop: 10 }}>타임라인을 로딩 중입니다...</Text>
-        </View>
+        <LoadingSpinner message="타임라인을 로딩 중입니다..." />
       </SafeAreaView>
     );
   }
@@ -146,9 +145,10 @@ export default function TimelineScreen() {
   if (error) {
     return (
       <SafeAreaView style={styles.safeArea}>
-        <View style={[styles.safeArea, { justifyContent: 'center', alignItems: 'center', padding: 16 }]}>
-          <Text style={{ color: '#C9716A', fontSize: 16 }}>타임라인 불러오기 실패: {error.message}</Text>
-        </View>
+        <ErrorView 
+          message="타임라인을 불러올 수 없습니다" 
+          subMessage={error?.message} 
+        />
       </SafeAreaView>
     );
   }

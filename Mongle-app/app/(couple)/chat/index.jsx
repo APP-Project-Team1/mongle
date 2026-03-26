@@ -15,112 +15,47 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-
-// Dummy user ID to mock authentication
-const CURRENT_USER_ID = 'me';
+import { useChats, useCreateChat, useProjectStore, useCurrentUser } from '../../../hooks';
+import LoadingSpinner from '../../../components/common/LoadingSpinner';
+import ErrorView from '../../../components/common/ErrorView';
 
 export default function ChatScreen() {
-  const [rooms, setRooms] = useState([
-    {
-      id: '1',
-      title: 'Our Wedding Plan',
-      participants: ['me', 'partner'],
-      isMuted: false,
-      lastMessage: 'Did you check the venue?',
-      createdAt: new Date().toISOString(),
-    },
-  ]);
+  const projectId = useProjectStore((state) => state.currentProjectId) || '1';
+  const { data: currentUser } = useCurrentUser();
+  const currentUserId = currentUser?.id || 'me';
+
+  const { data: rooms = [], isLoading, error, refetch } = useChats(projectId);
+  const createChatMutation = useCreateChat();
 
   const [isCreateModalVisible, setCreateModalVisible] = useState(false);
   const [newRoomTitle, setNewRoomTitle] = useState('');
-  const [inviteeId, setInviteeId] = useState('');
 
-  // 제목 변경 모달 상태 관리
-  const [isRenameModalVisible, setRenameModalVisible] = useState(false);
-  const [renameRoomId, setRenameRoomId] = useState('');
-  const [renameRoomTitle, setRenameRoomTitle] = useState('');
-
-  // 1. 초대받은 사람만 접근 가능: 나와 관련된 방만 필터링
-  const visibleRooms = rooms.filter(room => room.participants.includes(CURRENT_USER_ID));
-
-  const handleCreateRoom = () => {
+  const handleCreateRoom = async () => {
     if (!newRoomTitle.trim()) {
       Alert.alert('알림', '채팅방 제목을 입력해주세요.');
       return;
     }
 
-    // Create new room structure
-    const newRoom = {
-      id: Date.now().toString(),
-      title: newRoomTitle,
-      participants: [CURRENT_USER_ID],
-      isMuted: false,
-      lastMessage: '채팅방이 생성되었습니다.',
-      createdAt: new Date().toISOString(),
-    };
-
-    if (inviteeId.trim()) {
-      newRoom.participants.push(inviteeId.trim());
+    try {
+      await createChatMutation.mutateAsync({
+        project_id: projectId,
+        title: newRoomTitle.trim()
+      });
+      setCreateModalVisible(false);
+      setNewRoomTitle('');
+    } catch (err) {
+      Alert.alert('오류', '채팅방 생성에 실패했습니다.');
     }
-
-    setRooms(prev => [newRoom, ...prev]);
-    setCreateModalVisible(false);
-    setNewRoomTitle('');
-    setInviteeId('');
   };
 
   const handleLongPress = (room) => {
     Alert.alert(
       '채팅방 설정',
-      `'${room.title}' 방의 설정을 변경합니다.`,
+      `'${room.title || '새 채팅'}' 방의 설정을 변경하시겠습니까? (API 미구현)`,
       [
-        {
-          text: '제목 변경',
-          onPress: () => handleChangeTitle(room.id, room.title),
-        },
-        {
-          text: room.isMuted ? '알림 켜기' : '알림 음소거',
-          onPress: () => handleToggleMute(room.id),
-        },
-        {
-          text: '채팅방 나가기',
-          style: 'destructive',
-          onPress: () => handleLeaveRoom(room.id),
-        },
-        {
-          text: '취소',
-          style: 'cancel',
-        },
+        { text: '취소', style: 'cancel' }
       ]
     );
-  };
-
-  const handleChangeTitle = (roomId, currentTitle) => {
-    setRenameRoomId(roomId);
-    setRenameRoomTitle(currentTitle);
-    setRenameModalVisible(true);
-  };
-
-  const handleToggleMute = (roomId) => {
-    setRooms(prev => prev.map(r => r.id === roomId ? { ...r, isMuted: !r.isMuted } : r));
-  };
-
-  const handleLeaveRoom = (roomId) => {
-    Alert.alert('채팅방 나가기', '정말로 이 채팅방에서 나가시겠습니까?', [
-      { text: '취소', style: 'cancel' },
-      {
-        text: '나가기',
-        style: 'destructive',
-        onPress: () => {
-          setRooms(prev => prev.map(r => {
-            if (r.id === roomId) {
-              return { ...r, participants: r.participants.filter(p => p !== CURRENT_USER_ID) };
-            }
-            return r;
-          }));
-        }
-      }
-    ]);
   };
 
   const renderRoom = ({ item }) => (
@@ -135,13 +70,28 @@ export default function ChatScreen() {
       </View>
       <View style={styles.roomInfo}>
         <View style={styles.roomHeader}>
-          <Text style={styles.roomTitle} numberOfLines={1}>{item.title}</Text>
-          {item.isMuted && <Ionicons name="volume-mute" size={16} color="#c9a98e" style={{ marginLeft: 4 }} />}
+          <Text style={styles.roomTitle} numberOfLines={1}>{item.title || '새 채팅'}</Text>
         </View>
-        <Text style={styles.roomMessage} numberOfLines={1}>{item.lastMessage}</Text>
+        <Text style={styles.roomMessage} numberOfLines={1}>{(item.last_message || '메시지가 없습니다.')}</Text>
       </View>
     </TouchableOpacity>
   );
+
+  if (isLoading) {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <LoadingSpinner message="채팅방 목록을 불러오는 중입니다..." />
+      </SafeAreaView>
+    );
+  }
+
+  if (error) {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <ErrorView message="채팅방을 불러올 수 없습니다" subMessage={error.message} onRetry={refetch} />
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -151,15 +101,15 @@ export default function ChatScreen() {
         <Text style={styles.headerTitle}>채팅</Text>
       </View>
 
-      {visibleRooms.length === 0 ? (
+      {rooms.length === 0 ? (
         <View style={styles.emptyContainer}>
           <Ionicons name="chatbubble-ellipses-outline" size={48} color="#e8e0dc" />
           <Text style={styles.emptyText}>참여 중인 채팅방이 없습니다.</Text>
         </View>
       ) : (
         <FlatList
-          data={visibleRooms}
-          keyExtractor={(item) => item.id}
+          data={rooms}
+          keyExtractor={(item) => item.id?.toString() || Math.random().toString()}
           renderItem={renderRoom}
           contentContainerStyle={styles.listContainer}
         />
@@ -174,7 +124,7 @@ export default function ChatScreen() {
         <Ionicons name="add" size={32} color="#fff" />
       </TouchableOpacity>
 
-      {/* 방 생성 및 초대 모달 */}
+      {/* 방 생성 모달 */}
       <Modal
         visible={isCreateModalVisible}
         transparent={true}
@@ -199,25 +149,12 @@ export default function ChatScreen() {
               />
             </View>
 
-            <View style={styles.inputWrap}>
-              <Ionicons name="person-add-outline" size={16} color="#8a7870" style={styles.inputIcon} />
-              <TextInput
-                style={styles.input}
-                placeholder="초대할 사용자 ID (선택)"
-                placeholderTextColor="#8a7870"
-                value={inviteeId}
-                onChangeText={setInviteeId}
-                autoCapitalize="none"
-              />
-            </View>
-
             <View style={styles.modalActions}>
               <TouchableOpacity
                 style={[styles.modalBtn, styles.modalCancelBtn]}
                 onPress={() => {
                   setCreateModalVisible(false);
                   setNewRoomTitle('');
-                  setInviteeId('');
                 }}
               >
                 <Text style={styles.modalCancelBtnText}>취소</Text>
@@ -225,63 +162,11 @@ export default function ChatScreen() {
               <TouchableOpacity
                 style={[styles.modalBtn, styles.modalCreateBtn]}
                 onPress={handleCreateRoom}
+                disabled={createChatMutation.isPending}
               >
-                <Text style={styles.modalCreateBtnText}>만들기</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </KeyboardAvoidingView>
-      </Modal>
-
-      {/* 방 제목 변경 모달 */}
-      <Modal
-        visible={isRenameModalVisible}
-        transparent={true}
-        animationType="fade"
-        onRequestClose={() => setRenameModalVisible(false)}
-      >
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-          style={styles.modalOverlay}
-        >
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>채팅방 제목 변경</Text>
-
-            <View style={styles.inputWrap}>
-              <Ionicons name="pencil-outline" size={16} color="#8a7870" style={styles.inputIcon} />
-              <TextInput
-                style={styles.input}
-                placeholder="새로운 채팅방 제목"
-                placeholderTextColor="#8a7870"
-                value={renameRoomTitle}
-                onChangeText={setRenameRoomTitle}
-                autoFocus={true}
-              />
-            </View>
-
-            <View style={styles.modalActions}>
-              <TouchableOpacity
-                style={[styles.modalBtn, styles.modalCancelBtn]}
-                onPress={() => {
-                  setRenameModalVisible(false);
-                  setRenameRoomId('');
-                  setRenameRoomTitle('');
-                }}
-              >
-                <Text style={styles.modalCancelBtnText}>취소</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.modalBtn, styles.modalCreateBtn]}
-                onPress={() => {
-                  if (renameRoomTitle && renameRoomTitle.trim()) {
-                    setRooms(prev => prev.map(r => r.id === renameRoomId ? { ...r, title: renameRoomTitle.trim() } : r));
-                  }
-                  setRenameModalVisible(false);
-                  setRenameRoomId('');
-                  setRenameRoomTitle('');
-                }}
-              >
-                <Text style={styles.modalCreateBtnText}>변경</Text>
+                <Text style={styles.modalCreateBtnText}>
+                  {createChatMutation.isPending ? '생성 중...' : '만들기'}
+                </Text>
               </TouchableOpacity>
             </View>
           </View>

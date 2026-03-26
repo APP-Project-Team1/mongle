@@ -2,8 +2,10 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator, FlatList, TouchableOpacity, Modal, TextInput, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useProjectStore } from '../../stores';
-import { useBudget, useBudgetItems, useCreateBudgetItem, useUpdateBudgetItem, useDeleteBudgetItem } from '../../hooks/useBudget';
+import { useBudget, useBudgetItems, useCreateBudgetItem, useUpdateBudgetItem, useDeleteBudgetItem } from '../../hooks';
 import ProjectSelector from './components/ProjectSelector';
+import LoadingSpinner from '../../components/common/LoadingSpinner';
+import ErrorView from '../../components/common/ErrorView';
 
 export default function BudgetScreen() {
   const projectId = useProjectStore((state) => state.currentProjectId) || '1';
@@ -35,17 +37,16 @@ export default function BudgetScreen() {
   };
 
   if (isBudgetLoading || isItemsLoading) {
-    return (
-      <View style={styles.center}>
-        <ActivityIndicator size="large" color="#C9716A" />
-      </View>
-    );
+    return <LoadingSpinner message="예산 데이터를 불러오는 중입니다..." />;
   }
 
   if (budgetError || itemsError) {
     return (
       <View style={styles.center}>
-        <Text style={styles.error}>예산 불러오기 실패: {(budgetError || itemsError).message}</Text>
+        <ErrorView 
+          message="예산을 불러올 수 없습니다" 
+          subMessage={(budgetError || itemsError)?.message} 
+        />
       </View>
     );
   }

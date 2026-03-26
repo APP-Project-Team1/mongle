@@ -58,7 +58,6 @@ const PRICE_RANGES = [
 export default function VendorsScreen() {
   const [searchText, setSearchText] = useState('');
   const [activeCategory, setActiveCategory] = useState('hall');
-  const [selectedVendor, setSelectedVendor] = useState(null);
   const [showScrollTop, setShowScrollTop] = useState(false);
   const flatListRef = useRef(null);
 
@@ -73,10 +72,6 @@ export default function VendorsScreen() {
 
   useEffect(() => {
     const handleBackPress = () => {
-      if (selectedVendor) {
-        setSelectedVendor(null);
-        return true;
-      }
       router.replace('/(couple)');
       return true;
     };
@@ -86,10 +81,8 @@ export default function VendorsScreen() {
       handleBackPress
     );
 
-    return () => {
-      subscription.remove();
-    };
-  }, [selectedVendor]);
+    return () => subscription.remove();
+  }, []);
 
   const filterOptions = useMemo(() => {
     const districts = new Set();
@@ -255,30 +248,7 @@ export default function VendorsScreen() {
     setShowScrollTop(offsetY > 300);
   };
 
-  const renderDetailRow = (label, value) => {
-    if (!value) return null;
-    return (
-      <View style={styles.detailRow}>
-        <Text style={styles.detailLabel}>{label}</Text>
-        <Text style={styles.detailValue}>{Array.isArray(value) ? value.join(', ') : value}</Text>
-      </View>
-    );
-  };
 
-  const renderBulletList = (title, items, color = '#3a2e2a') => {
-    if (!items || items.length === 0) return null;
-    return (
-      <View style={styles.listSection}>
-        <Text style={styles.sectionTitle}>{title}</Text>
-        {items.map((item, idx) => (
-          <View key={idx} style={styles.bulletRow}>
-            <View style={[styles.bullet, { backgroundColor: color }]} />
-            <Text style={styles.bulletText}>{item}</Text>
-          </View>
-        ))}
-      </View>
-    );
-  };
 
   const renderBottomTab = () => (
     <View style={tabStyles.container}>
@@ -301,111 +271,6 @@ export default function VendorsScreen() {
     </View>
   );
 
-  if (selectedVendor) {
-    return (
-      <SafeAreaView style={styles.safeArea}>
-        <View style={styles.detailHeader}>
-          <TouchableOpacity onPress={() => setSelectedVendor(null)} style={styles.backBtnWrapper}>
-            <Ionicons name="chevron-back" size={26} color="#3a2e2a" />
-          </TouchableOpacity>
-          <Text style={styles.detailHeaderTitle}>업체 상세 정보</Text>
-          <View style={{ width: 26 }} />
-        </View>
-
-        <ScrollView style={styles.detailContent} showsVerticalScrollIndicator={false}>
-          <Image
-            source={{ uri: selectedVendor.content?.thumbnail_url?.startsWith('//') ? `https:${selectedVendor.content.thumbnail_url}` : (selectedVendor.content?.thumbnail_url || `https://picsum.photos/seed/${selectedVendor.basic_info.vendor_id}/800/500`) }}
-            style={styles.detailMainImage}
-          />
-
-          <View style={styles.detailBody}>
-            <View style={styles.detailTitleRow}>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.detailCategoryText}>{CATEGORIES.find(c => c.id === selectedVendor.basic_info.category)?.label}</Text>
-                <Text style={styles.detailName}>{selectedVendor.basic_info.name}</Text>
-              </View>
-              {(selectedVendor.basic_info.rating || selectedVendor.content?.rating_info?.rating_avg) && (
-                <View style={styles.detailRatingChip}>
-                  <Ionicons name="star" size={14} color="#f0b452" />
-                  <Text style={styles.detailRatingValue}>{selectedVendor.basic_info.rating || selectedVendor.content.rating_info.rating_avg}</Text>
-                </View>
-              )}
-            </View>
-
-            <Text style={styles.detailDescription}>{selectedVendor.content?.short_description}</Text>
-
-            <View style={styles.tagRow}>
-              {selectedVendor.content?.tags && selectedVendor.content.tags.map((s, idx) => (
-                <View key={idx} style={styles.styleTag}>
-                  <Text style={styles.styleTagText}>#{s}</Text>
-                </View>
-              ))}
-            </View>
-
-            <View style={styles.infoSection}>
-              <View style={styles.infoRow}>
-                <Ionicons name="location-outline" size={20} color="#8a7870" />
-                <Text style={styles.infoText}>{selectedVendor.basic_info.address || selectedVendor.basic_info.region}</Text>
-              </View>
-              {selectedVendor.basic_info.phone && (
-                <TouchableOpacity style={styles.infoRow} onPress={() => Linking.openURL(`tel:${selectedVendor.basic_info.phone}`)}>
-                  <Ionicons name="call-outline" size={20} color="#8a7870" />
-                  <Text style={[styles.infoText, { color: '#007AFF' }]}>{selectedVendor.basic_info.phone}</Text>
-                </TouchableOpacity>
-              )}
-              {selectedVendor.basic_info.website_url && (
-                <TouchableOpacity style={styles.infoRow} onPress={() => Linking.openURL(selectedVendor.basic_info.website_url)}>
-                  <Ionicons name="globe-outline" size={20} color="#8a7870" />
-                  <Text style={[styles.infoText, { color: '#007AFF' }]} numberOfLines={1}>{selectedVendor.basic_info.website_url}</Text>
-                </TouchableOpacity>
-              )}
-            </View>
-
-            <View style={styles.priceSection}>
-              <Text style={styles.sectionTitle}>예상 가격대</Text>
-              {renderPrice(selectedVendor, true)}
-              <Text style={styles.priceSubText}>* {selectedVendor.pricing?.price_note || '실제 견적은 상담 내용에 따라 다를 수 있습니다.'}</Text>
-            </View>
-
-            {/* Detailed Info */}
-            <View style={styles.divider} />
-            <View style={styles.detailInfoSection}>
-              <Text style={styles.sectionTitle}>상세 정보</Text>
-              {renderDetailRow('홀 종류', selectedVendor.details?.hall_type)}
-              {renderDetailRow('홀 개수', selectedVendor.details?.hall_count ? `${selectedVendor.details.hall_count}개` : null)}
-              {renderDetailRow('예식 시간', selectedVendor.details?.ceremony_time_minutes ? `${selectedVendor.details.ceremony_time_minutes}분` : null)}
-              {renderDetailRow('식사 형태', selectedVendor.details?.meal_type)}
-              {renderDetailRow('식사 메모', selectedVendor.details?.meal_note)}
-              {renderDetailRow('촬영 톤', selectedVendor.details?.shoot_tones)}
-              {renderDetailRow('실내 촬영', selectedVendor.details?.indoor_shoot ? '가능' : null)}
-              {renderDetailRow('실외 촬영', selectedVendor.details?.outdoor_shoot ? '가능' : null)}
-              {renderDetailRow('드레스 스타일', selectedVendor.details?.dress_style)}
-              {renderDetailRow('피팅 가능', selectedVendor.details?.fittings_available ? '가능' : null)}
-            </View>
-
-            {/* Specialties & Recommendations */}
-            {renderBulletList('업체 특징', selectedVendor.details?.specialties, '#c9a98e')}
-            {renderBulletList('추천 대상', selectedVendor.details?.recommended_for, '#8a7870')}
-
-            {/* Review Summary */}
-            <View style={styles.divider} />
-            {renderBulletList('긍정적인 포인트', selectedVendor.content?.review_summary_positive, '#4CAF50')}
-            {renderBulletList('주의할 포인트', selectedVendor.content?.review_summary_negative, '#F44336')}
-          </View>
-
-          <View style={{ height: 40 }} />
-        </ScrollView>
-
-        <View style={styles.ctaBottom}>
-          <TouchableOpacity style={styles.ctaButton} onPress={() => { }}>
-            <Text style={styles.ctaButtonText}>상담 예약하기</Text>
-          </TouchableOpacity>
-        </View>
-
-        {renderBottomTab()}
-      </SafeAreaView>
-    );
-  }
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -540,7 +405,7 @@ export default function VendorsScreen() {
         renderItem={({ item }) => (
           <TouchableOpacity
             style={styles.vendorCard}
-            onPress={() => setSelectedVendor(item)}
+            onPress={() => router.push(`/vendors/${item.basic_info.vendor_id}`)}
             activeOpacity={0.8}
           >
             <Image

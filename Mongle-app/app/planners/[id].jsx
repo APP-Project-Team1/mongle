@@ -21,7 +21,11 @@ export default function PlannerDetailScreen() {
 
   useEffect(() => {
     const handleBackPress = () => {
-      router.replace('/(couple)');
+      if (router.canGoBack()) {
+        router.back();
+      } else {
+        router.replace('/(couple)');
+      }
       return true;
     };
 
@@ -68,7 +72,10 @@ export default function PlannerDetailScreen() {
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.detailHeader}>
-        <TouchableOpacity onPress={() => router.replace('/(couple)')} style={styles.backBtnWrapper}>
+        <TouchableOpacity 
+          onPress={() => router.canGoBack() ? router.back() : router.replace('/(couple)')} 
+          style={styles.backBtnWrapper}
+        >
           <Ionicons name="chevron-back" size={26} color="#3a2e2a" />
         </TouchableOpacity>
         <Text style={styles.detailHeaderTitle}>플래너 프로필</Text>

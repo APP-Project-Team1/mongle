@@ -8,8 +8,11 @@ import {
   ScrollView,
   Platform,
   BackHandler,
+  Modal,
+  TextInput,
+  Alert,
 } from 'react-native';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -17,7 +20,58 @@ import plannersData from './planners.json';
 
 export default function PlannerDetailScreen() {
   const { id } = useLocalSearchParams();
-  const selectedPlanner = plannersData.find(p => p.name === id);
+  const selectedPlanner = plannersData.find((p) => p.name === id);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [consultYear, setConsultYear] = useState('');
+  const [consultMonth, setConsultMonth] = useState('');
+  const [consultDay, setConsultDay] = useState('');
+  const [consultAmPm, setConsultAmPm] = useState('오전');
+  const [consultHour, setConsultHour] = useState('');
+  const [consultBudget, setConsultBudget] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+
+  const sendNotificationToPlanner = async ({ plannerName, date, time, budget }) => {
+    // TODO: 실제 API로 교체
+    // await fetch('https://your-api.com/notify', {
+    //   method: 'POST',
+    //   headers: { 'Content-Type': 'application/json' },
+    //   body: JSON.stringify({ plannerName, date, time, budget }),
+    // });
+    return new Promise((resolve) => setTimeout(resolve, 800));
+  };
+
+  const handleConsultSubmit = async () => {
+    if (!consultYear || !consultMonth || !consultDay || !consultHour || !consultBudget) {
+      Alert.alert('입력 오류', '날짜, 시간, 예산을 모두 입력해주세요.');
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const fullDate = `${consultYear}-${consultMonth.padStart(2, '0')}-${consultDay.padStart(2, '0')}`;
+      const fullTime = `${consultAmPm} ${consultHour}시`;
+
+      await sendNotificationToPlanner({
+        plannerName: selectedPlanner.name,
+        date: fullDate,
+        time: fullTime,
+        budget: consultBudget,
+      });
+
+      Alert.alert('신청 완료', `${selectedPlanner.name} 플래너에게 상담 신청이 전송되었습니다.`);
+      setModalVisible(false);
+      setConsultYear('');
+      setConsultMonth('');
+      setConsultDay('');
+      setConsultAmPm('오전');
+      setConsultHour('');
+      setConsultBudget('');
+    } catch (e) {
+      Alert.alert('오류', '상담 신청 중 문제가 발생했습니다. 다시 시도해주세요.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   useEffect(() => {
     const handleBackPress = () => {
@@ -29,10 +83,7 @@ export default function PlannerDetailScreen() {
       return true;
     };
 
-    const subscription = BackHandler.addEventListener(
-      'hardwareBackPress',
-      handleBackPress
-    );
+    const subscription = BackHandler.addEventListener('hardwareBackPress', handleBackPress);
 
     return () => subscription.remove();
   }, []);
@@ -54,7 +105,10 @@ export default function PlannerDetailScreen() {
         <Ionicons name="home-outline" size={24} color="#c9a98e" />
         <Text style={[tabStyles.tabText, { color: '#c9a98e' }]}>홈</Text>
       </TouchableOpacity>
-      <TouchableOpacity style={tabStyles.tabItem} onPress={() => router.replace('/(couple)/timeline')}>
+      <TouchableOpacity
+        style={tabStyles.tabItem}
+        onPress={() => router.replace('/(couple)/timeline')}
+      >
         <Ionicons name="calendar-outline" size={24} color="#8a7870" />
         <Text style={tabStyles.tabText}>일정</Text>
       </TouchableOpacity>
@@ -72,8 +126,8 @@ export default function PlannerDetailScreen() {
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.detailHeader}>
-        <TouchableOpacity 
-          onPress={() => router.canGoBack() ? router.back() : router.replace('/(couple)')} 
+        <TouchableOpacity
+          onPress={() => (router.canGoBack() ? router.back() : router.replace('/(couple)'))}
           style={styles.backBtnWrapper}
         >
           <Ionicons name="chevron-back" size={26} color="#3a2e2a" />
@@ -85,13 +139,20 @@ export default function PlannerDetailScreen() {
       <ScrollView style={styles.detailContent} showsVerticalScrollIndicator={false}>
         {/* Main Info */}
         <View style={styles.detailMainInfo}>
-          <Image source={{ uri: selectedPlanner.profile_image_url }} style={styles.detailProfileImage} />
+          <Image
+            source={{ uri: selectedPlanner.profile_image_url }}
+            style={styles.detailProfileImage}
+          />
           <View style={styles.detailMainText}>
             <Text style={styles.detailBrand}>{selectedPlanner.brand_name}</Text>
-            <Text style={styles.detailName}>{selectedPlanner.name} {selectedPlanner.title}</Text>
+            <Text style={styles.detailName}>
+              {selectedPlanner.name} {selectedPlanner.title}
+            </Text>
             <View style={styles.detailRatingRow}>
               <Ionicons name="star" size={14} color="#f0b452" />
-              <Text style={styles.detailRatingText}>{selectedPlanner.rating} ({selectedPlanner.reviews?.length || 0})</Text>
+              <Text style={styles.detailRatingText}>
+                {selectedPlanner.rating} ({selectedPlanner.reviews?.length || 0})
+              </Text>
             </View>
           </View>
         </View>
@@ -156,16 +217,24 @@ export default function PlannerDetailScreen() {
 
         <Text style={styles.sectionTitle}>주요 경력 & 특징</Text>
         {selectedPlanner.major_experiences.map((exp, i) => (
-          <Text key={`exp-${i}`} style={styles.bulletText}>• {exp}</Text>
+          <Text key={`exp-${i}`} style={styles.bulletText}>
+            • {exp}
+          </Text>
         ))}
         {selectedPlanner.service_features.map((feat, i) => (
-          <Text key={`feat-${i}`} style={styles.bulletText}>• {feat}</Text>
+          <Text key={`feat-${i}`} style={styles.bulletText}>
+            • {feat}
+          </Text>
         ))}
 
         <View style={styles.divider} />
 
         <Text style={styles.sectionTitle}>포트폴리오 스냅</Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.portfolioScroll}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={styles.portfolioScroll}
+        >
           {selectedPlanner.portfolio_images.map((img, i) => (
             <Image key={i} source={{ uri: img }} style={styles.portfolioImage} />
           ))}
@@ -175,12 +244,133 @@ export default function PlannerDetailScreen() {
       </ScrollView>
 
       <View style={styles.ctaBottom}>
-        <TouchableOpacity style={styles.ctaButton}>
+        <TouchableOpacity style={styles.ctaButton} onPress={() => setModalVisible(true)}>
           <Text style={styles.ctaButtonText}>{selectedPlanner.cta}</Text>
         </TouchableOpacity>
       </View>
 
       {renderBottomTab()}
+
+      <Modal
+        visible={modalVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={modalStyles.overlay}>
+          <View style={modalStyles.sheet}>
+            <View style={modalStyles.handle} />
+
+            <Text style={modalStyles.title}>상담 신청</Text>
+            <Text style={modalStyles.subtitle}>
+              {selectedPlanner.name} 플래너에게 상담을 신청합니다
+            </Text>
+
+            {/* 날짜 */}
+            <Text style={modalStyles.label}>희망 날짜</Text>
+            <View style={modalStyles.dateRow}>
+              <TextInput
+                style={[modalStyles.input, modalStyles.dateInput]}
+                placeholder="년도"
+                placeholderTextColor="#bbb"
+                keyboardType="numeric"
+                maxLength={4}
+                value={consultYear}
+                onChangeText={setConsultYear}
+              />
+              <Text style={modalStyles.dateSep}>년</Text>
+              <TextInput
+                style={[modalStyles.input, modalStyles.dateInputShort]}
+                placeholder="월"
+                placeholderTextColor="#bbb"
+                keyboardType="numeric"
+                maxLength={2}
+                value={consultMonth}
+                onChangeText={setConsultMonth}
+              />
+              <Text style={modalStyles.dateSep}>월</Text>
+              <TextInput
+                style={[modalStyles.input, modalStyles.dateInputShort]}
+                placeholder="일"
+                placeholderTextColor="#bbb"
+                keyboardType="numeric"
+                maxLength={2}
+                value={consultDay}
+                onChangeText={setConsultDay}
+              />
+              <Text style={modalStyles.dateSep}>일</Text>
+            </View>
+
+            {/* 시간 */}
+            <Text style={modalStyles.label}>희망 시간</Text>
+            <View style={modalStyles.timeRow}>
+              <View style={modalStyles.ampmToggle}>
+                <TouchableOpacity
+                  style={[modalStyles.ampmBtn, consultAmPm === '오전' && modalStyles.ampmBtnActive]}
+                  onPress={() => setConsultAmPm('오전')}
+                >
+                  <Text
+                    style={[
+                      modalStyles.ampmText,
+                      consultAmPm === '오전' && modalStyles.ampmTextActive,
+                    ]}
+                  >
+                    오전
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[modalStyles.ampmBtn, consultAmPm === '오후' && modalStyles.ampmBtnActive]}
+                  onPress={() => setConsultAmPm('오후')}
+                >
+                  <Text
+                    style={[
+                      modalStyles.ampmText,
+                      consultAmPm === '오후' && modalStyles.ampmTextActive,
+                    ]}
+                  >
+                    오후
+                  </Text>
+                </TouchableOpacity>
+              </View>
+              <TextInput
+                style={[modalStyles.input, modalStyles.hourInput]}
+                placeholder="시간"
+                placeholderTextColor="#bbb"
+                keyboardType="numeric"
+                maxLength={2}
+                value={consultHour}
+                onChangeText={setConsultHour}
+              />
+              <Text style={modalStyles.dateSep}>시</Text>
+            </View>
+
+            {/* 예산 */}
+            <Text style={modalStyles.label}>예산 (만원)</Text>
+            <TextInput
+              style={modalStyles.input}
+              placeholder="예: 500"
+              placeholderTextColor="#bbb"
+              keyboardType="numeric"
+              value={consultBudget}
+              onChangeText={setConsultBudget}
+            />
+
+            <TouchableOpacity
+              style={[modalStyles.submitBtn, submitting && { opacity: 0.6 }]}
+              onPress={handleConsultSubmit}
+              disabled={submitting}
+            >
+              <Text style={modalStyles.submitText}>
+                {submitting ? '신청 중...' : '상담 신청하기'}
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={modalStyles.cancelBtn} onPress={() => setModalVisible(false)}>
+              <Text style={modalStyles.cancelText}>취소</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -429,5 +619,128 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: '700',
+  },
+});
+const modalStyles = StyleSheet.create({
+  overlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.45)',
+    justifyContent: 'flex-end',
+  },
+  sheet: {
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingHorizontal: 24,
+    paddingBottom: Platform.OS === 'android' ? 32 : 40,
+    paddingTop: 16,
+  },
+  handle: {
+    width: 40,
+    height: 4,
+    backgroundColor: '#e0d8d4',
+    borderRadius: 2,
+    alignSelf: 'center',
+    marginBottom: 20,
+  },
+  title: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#3a2e2a',
+    marginBottom: 4,
+  },
+  subtitle: {
+    fontSize: 13,
+    color: '#8a7870',
+    marginBottom: 24,
+  },
+  label: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#3a2e2a',
+    marginBottom: 6,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: '#e8ddd8',
+    borderRadius: 8,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    fontSize: 14,
+    color: '#3a2e2a',
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  dateRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+    gap: 4,
+  },
+  dateInput: {
+    flex: 2,
+    marginBottom: 0,
+  },
+  dateInputShort: {
+    flex: 1,
+    marginBottom: 0,
+  },
+  dateSep: {
+    fontSize: 14,
+    color: '#3a2e2a',
+    marginHorizontal: 2,
+  },
+  timeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+    gap: 8,
+  },
+  ampmToggle: {
+    flexDirection: 'row',
+    borderWidth: 1,
+    borderColor: '#e8ddd8',
+    borderRadius: 8,
+    overflow: 'hidden',
+  },
+  ampmBtn: {
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    backgroundColor: '#fff',
+  },
+  ampmBtnActive: {
+    backgroundColor: '#3a2e2a',
+  },
+  ampmText: {
+    fontSize: 14,
+    color: '#8a7870',
+    fontWeight: '600',
+  },
+  ampmTextActive: {
+    color: '#fff',
+  },
+  hourInput: {
+    flex: 1,
+    marginBottom: 0,
+  },
+  submitBtn: {
+    backgroundColor: '#3a2e2a',
+    paddingVertical: 14,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  submitText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  cancelBtn: {
+    alignItems: 'center',
+    paddingVertical: 14,
+  },
+  cancelText: {
+    fontSize: 14,
+    color: '#8a7870',
   },
 });

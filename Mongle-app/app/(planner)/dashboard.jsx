@@ -96,10 +96,79 @@ const VENDORS = [
   { id: '6', type: '청첩장', name: '페이퍼가든', status: '발주 완료', statusColor: '#5a8c3a' },
 ];
 
-const UNPAID = [
-  { id: '1', couple: '박지수 · 이현우', desc: '잔금 · 4월 1일 이전', amount: '650만원' },
-  { id: '2', couple: '최민정 · 강태준', desc: '중도금 · 4월 8일 이전', amount: '2,100만원' },
+const VENDOR_CATEGORIES = [
+  '스튜디오',
+  '드레스',
+  '메이크업',
+  '웨딩홀',
+  '허니문',
+  '청첩장',
+  '영상·스냅',
 ];
+
+const FINANCE = {
+  couples: [
+    {
+      id: '1',
+      name: '박지수 · 이현우',
+      total: 38000000,
+      received: 31500000,
+      due: '4월 1일',
+      vendorCosts: [
+        { vendor: '일다스튜디오', amount: 5000000, paid: true },
+        { vendor: '르블랑 웨딩', amount: 8000000, paid: false },
+        { vendor: '더채플 청담', amount: 9000000, paid: false },
+      ],
+    },
+    {
+      id: '2',
+      name: '최민정 · 강태준',
+      total: 42000000,
+      received: 21000000,
+      due: '4월 8일',
+      vendorCosts: [
+        { vendor: '일다스튜디오', amount: 5500000, paid: true },
+        { vendor: '뷰티스튜디오K', amount: 3000000, paid: false },
+        { vendor: '롯데호텔 잠실', amount: 12000000, paid: false },
+      ],
+    },
+    {
+      id: '3',
+      name: '윤서연 · 오민석',
+      total: 35000000,
+      received: 35000000,
+      due: null,
+      vendorCosts: [
+        { vendor: '모먼트 스냅', amount: 4000000, paid: true },
+        { vendor: '그랜드 인터컨티', amount: 10000000, paid: true },
+      ],
+    },
+    {
+      id: '4',
+      name: '정하린 · 김도윤',
+      total: 28000000,
+      received: 7000000,
+      due: '5월 10일',
+      vendorCosts: [
+        { vendor: '페이퍼가든', amount: 800000, paid: false },
+        { vendor: '더베뉴 한남', amount: 8000000, paid: false },
+      ],
+    },
+  ],
+};
+
+// 파생 계산
+const totalRevenue = FINANCE.couples.reduce((s, c) => s + c.received, 0);
+const totalUnpaid = FINANCE.couples.reduce((s, c) => s + (c.total - c.received), 0);
+const unpaidVendorAmt = FINANCE.couples.reduce(
+  (s, c) => s + c.vendorCosts.filter((v) => !v.paid).reduce((a, v) => a + v.amount, 0),
+  0,
+);
+const unpaidVendorCnt = FINANCE.couples.reduce(
+  (s, c) => s + c.vendorCosts.filter((v) => !v.paid).length,
+  0,
+);
+const fmt = (n) => (n / 10000).toLocaleString() + '만';
 // ──────────────────────────────────────────────────────────
 
 export default function PlannerDashboard() {
@@ -166,7 +235,11 @@ export default function PlannerDashboard() {
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>오늘 할 일</Text>
-            <TouchableOpacity activeOpacity={0.7}>
+
+            <TouchableOpacity
+              onPress={() => router.push('/(planner)/planner_todo_list')}
+              activeOpacity={0.7}
+            >
               <Text style={styles.sectionMore}>전체 보기</Text>
             </TouchableOpacity>
           </View>
@@ -202,7 +275,7 @@ export default function PlannerDashboard() {
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>임박한 커플</Text>
             <TouchableOpacity
-              onPress={() => router.push('/(planner)/customer')}
+              onPress={() => router.push('/(planner)/couple_list')}
               activeOpacity={0.7}
             >
               <Text style={styles.sectionMore}>전체 보기</Text>
@@ -251,44 +324,117 @@ export default function PlannerDashboard() {
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>협력 업체 현황</Text>
-            <TouchableOpacity onPress={() => router.push('/(planner)/vendors')} activeOpacity={0.7}>
+            <TouchableOpacity
+              onPress={() => router.push('/(planner)/wedding_vendor_partners')}
+              activeOpacity={0.7}
+            >
               <Text style={styles.sectionMore}>전체 보기</Text>
             </TouchableOpacity>
           </View>
 
           <View style={styles.vendorGrid}>
-            {VENDORS.map((v) => (
-              <View key={v.id} style={styles.vendorCard}>
-                <Text style={styles.vendorType}>{v.type}</Text>
-                <Text style={styles.vendorName} numberOfLines={1}>
-                  {v.name}
-                </Text>
-                <Text style={[styles.vendorStatus, { color: v.statusColor }]}>{v.status}</Text>
-              </View>
-            ))}
+            {VENDOR_CATEGORIES.map((category) => ({
+              category,
+              items: VENDORS.filter((v) => v.type === category),
+            }))
+              .filter(({ items }) => items.length > 0)
+              .slice(0, 3)
+              .map(({ category, items }) => (
+                <View key={category} style={styles.vendorCategoryBlock}>
+                  <Text style={styles.vendorCategoryTitle}>{category}</Text>
+                  {items.slice(0, 3).map((v, idx, arr) => (
+                    <View
+                      key={v.id}
+                      style={[styles.vendorRow, idx === arr.length - 1 && { borderBottomWidth: 0 }]}
+                    >
+                      <Text style={styles.vendorName} numberOfLines={1}>
+                        {v.name}
+                      </Text>
+                      <Text style={[styles.vendorStatus, { color: v.statusColor }]}>
+                        {v.status}
+                      </Text>
+                    </View>
+                  ))}
+                </View>
+              ))}
           </View>
         </View>
 
         <View style={styles.divider} />
 
-        {/* ── 미수금 알림 ── */}
+        {/* ── 비용 현황 ── */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>미수금 알림</Text>
-            <TouchableOpacity activeOpacity={0.7}>
+            <Text style={styles.sectionTitle}>비용 현황</Text>
+            <TouchableOpacity
+              onPress={() => router.push('/(planner)/planner_budget')}
+              activeOpacity={0.7}
+            >
               <Text style={styles.sectionMore}>상세 보기</Text>
             </TouchableOpacity>
           </View>
 
-          {UNPAID.map((u) => (
-            <View key={u.id} style={styles.unpaidCard}>
-              <View>
-                <Text style={styles.unpaidCouple}>{u.couple}</Text>
-                <Text style={styles.unpaidDesc}>{u.desc}</Text>
-              </View>
-              <Text style={styles.unpaidAmount}>{u.amount}</Text>
+          {/* 요약 KPI 3칸 */}
+          <View style={styles.financeKpiRow}>
+            <View style={styles.financeKpi}>
+              <Text style={styles.financeKpiLabel}>수금 총액</Text>
+              <Text style={styles.financeKpiValue}>{fmt(totalRevenue)}원</Text>
             </View>
-          ))}
+            <View style={styles.financeKpiDivider} />
+            <View style={styles.financeKpi}>
+              <Text style={styles.financeKpiLabel}>미수금</Text>
+              <Text style={[styles.financeKpiValue, { color: '#c97b6e' }]}>
+                {fmt(totalUnpaid)}원
+              </Text>
+            </View>
+            <View style={styles.financeKpiDivider} />
+            <View style={styles.financeKpi}>
+              <Text style={styles.financeKpiLabel}>미지급 업체</Text>
+              <Text style={[styles.financeKpiValue, { color: '#b07840' }]}>
+                {unpaidVendorCnt}건
+              </Text>
+            </View>
+          </View>
+
+          {/* 커플별 수금 현황 */}
+          <View style={styles.financeList}>
+            {FINANCE.couples
+              .filter((c) => c.received < c.total)
+              .map((c, idx, arr) => {
+                const unpaid = c.total - c.received;
+                const p = Math.round((c.received / c.total) * 100);
+                return (
+                  <View
+                    key={c.id}
+                    style={[styles.financeRow, idx === arr.length - 1 && { borderBottomWidth: 0 }]}
+                  >
+                    <View style={{ flex: 1 }}>
+                      <View style={styles.financeRowTop}>
+                        <Text style={styles.financeCoupleName}>{c.name}</Text>
+                        <Text style={styles.financeUnpaid}>-{fmt(unpaid)}원</Text>
+                      </View>
+                      <View style={styles.financeProgWrap}>
+                        <View style={styles.financeProgTrack}>
+                          <View style={[styles.financeProgFill, { width: `${p}%` }]} />
+                        </View>
+                        <Text style={styles.financeProgPct}>{p}%</Text>
+                      </View>
+                      {c.due && <Text style={styles.financeDue}>{c.due}까지</Text>}
+                    </View>
+                  </View>
+                );
+              })}
+          </View>
+
+          {/* 미지급 업체 요약 */}
+          {unpaidVendorCnt > 0 && (
+            <View style={styles.vendorCostSummary}>
+              <Ionicons name="alert-circle-outline" size={14} color="#b07840" />
+              <Text style={styles.vendorCostSummaryText}>
+                미지급 업체 {unpaidVendorCnt}건 · 총 {fmt(unpaidVendorAmt)}원
+              </Text>
+            </View>
+          )}
         </View>
 
         <View style={{ height: 32 }} />
@@ -426,15 +572,15 @@ const styles = StyleSheet.create({
   kpiValue: {
     fontSize: 22,
     fontWeight: '600',
-    marginBottom: 4,
+    marginBottom: 2,
   },
   kpiLabel: {
     fontSize: 12,
-    color: '#8a7870',
+    color: '#776d6a',
   },
   kpiSub: {
     fontSize: 10,
-    color: '#b8aca8',
+    color: '#655f5d',
     marginTop: 2,
   },
 
@@ -596,59 +742,142 @@ const styles = StyleSheet.create({
 
   // 협력 업체 그리드
   vendorGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
     gap: 8,
   },
-  vendorCard: {
-    width: '31%',
+  vendorCategoryBlock: {
     backgroundColor: '#fff',
     borderRadius: 14,
     borderWidth: 0.5,
     borderColor: '#ede5de',
-    padding: 10,
+    paddingHorizontal: 14,
+    paddingTop: 10,
+    paddingBottom: 2,
   },
-  vendorType: {
-    fontSize: 10,
+  vendorCategoryTitle: {
+    fontSize: 11,
+    fontWeight: '500',
     color: '#a08880',
-    marginBottom: 3,
+    marginBottom: 6,
+  },
+  vendorRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 8,
+    borderBottomWidth: 0.5,
+    borderBottomColor: '#f5f0eb',
   },
   vendorName: {
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: '500',
     color: '#3a2e2a',
+    flex: 1,
+    marginRight: 8,
   },
   vendorStatus: {
-    fontSize: 10,
-    marginTop: 4,
+    fontSize: 11,
     fontWeight: '500',
   },
 
-  // 미수금 카드
-  unpaidCard: {
-    backgroundColor: '#fff7f5',
+  // 비용 현황
+  financeKpiRow: {
+    flexDirection: 'row',
+    backgroundColor: '#fff',
     borderRadius: 16,
     borderWidth: 0.5,
-    borderColor: '#f0d8d0',
-    padding: 14,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    borderColor: '#ede5de',
+    paddingVertical: 14,
     marginBottom: 10,
   },
-  unpaidCouple: {
-    fontSize: 13,
+  financeKpi: {
+    flex: 1,
+    alignItems: 'center',
+    gap: 4,
+  },
+  financeKpiDivider: {
+    width: 0.5,
+    backgroundColor: '#ede5de',
+  },
+  financeKpiLabel: {
+    fontSize: 11,
+    color: '#a08880',
+  },
+  financeKpiValue: {
+    fontSize: 16,
     fontWeight: '600',
     color: '#3a2e2a',
   },
-  unpaidDesc: {
+  financeList: {
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    borderWidth: 0.5,
+    borderColor: '#ede5de',
+    paddingHorizontal: 14,
+  },
+  financeRow: {
+    paddingVertical: 12,
+    borderBottomWidth: 0.5,
+    borderBottomColor: '#f5f0eb',
+  },
+  financeRowTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
+  financeCoupleName: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: '#3a2e2a',
+  },
+  financeUnpaid: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#c97b6e',
+  },
+  financeProgWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 3,
+  },
+  financeProgTrack: {
+    flex: 1,
+    height: 4,
+    backgroundColor: '#f0e8e3',
+    borderRadius: 2,
+    overflow: 'hidden',
+  },
+  financeProgFill: {
+    height: '100%',
+    backgroundColor: '#c97b6e',
+    borderRadius: 2,
+  },
+  financeProgPct: {
     fontSize: 11,
     color: '#a08880',
-    marginTop: 2,
+    minWidth: 28,
+    textAlign: 'right',
   },
-  unpaidAmount: {
-    fontSize: 14,
-    fontWeight: '600',
+  financeDue: {
+    fontSize: 11,
     color: '#b07840',
+  },
+  vendorCostSummary: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 8,
+    backgroundColor: '#fdf6ee',
+    borderRadius: 10,
+    borderWidth: 0.5,
+    borderColor: '#f0dcc8',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  vendorCostSummaryText: {
+    fontSize: 12,
+    color: '#b07840',
+    fontWeight: '500',
   },
 });

@@ -8,6 +8,7 @@ export default function PlannerLayout() {
       <Stack.Screen name="couple_list" />
       <Stack.Screen name="wedding_vendor_partners" />
       <Stack.Screen name="planner_budget" />
+      <Stack.Screen name="notifications" />
     </Stack>
   );
 }

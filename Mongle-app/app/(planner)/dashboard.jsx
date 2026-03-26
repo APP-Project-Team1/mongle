@@ -3,8 +3,10 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, StatusBar } from 
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useNotifications } from '../../context/NotificationContext';
 
 // ── 임시 데이터 ──────────────────────────────────────────
+
 const PLANNER_NAME = '수진';
 const TODAY = '2026년 3월 26일 목요일';
 const URGENT_TODO_COUNT = 2;
@@ -172,6 +174,7 @@ const fmt = (n) => (n / 10000).toLocaleString() + '만';
 // ──────────────────────────────────────────────────────────
 
 export default function PlannerDashboard() {
+  const { unreadCount } = useNotifications();
   const [todos, setTodos] = useState(TODOS);
 
   const toggleTodo = (id) => {
@@ -188,9 +191,9 @@ export default function PlannerDashboard() {
           <Ionicons name="chevron-back" size={20} color="#8b5e52" />
         </TouchableOpacity>
         <Text style={styles.logo}>Mongle</Text>
-        <TouchableOpacity style={styles.notifBtn} activeOpacity={0.7}>
+        <TouchableOpacity onPress={() => router.push('/(planner)/notifications')}>
           <Ionicons name="notifications-outline" size={20} color="#3a2e2a" />
-          <View style={styles.notifDot} />
+          {unreadCount > 0 && <View style={styles.notifDot} />}
         </TouchableOpacity>
       </View>
 

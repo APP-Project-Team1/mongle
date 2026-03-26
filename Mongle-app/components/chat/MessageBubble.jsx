@@ -1,21 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-  StyleSheet,
-} from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 
 const CATEGORY_LABEL = {
-  studio:     '스튜디오',
-  dress:      '드레스',
-  makeup:     '메이크업',
-  hall:       '웨딩홀',
-  planner:    '플래너',
-  package:    '패키지',
+  studio: '스튜디오',
+  dress: '드레스',
+  makeup: '메이크업',
+  hall: '웨딩홀',
+  planner: '플래너',
+  package: '패키지',
   video_snap: '스냅/영상',
 };
 
@@ -50,7 +44,8 @@ function VendorCard({ item }) {
     }
   };
 
-  const categoryLabel = CATEGORY_LABEL[item.category] || CATEGORY_LABEL[md.category] || item.category;
+  const categoryLabel =
+    CATEGORY_LABEL[item.category] || CATEGORY_LABEL[md.category] || item.category;
 
   return (
     <TouchableOpacity style={styles.vendorCard} onPress={handlePress} activeOpacity={0.8}>
@@ -69,20 +64,22 @@ function VendorCard({ item }) {
 
         {isPlanner ? (
           <>
-            <Text style={styles.vendorSub} numberOfLines={1}>{md.region ? md.region.join(', ') : item.name}</Text>
+            <Text style={styles.vendorSub} numberOfLines={1}>
+              {md.region ? md.region.join(', ') : item.name}
+            </Text>
             <Text style={styles.vendorPrice}>{getPriceText()}</Text>
           </>
         ) : (
           <>
-            <Text style={styles.vendorSub} numberOfLines={1}>{md.district || md.region || item.district || item.region}</Text>
+            <Text style={styles.vendorSub} numberOfLines={1}>
+              {md.district || md.region || item.district || item.region}
+            </Text>
             <Text style={styles.vendorPrice}>{getPriceText()}</Text>
           </>
         )}
 
         <View style={styles.categoryChip}>
-          <Text style={styles.categoryText}>
-            {categoryLabel}
-          </Text>
+          <Text style={styles.categoryText}>{categoryLabel}</Text>
         </View>
       </View>
     </TouchableOpacity>
@@ -95,13 +92,13 @@ export default function MessageBubble({ message }) {
 
   useEffect(() => {
     if (!message.isStreaming) return;
-    const interval = setInterval(() => setShowCursor(v => !v), 500);
+    const interval = setInterval(() => setShowCursor((v) => !v), 500);
     return () => clearInterval(interval);
   }, [message.isStreaming]);
 
   const displayText = message.isStreaming
     ? (message.displayText || '') + (showCursor ? '|' : ' ')
-    : (message.displayText || '');
+    : message.displayText || '';
 
   if (isUser) {
     return (

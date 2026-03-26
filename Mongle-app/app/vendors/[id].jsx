@@ -8,7 +8,9 @@ import {
   ScrollView,
   Linking,
   Platform,
+  BackHandler,
 } from 'react-native';
+import { useState, useEffect } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -42,6 +44,20 @@ const CATEGORIES = [
 export default function VendorDetailScreen() {
   const { id } = useLocalSearchParams();
   const selectedVendor = ALL_VENDORS.find(v => v.basic_info.vendor_id === id);
+
+  useEffect(() => {
+    const handleBackPress = () => {
+      router.replace('/(couple)');
+      return true;
+    };
+
+    const subscription = BackHandler.addEventListener(
+      'hardwareBackPress',
+      handleBackPress
+    );
+
+    return () => subscription.remove();
+  }, []);
 
   const renderPrice = (item) => {
     const category = item.basic_info?.category;
@@ -179,7 +195,7 @@ export default function VendorDetailScreen() {
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.detailHeader}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backBtnWrapper}>
+        <TouchableOpacity onPress={() => router.replace('/(couple)')} style={styles.backBtnWrapper}>
           <Ionicons name="chevron-back" size={26} color="#3a2e2a" />
         </TouchableOpacity>
         <Text style={styles.detailHeaderTitle}>업체 상세 정보</Text>

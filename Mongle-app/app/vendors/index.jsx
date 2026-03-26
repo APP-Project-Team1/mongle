@@ -73,11 +73,8 @@ export default function VendorsScreen() {
 
   useEffect(() => {
     const handleBackPress = () => {
-      if (selectedVendor) {
-        setSelectedVendor(null);
-        return true;
-      }
-      return false;
+      router.replace('/(couple)');
+      return true;
     };
 
     const subscription = BackHandler.addEventListener(
@@ -304,7 +301,7 @@ export default function VendorsScreen() {
     return (
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.detailHeader}>
-          <TouchableOpacity onPress={() => setSelectedVendor(null)} style={styles.backBtnWrapper}>
+          <TouchableOpacity onPress={() => router.replace('/(couple)')} style={styles.backBtnWrapper}>
             <Ionicons name="chevron-back" size={26} color="#3a2e2a" />
           </TouchableOpacity>
           <Text style={styles.detailHeaderTitle}>업체 상세 정보</Text>
@@ -409,7 +406,7 @@ export default function VendorsScreen() {
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backBtnWrapper}>
+        <TouchableOpacity onPress={() => router.replace('/(couple)')} style={styles.backBtnWrapper}>
           <Ionicons name="chevron-back" size={24} color="#3a2e2a" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>준비 업체 찾기</Text>

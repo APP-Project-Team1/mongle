@@ -30,68 +30,32 @@ const BANNER_DATA = [
 const CATEGORY_VENDOR_DATA = {
   0: [
     // 스튜디오
-    {
-      id: 'c1-1',
-      name: '라뷰 스튜디오',
-      tag: '자연광',
-      rating: 4.9,
-      image: require('../../assets/images/studio_01.jpg'),
-    },
-    {
-      id: 'c1-2',
-      name: '모노크롬 스튜디오',
-      tag: '모던',
-      rating: 4.7,
-      image: require('../../assets/images/studio_02.jpg'),
-    },
-    {
-      id: 'c1-3',
-      name: '헬로스튜디오 강남',
-      tag: '캐주얼',
-      rating: 4.8,
-      image: require('../../assets/images/studio_03.jpg'),
-    },
-    {
-      id: 'c1-4',
-      name: '피치블라썸',
-      tag: '로맨틱',
-      rating: 4.6,
-      image: require('../../assets/images/studio_04.jpg'),
-    },
-    {
-      id: 'c1-5',
-      name: '스튜디오 어게인',
-      tag: '빈티지',
-      rating: 4.9,
-      image: require('../../assets/images/studio_05.jpg'),
-    },
-    {
-      id: 'c1-6',
-      name: '화이트무드 스튜디오',
-      tag: '미니멀',
-      rating: 4.7,
-      image: require('../../assets/images/studio_06.jpg'),
-    },
+    { id: "1426961148", name: "클레스튜디오", tag: "모던", rating: 4.5, image: "https://picsum.photos/seed/1426961148/400/300" },
+    { id: "1364569871", name: "소르아웨딩", tag: "모던", rating: 4.5, image: "https://picsum.photos/seed/1364569871/400/300" },
+    { id: "1662835744", name: "버드투 블룸스튜디오 1호점", tag: "모던", rating: 4.5, image: "https://picsum.photos/seed/1662835744/400/300" },
+    { id: "1500860601", name: "메종드힐", tag: "모던", rating: 4.5, image: "https://picsum.photos/seed/1500860601/400/300" },
+    { id: "14613533", name: "21그램", tag: "모던", rating: 4.5, image: "https://picsum.photos/seed/14613533/400/300" },
+    { id: "1847910964", name: "메리드스튜디오", tag: "모던", rating: 4.5, image: "https://picsum.photos/seed/1847910964/400/300" }
   ],
 
   1: [
     // 드레스
-    { id: 'c2-1', name: '뮤즈 드레스', tag: '머메이드', rating: 4.9, image: null },
-    { id: 'c2-2', name: '블랑쉐 브라이덜', tag: '벨라인', rating: 4.8, image: null },
-    { id: 'c2-3', name: '라플레르 드레스', tag: 'A라인', rating: 4.7, image: null },
-    { id: 'c2-4', name: '에뜨와 드레스샵', tag: '슬림핏', rating: 4.6, image: null },
-    { id: 'c2-5', name: '오뜨 브라이덜', tag: '프린세스', rating: 4.9, image: null },
-    { id: 'c2-6', name: '순백의 드레스', tag: '심플', rating: 4.7, image: null },
+    { id: "26423739", name: "황정아웨딩드레스 앤 부티크샵", tag: "모던", rating: 4.5, image: "https://picsum.photos/seed/26423739/400/300" },
+    { id: "10665200", name: "이명순웨딩드레스", tag: "모던", rating: 4.5, image: "https://picsum.photos/seed/10665200/400/300" },
+    { id: "1713506307", name: "현대웨딩드레스", tag: "모던", rating: 4.5, image: "https://picsum.photos/seed/1713506307/400/300" },
+    { id: "4971408", name: "이명순웨딩드레스", tag: "모던", rating: 4.5, image: "https://picsum.photos/seed/4971408/400/300" },
+    { id: "8350073", name: "리젠시웨딩드레스", tag: "모던", rating: 4.5, image: "https://picsum.photos/seed/8350073/400/300" },
+    { id: "1617676855", name: "리아나웨딩드레스", tag: "모던", rating: 4.5, image: "https://picsum.photos/seed/1617676855/400/300" }
   ],
 
   2: [
     // 메이크업
-    { id: 'c3-1', name: '글로우 메이크업', tag: '청순', rating: 5.0, image: null },
-    { id: 'c3-2', name: '뷰티 바이 수아', tag: '내추럴', rating: 4.9, image: null },
-    { id: 'c3-3', name: '아뜰리에 메이크업', tag: '럭셔리', rating: 4.8, image: null },
-    { id: 'c3-4', name: '루나 뷰티샵', tag: '글로시', rating: 4.7, image: null },
-    { id: 'c3-5', name: '쁘띠 메이크업', tag: '러블리', rating: 4.8, image: null },
-    { id: 'c3-6', name: '온뷰티 스튜디오', tag: '세미스모키', rating: 4.6, image: null },
+    { id: "2107233652", name: "어썸메이크업", tag: "내추럴", rating: 4.5, image: "https://picsum.photos/seed/2107233652/400/300" },
+    { id: "665872775", name: "현정메이크업", tag: "내추럴", rating: 4.5, image: "https://picsum.photos/seed/665872775/400/300" },
+    { id: "506591326", name: "조아메이크업헤어", tag: "내추럴", rating: 4.5, image: "https://picsum.photos/seed/506591326/400/300" },
+    { id: "121010473", name: "제이바이루나", tag: "모던", rating: 4.5, image: "https://picsum.photos/seed/121010473/400/300" },
+    { id: "853258195", name: "베리키트", tag: "모던", rating: 4.5, image: "https://picsum.photos/seed/853258195/400/300" },
+    { id: "2141761580", name: "에이미어블", tag: "로맨틱", rating: 4.5, image: "https://picsum.photos/seed/2141761580/400/300" }
   ],
 
   3: [
@@ -144,52 +108,16 @@ const CATEGORY_VENDOR_DATA = {
 const SUB_VENDOR_DATA = {
   0: [
     // 웨딩홀
-    {
-      id: 's1-1',
-      name: '더채플 웨딩홀',
-      tag: '채플식',
-      rating: 4.9,
-      image: require('../../assets/images/weddinghall_01.jpg'),
-    },
-    {
-      id: 's1-2',
-      name: '아펠가모 컨벤션',
-      tag: '호텔식',
-      rating: 4.8,
-      image: require('../../assets/images/weddinghall_02.jpg'),
-    },
-    {
-      id: 's1-3',
-      name: '라루체 웨딩',
-      tag: '하우스',
-      rating: 4.7,
-      image: require('../../assets/images/weddinghall_03.jpg'),
-    },
-    {
-      id: 's1-4',
-      name: '그랜드힐 컨벤션',
-      tag: '대형홀',
-      rating: 4.9,
-      image: require('../../assets/images/weddinghall_04.jpg'),
-    },
-    {
-      id: 's1-5',
-      name: '보타닉파크 웨딩',
-      tag: '가든',
-      rating: 4.8,
-      image: require('../../assets/images/weddinghall_05.jpg'),
-    },
-    {
-      id: 's1-6',
-      name: '루프탑 더웨딩',
-      tag: '루프탑',
-      rating: 4.6,
-      image: require('../../assets/images/weddinghall_06.jpg'),
-    },
+    { id: "10660163", name: "엘타워", tag: "모던", rating: 4.5, image: "https://picsum.photos/seed/10660163/400/300" },
+    { id: "1447239442", name: "엘리에나호텔 웨딩홀", tag: "모던", rating: 4.5, image: "https://picsum.photos/seed/1447239442/400/300" },
+    { id: "1992754829", name: "더채플앳논현", tag: "모던", rating: 4.5, image: "https://picsum.photos/seed/1992754829/400/300" },
+    { id: "2009675378", name: "상록아트홀", tag: "모던", rating: 4.5, image: "https://picsum.photos/seed/2009675378/400/300" },
+    { id: "23182563", name: "더채플앳 청담", tag: "모던", rating: 4.5, image: "https://picsum.photos/seed/23182563/400/300" },
+    { id: "1948333104", name: "그랜드힐컨벤션", tag: "모던", rating: 4.5, image: "https://picsum.photos/seed/1948333104/400/300" }
   ],
 
   1: [
-    // 영상·스냅
+    // 영상·스냅 (기존 데이터 유지)
     {
       id: 's2-1',
       name: '모먼트 스냅',
@@ -236,48 +164,12 @@ const SUB_VENDOR_DATA = {
 
   2: [
     // 웨딩플래너
-    {
-      id: 's3-1',
-      name: '꿈의 웨딩플래너',
-      tag: '전담',
-      rating: 5.0,
-      image: null,
-    },
-    {
-      id: 's3-2',
-      name: '플래닝 바이 지은',
-      tag: '맞춤',
-      rating: 4.9,
-      image: null,
-    },
-    {
-      id: 's3-3',
-      name: '웨딩메이드',
-      tag: '토탈관리',
-      rating: 4.8,
-      image: null,
-    },
-    {
-      id: 's3-4',
-      name: '블리스 플래너',
-      tag: '프리미엄',
-      rating: 4.7,
-      image: null,
-    },
-    {
-      id: 's3-5',
-      name: '하루플래닝',
-      tag: '소규모',
-      rating: 4.8,
-      image: null,
-    },
-    {
-      id: 's3-6',
-      name: '온리유 웨딩',
-      tag: '하이엔드',
-      rating: 4.9,
-      image: null,
-    },
+    { id: "문지안", name: "문지안", tag: "럭셔리웨딩", rating: 5, image: "https://picsum.photos/seed/planner-15/400/400" },
+    { id: "한유진", name: "한유진", tag: "야외웨딩", rating: 4.9, image: "https://picsum.photos/seed/planner-6/400/400" },
+    { id: "신하율", name: "신하율", tag: "럭셔리웨딩", rating: 4.9, image: "https://picsum.photos/seed/planner-10/400/400" },
+    { id: "강다은", name: "강다은", tag: "럭셔리웨딩", rating: 4.9, image: "https://picsum.photos/seed/planner-11/400/400" },
+    { id: "최예나", name: "최예나", tag: "럭셔리웨딩", rating: 4.9, image: "https://picsum.photos/seed/planner-24/400/400" },
+    { id: "신지우", name: "신지우", tag: "호텔웨딩", rating: 4.9, image: "https://picsum.photos/seed/planner-30/400/400" }
   ],
 };
 // ──────────────────────────────────────────────────────────
@@ -285,12 +177,32 @@ const SUB_VENDOR_DATA = {
 const CARD_WIDTH = width * 0.38;
 const MAX_VISIBLE = 5;
 
+// Persist tab state across re-mounts within the same session
+let persistedCategoryTab = 0;
+let persistedSubTab = 0;
+let persistedSearchText = '';
+
 export default function HomeScreen() {
-  const [activeCategoryTab, setActiveCategoryTab] = useState(0);
-  const [activeSubTab, setActiveSubTab] = useState(0);
+  const [activeCategoryTab, setActiveCategoryTabState] = useState(persistedCategoryTab);
+  const [activeSubTab, setActiveSubTabState] = useState(persistedSubTab);
   const [activeBanner, setActiveBanner] = useState(0);
-  const [searchText, setSearchText] = useState('');
+  const [searchText, setSearchTextState] = useState(persistedSearchText);
   const bannerRef = useRef(null);
+
+  const setActiveCategoryTab = (index) => {
+    persistedCategoryTab = index;
+    setActiveCategoryTabState(index);
+  };
+
+  const setActiveSubTab = (index) => {
+    persistedSubTab = index;
+    setActiveSubTabState(index);
+  };
+
+  const setSearchText = (text) => {
+    persistedSearchText = text;
+    setSearchTextState(text);
+  };
 
   const onBannerScroll = (e) => {
     const index = Math.round(e.nativeEvent.contentOffset.x / (width - 40));
@@ -441,7 +353,10 @@ export default function HomeScreen() {
             <VendorCard
               key={vendor.id}
               vendor={vendor}
-              onPress={() => router.push(`/vendors/${vendor.id}`)}
+              onPress={() => {
+                const route = activeSubTab === 2 ? `/planners/${vendor.id}` : `/vendors/${vendor.id}`;
+                router.push(route);
+              }}
             />
           ))}
           {subHasMore && (
@@ -477,7 +392,10 @@ function VendorCard({ vendor, onPress }) {
     <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.85}>
       <View style={styles.cardImageWrap}>
         {vendor.image != null ? (
-          <Image source={vendor.image} style={styles.cardImage} />
+          <Image
+            source={typeof vendor.image === 'string' ? { uri: vendor.image } : vendor.image}
+            style={styles.cardImage}
+          />
         ) : (
           <View style={styles.cardImagePlaceholder} />
         )}

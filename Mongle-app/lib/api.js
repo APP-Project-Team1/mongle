@@ -9,10 +9,10 @@ function getBaseUrl() {
   }
   if (Platform.OS === 'android') {
     const host = Constants.expoConfig?.hostUri?.split(':').shift();
-    return host ? `http://${host}:8001` : 'http://10.0.2.2:8001';
+    return host ? `http://${host}:8000` : 'http://10.0.2.2:8000';
   }
   const host = Constants.expoConfig?.hostUri?.split(':').shift();
-  return host ? `http://${host}:8001` : 'http://127.0.0.1:8001';
+  return host ? `http://${host}:8000` : 'http://127.0.0.1:8000';
 }
 
 const baseURL = getBaseUrl();

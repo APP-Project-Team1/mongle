@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Modal, FlatList, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useProjectStore } from '../../stores';
+import { useProjectStore } from '../stores';
 
 const ProjectSelector = () => {
   const {

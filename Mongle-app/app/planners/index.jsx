@@ -39,6 +39,10 @@ export default function PlannersScreen() {
 
   useEffect(() => {
     const handleBackPress = () => {
+      if (selectedPlanner) {
+        setSelectedPlanner(null);
+        return true;
+      }
       router.replace('/(couple)');
       return true;
     };
@@ -158,7 +162,7 @@ export default function PlannersScreen() {
     return (
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.detailHeader}>
-          <TouchableOpacity onPress={() => router.replace('/(couple)')} style={styles.backBtnWrapper}>
+          <TouchableOpacity onPress={() => setSelectedPlanner(null)} style={styles.backBtnWrapper}>
             <Ionicons name="chevron-back" size={26} color="#3a2e2a" />
           </TouchableOpacity>
           <Text style={styles.detailHeaderTitle}>플래너 프로필</Text>

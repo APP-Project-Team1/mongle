@@ -6,11 +6,13 @@ from ai.intent_parser import parse_intent
 from ai.responder import generate_recommendation
 from ai.dummy_vendors import get_vendors_by_filter
 from ai.api.rag_chat import router as rag_router
+from ai.api.budget_api import router as budget_router
 
 app = FastAPI()
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 
 app.include_router(rag_router, prefix="/api/v2", tags=["chat"])
+app.include_router(budget_router, prefix="/api/v2", tags=["budget"])
 
 class ChatRequest(BaseModel):
     message: str

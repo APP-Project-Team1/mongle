@@ -13,6 +13,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Calendar } from 'react-native-calendars';
 import { router } from 'expo-router';
+import { formatNumber, formatPrice, CATEGORY_MAP, CATEGORY_LABEL } from '../../lib/utils';
+import BudgetOptimizationModal from '../../components/budget/BudgetOptimizationModal';
 
 const { width } = Dimensions.get('window');
 
@@ -774,8 +776,8 @@ function CostEditModal({ visible, items, onClose, onSave }) {
                               {item.label || '새 항목'}
                             </Text>
                             <Text style={modalStyles.collapsedDate}>
-                              {item.value ? `${item.value}만원` : '미정'}
-                              {item.hasBalance ? ` · 잔금 ${item.balanceAmount}만원` : ''}
+                              {item.value ? `${formatNumber(item.value)}만원` : '미정'}
+                              {item.hasBalance ? ` · 잔금 ${formatNumber(item.balanceAmount)}만원` : ''}
                             </Text>
                           </View>
                           {item.warn && (
@@ -997,7 +999,7 @@ function CostEditModal({ visible, items, onClose, onSave }) {
                               item.urgent && { color: '#C9716A' },
                             ]}
                           >
-                            {item.balanceAmount ? `${item.balanceAmount}만원` : '미정'}
+                            {item.balanceAmount ? `${formatNumber(item.balanceAmount)}만원` : '미정'}
                           </Text>
                           <TouchableOpacity
                             onPress={() => {
@@ -1219,6 +1221,7 @@ export default function TimelineScreen() {
   const [costItems, setCostItems] = useState(INITIAL_COST_ITEMS);
   const [budget, setBudget] = useState('1000');
   const [costEditModalVisible, setCostEditModalVisible] = useState(false);
+  const [optimizationModalVisible, setOptimizationModalVisible] = useState(false);
 
   // timelineItems에서 달력 마킹 파생
   const markedDates = timelineItems.reduce((acc, item) => {
@@ -1267,6 +1270,26 @@ export default function TimelineScreen() {
         return da.localeCompare(db);
       }),
     );
+  };
+
+  const handleApplyPlan = (plan) => {
+    const updated = [...costItems];
+    plan.changes.forEach((change) => {
+      const idx = updated.findIndex(
+        (item) => (CATEGORY_MAP[item.label] || item.label) === change.category,
+      );
+      if (idx !== -1) {
+        updated[idx] = {
+          ...updated[idx],
+          value: change.to.price_min.toString(),
+          vendor_id: change.to.vendor_id,
+          // Flag as AI updated if needed
+          isAIUpdated: true,
+        };
+      }
+    });
+    setCostItems(updated);
+    setOptimizationModalVisible(false);
   };
 
   return (
@@ -1416,9 +1439,18 @@ export default function TimelineScreen() {
         <View style={styles.card}>
           <View style={styles.cardTitleRow}>
             <Text style={styles.cardTitle}>비용 관리</Text>
-            <TouchableOpacity style={styles.editBtn} onPress={() => setCostEditModalVisible(true)}>
-              <Text style={styles.editBtnText}>수정</Text>
-            </TouchableOpacity>
+            <View style={{ flexDirection: 'row', gap: 8 }}>
+              <TouchableOpacity
+                style={styles.aiBtn}
+                onPress={() => setOptimizationModalVisible(true)}
+              >
+                <Ionicons name="sparkles" size={12} color="#fff" />
+                <Text style={styles.aiBtnText}>AI 최적화</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.editBtn} onPress={() => setCostEditModalVisible(true)}>
+                <Text style={styles.editBtnText}>수정</Text>
+              </TouchableOpacity>
+            </View>
           </View>
           {costItems.map((item) => (
             <View key={item.id} style={styles.costRow}>
@@ -1431,13 +1463,13 @@ export default function TimelineScreen() {
                 ]}
               >
                 {item.warn ? '⚠ ' : ''}
-                {item.value ? `${item.value}만원` : '미정'}
+                {item.value ? `${formatNumber(item.value)}만원` : '미정'}
               </Text>
             </View>
           ))}
           <View style={styles.costTotalRow}>
             <Text style={styles.costTotalLabel}>현재 합계</Text>
-            <Text style={styles.costTotalValue}>{sumValues(costItems)}만원</Text>
+            <Text style={styles.costTotalValue}>{formatNumber(sumValues(costItems))}만원</Text>
           </View>
           <View style={styles.progressBar}>
             <View
@@ -1450,7 +1482,7 @@ export default function TimelineScreen() {
             />
           </View>
           <Text style={styles.progressSub}>
-            예산 {budget}만원 중 {sumValues(costItems)}만원 사용
+            예산 {formatNumber(budget)}만원 중 {formatNumber(sumValues(costItems))}만원 사용
           </Text>
         </View>
 
@@ -1470,7 +1502,7 @@ export default function TimelineScreen() {
                   <Text style={styles.balanceSub}>{formatBalanceSub(item.balanceDue)}</Text>
                 </View>
                 <Text style={[styles.balanceAmount, item.urgent && { color: '#C9716A' }]}>
-                  {item.balanceAmount ? `${item.balanceAmount}만원` : '미정'}
+                  {item.balanceAmount ? `${formatNumber(item.balanceAmount)}만원` : '미정'}
                 </Text>
               </View>
             ))}
@@ -1502,6 +1534,15 @@ export default function TimelineScreen() {
           setCostItems(updatedItems);
           setBudget(updatedBudget);
         }}
+      />
+
+      {/* AI 예산 최적화 모달 */}
+      <BudgetOptimizationModal
+        visible={optimizationModalVisible}
+        onClose={() => setOptimizationModalVisible(false)}
+        totalBudget={budget}
+        costItems={costItems}
+        onApplyPlan={handleApplyPlan}
       />
     </SafeAreaView>
   );
@@ -1833,6 +1874,20 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '500',
     color: '#C9716A',
+  },
+  aiBtn: {
+    backgroundColor: '#C9716A',
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  aiBtnText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#fff',
   },
 
   // 타임라인

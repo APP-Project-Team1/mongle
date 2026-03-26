@@ -10,11 +10,13 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 
 const CATEGORY_LABEL = {
-  studio: '스튜디오',
-  dress: '드레스',
-  makeup: '메이크업',
-  hall: '웨딩홀',
-  planner: '플래너',
+  studio:     '스튜디오',
+  dress:      '드레스',
+  makeup:     '메이크업',
+  hall:       '웨딩홀',
+  planner:    '플래너',
+  package:    '패키지',
+  video_snap: '스냅/영상',
 };
 
 function VendorCard({ item }) {

@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "WebFetch(domain:github.com)",
-      "Bash(ls \"c:/app-project/what-the-menu/Mongle-app/app/\\(couple\\)/chat/\")"
+      "Bash(ls \"c:/app-project/what-the-menu/Mongle-app/app/\\(couple\\)/chat/\")",
+      "Bash(python3 -c \":*)"
     ]
   }
 }

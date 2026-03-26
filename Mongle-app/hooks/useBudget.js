@@ -1,30 +1,26 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { budgetsApi } from '../lib/api'
 
-// 예산 조회
+// 예산 조회 (프로젝트별 첫 번째 예산)
 export const useBudget = (projectId) => {
   return useQuery({
     queryKey: ['budget', projectId],
     queryFn: async () => {
       const budgets = await budgetsApi.getBudgets(projectId)
-      // 프로젝트의 첫 번째 예산 반환 (또는 합계 계산)
       return budgets.length > 0 ? budgets[0] : { total_budget: 0, spent: 0 }
     },
     enabled: !!projectId
   })
 }
 
-// 예산 항목 조회
+// 예산 항목 조회 (projectId → 첫 번째 budget → items)
 export const useBudgetItems = (projectId) => {
   return useQuery({
     queryKey: ['budgetItems', projectId],
     queryFn: async () => {
       const budgets = await budgetsApi.getBudgets(projectId)
       if (budgets.length === 0) return []
-
-      // 첫 번째 예산의 항목들 조회
-      const budgetItems = await budgetsApi.getBudgetItems(budgets[0].id)
-      return budgetItems
+      return budgetsApi.getBudgetItems(budgets[0].id)
     },
     enabled: !!projectId
   })
@@ -35,10 +31,7 @@ export const useCreateBudget = () => {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async (budgetData) => {
-      const response = await budgetsApi.createBudget(budgetData)
-      return response
-    },
+    mutationFn: (budgetData) => budgetsApi.createBudget(budgetData),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['budget', data.project_id] })
     }
@@ -50,13 +43,14 @@ export const useCreateBudgetItem = () => {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async (itemData) => {
-      const response = await budgetsApi.createBudgetItem(itemData)
-      return response
-    },
-    onSuccess: (data) => {
-      // budget_id로 project_id를 찾아서 무효화
-      queryClient.invalidateQueries({ queryKey: ['budgetItems'] })
+    mutationFn: (itemData) => budgetsApi.createBudgetItem(itemData),
+    onSuccess: (_, variables) => {
+      // variables.project_id가 있으면 명확히 무효화, 없으면 전체
+      if (variables?.project_id) {
+        queryClient.invalidateQueries({ queryKey: ['budgetItems', variables.project_id] })
+      } else {
+        queryClient.invalidateQueries({ queryKey: ['budgetItems'] })
+      }
     }
   })
 }
@@ -66,10 +60,7 @@ export const useUpdateBudgetItem = () => {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async ({ id, ...itemData }) => {
-      const response = await budgetsApi.updateBudgetItem(id, itemData)
-      return response
-    },
+    mutationFn: ({ id, ...itemData }) => budgetsApi.updateBudgetItem(id, itemData),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['budgetItems'] })
     }
@@ -81,12 +72,9 @@ export const useDeleteBudgetItem = () => {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async (id) => {
-      await budgetsApi.deleteBudgetItem(id)
-    },
+    mutationFn: (id) => budgetsApi.deleteBudgetItem(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['budgetItems'] })
     }
   })
 }
-

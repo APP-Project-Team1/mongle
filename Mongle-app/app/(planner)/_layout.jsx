@@ -1,12 +1,9 @@
-import { View, Text } from 'react-native';
-import React from 'react';
+import { Stack } from 'expo-router';
 
-const _layout = () => {
+export default function PlannerLayout() {
   return (
-    <View>
-      <Text>_layout</Text>
-    </View>
+    <Stack screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="dashboard" />
+    </Stack>
   );
-};
-
-export default _layout;
+}

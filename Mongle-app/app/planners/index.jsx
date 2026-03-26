@@ -111,6 +111,14 @@ export default function PlannersScreen() {
     });
   };
 
+  const resetFilters = () => {
+    setSelectedFilters({
+      activity_regions: [],
+      specialties: [],
+      style_keywords: [],
+    });
+  };
+
   const renderBottomTab = () => (
     <View style={tabStyles.container}>
       <TouchableOpacity style={tabStyles.tabItem} onPress={() => router.replace('/(couple)')}>
@@ -305,17 +313,23 @@ export default function PlannersScreen() {
       {isFilterOpen && (
         <View style={styles.filterExpandedArea}>
           <View style={styles.filterKeyRow}>
-            {FILTER_KEYS.map((fk) => (
-              <TouchableOpacity
-                key={fk.id}
-                style={[styles.filterKeyBtn, activeFilterKey === fk.id && styles.filterKeyBtnActive]}
-                onPress={() => setActiveFilterKey(fk.id)}
-              >
-                <Text style={[styles.filterKeyText, activeFilterKey === fk.id && styles.filterKeyTextActive]}>
-                  {fk.label}
-                </Text>
-              </TouchableOpacity>
-            ))}
+            <View style={styles.filterKeyList}>
+              {FILTER_KEYS.map((fk) => (
+                <TouchableOpacity
+                  key={fk.id}
+                  style={[styles.filterKeyBtn, activeFilterKey === fk.id && styles.filterKeyBtnActive]}
+                  onPress={() => setActiveFilterKey(fk.id)}
+                >
+                  <Text style={[styles.filterKeyText, activeFilterKey === fk.id && styles.filterKeyTextActive]}>
+                    {fk.label}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+            <TouchableOpacity style={styles.resetBtn} onPress={resetFilters}>
+              <Ionicons name="refresh-outline" size={14} color="#8a7870" />
+              <Text style={styles.resetText}>초기화</Text>
+            </TouchableOpacity>
           </View>
           <ScrollView style={styles.filterValueArea} nestedScrollEnabled showsVerticalScrollIndicator={false}>
             <View style={styles.filterValueWrap}>
@@ -495,8 +509,29 @@ const styles = StyleSheet.create({
   },
   filterKeyRow: {
     flexDirection: 'row',
-    gap: 10,
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: 12,
+  },
+  filterKeyList: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  resetBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
+    backgroundColor: '#fff',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#e8ddd8',
+  },
+  resetText: {
+    fontSize: 11,
+    color: '#8a7870',
+    fontWeight: '500',
   },
   filterKeyBtn: {
     paddingBottom: 4,

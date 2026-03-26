@@ -15,19 +15,59 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import vendorsData from './vendors.json';
+
+// Import New Vendor Data
+import hallData from './data/hall.json';
+import studioData from './data/studio.json';
+import dressData from './data/dress.json';
+import makeupData from './data/makeup.json';
+import videoSnapData from './data/video_snap.json';
+import packageData from './data/package.json';
+
+const VENDOR_DATA_MAP = {
+  hall: hallData,
+  studio: studioData,
+  dress: dressData,
+  makeup: makeupData,
+  video_snap: videoSnapData,
+  package: packageData,
+};
 
 const CATEGORIES = [
   { id: 'hall', label: '웨딩홀', icon: 'business-outline', iconActive: 'business' },
   { id: 'studio', label: '스튜디오', icon: 'camera-outline', iconActive: 'camera' },
   { id: 'dress', label: '드레스/한복', icon: 'shirt-outline', iconActive: 'shirt' },
   { id: 'makeup', label: '메이크업', icon: 'color-palette-outline', iconActive: 'color-palette' },
+  { id: 'video_snap', label: '영상·스냅', icon: 'videocam-outline', iconActive: 'videocam' },
+  { id: 'package', label: '패키지', icon: 'cube-outline', iconActive: 'cube' },
+];
+
+const FILTER_KEYS = [
+  { id: 'district', label: '지역' },
+  { id: 'style', label: '스타일' },
+  { id: 'price', label: '가격대' },
+];
+
+const PRICE_RANGES = [
+  { label: '~100만원', min: 0, max: 1000000 },
+  { label: '100~200만원', min: 1000000, max: 2000000 },
+  { label: '200~300만원', min: 2000000, max: 3000000 },
+  { label: '300만원~', min: 3000000, max: 999999999 },
 ];
 
 export default function VendorsScreen() {
   const [searchText, setSearchText] = useState('');
   const [activeCategory, setActiveCategory] = useState('hall');
   const [selectedVendor, setSelectedVendor] = useState(null);
+
+  // Filter States
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [activeFilterKey, setActiveFilterKey] = useState('district');
+  const [selectedFilters, setSelectedFilters] = useState({
+    district: [],
+    style: [],
+    price: [],
+  });
 
   useEffect(() => {
     const handleBackPress = () => {
@@ -48,14 +88,185 @@ export default function VendorsScreen() {
     };
   }, [selectedVendor]);
 
-  const filteredVendors = useMemo(() => {
-    return vendorsData.filter((vendor) => {
-      const matchCategory = vendor.category === activeCategory;
-      const matchSearch = vendor.name.toLowerCase().includes(searchText.toLowerCase()) || 
-                          (vendor.description && vendor.description.toLowerCase().includes(searchText.toLowerCase()));
-      return matchCategory && matchSearch;
+  const filterOptions = useMemo(() => {
+    const districts = new Set();
+    const styles = new Set();
+    const currentData = VENDOR_DATA_MAP[activeCategory] || [];
+
+    currentData.forEach((v) => {
+      if (v.basic_info.district) districts.add(v.basic_info.district);
+      const styleList = v.search_filters?.style_concepts || v.content?.tags || [];
+      styleList.forEach((s) => styles.add(s));
     });
-  }, [searchText, activeCategory]);
+
+    return {
+      district: Array.from(districts).sort(),
+      style: Array.from(styles).sort(),
+      price: PRICE_RANGES.map((r) => r.label),
+    };
+  }, [activeCategory]);
+
+  const toggleFilter = (category, value) => {
+    setSelectedFilters((prev) => {
+      const currentList = prev[category];
+      if (currentList.includes(value)) {
+        return { ...prev, [category]: currentList.filter((v) => v !== value) };
+      } else {
+        return { ...prev, [category]: [...currentList, value] };
+      }
+    });
+  };
+
+  const resetFilters = () => {
+    setSelectedFilters({
+      district: [],
+      style: [],
+      price: [],
+    });
+  };
+
+  const filteredVendors = useMemo(() => {
+    const currentData = VENDOR_DATA_MAP[activeCategory] || [];
+    return currentData.filter((vendor) => {
+      // 1. Search match
+      const name = vendor.basic_info.name || '';
+      const desc = vendor.content?.short_description || '';
+      const matchSearch =
+        name.toLowerCase().includes(searchText.toLowerCase()) ||
+        desc.toLowerCase().includes(searchText.toLowerCase());
+      if (!matchSearch) return false;
+
+      // 2. District match
+      if (selectedFilters.district.length > 0) {
+        if (!selectedFilters.district.includes(vendor.basic_info.district)) return false;
+      }
+
+      // 3. Style match
+      if (selectedFilters.style.length > 0) {
+        const vendorStyles = vendor.search_filters?.style_concepts || vendor.content?.tags || [];
+        if (!selectedFilters.style.some((s) => vendorStyles.includes(s))) return false;
+      }
+
+      // 4. Price match
+      if (selectedFilters.price.length > 0) {
+        const vendorMin = vendor.pricing?.price_min || 0;
+        const vendorMax = vendor.pricing?.price_max || 999999999;
+        const matchPrice = selectedFilters.price.some((label) => {
+          const range = PRICE_RANGES.find((r) => r.label === label);
+          if (!range) return false;
+          return vendorMin < range.max && vendorMax >= range.min;
+        });
+        if (!matchPrice) return false;
+      }
+
+      return true;
+    });
+  }, [searchText, activeCategory, selectedFilters]);
+
+  const renderPrice = (item, isDetail = false) => {
+    const category = item.basic_info?.category;
+    const pricing = item.pricing;
+
+    if (!pricing) return <Text style={isDetail ? styles.priceText : styles.vendorPrice}>가격 정보 없음</Text>;
+
+    const formatMeal = (val) => `식대 ${(val / 10000).toLocaleString()}만원~`;
+    const formatRental = (val) => `대관료 ${(val / 10000).toLocaleString()}만원~`;
+    const formatRange = (min, max) => `${(min / 10000).toLocaleString()}~${(max / 10000).toLocaleString()}만원`;
+    const formatMinOnly = (min) => `${(min / 10000).toLocaleString()}만원~`;
+
+    try {
+      switch (category) {
+        case 'hall':
+        case 'wedding_hall':
+          return (
+            <View style={styles.vendorPriceContainer}>
+              {pricing.meal_price_per_person && (
+                <Text style={isDetail ? styles.priceTextSmall : styles.vendorPriceSmall}>
+                  {formatMeal(pricing.meal_price_per_person)}
+                </Text>
+              )}
+              {pricing.rental_fee_base && (
+                <Text style={isDetail ? styles.priceText : styles.vendorPrice}>
+                  {formatRental(pricing.rental_fee_base)}
+                </Text>
+              )}
+            </View>
+          );
+        case 'studio':
+        case 'video_snap':
+        case 'package':
+          if (pricing.price_min && pricing.price_max) {
+            return <Text style={isDetail ? styles.priceText : styles.vendorPrice}>{formatRange(pricing.price_min, pricing.price_max)}</Text>;
+          } else if (pricing.price_min) {
+            return <Text style={isDetail ? styles.priceText : styles.vendorPrice}>{formatMinOnly(pricing.price_min)}</Text>;
+          }
+          break;
+        case 'dress':
+          const dMin = pricing.rental_price_min || pricing.price_min || pricing.meal_price_per_person;
+          const dMax = pricing.rental_price_max || pricing.price_max;
+          if (dMin && dMax) {
+            return (
+              <View style={styles.vendorPriceContainer}>
+                <Text style={isDetail ? styles.priceText : styles.vendorPrice}>대여 {formatRange(dMin, dMax)}</Text>
+              </View>
+            );
+          } else if (dMin) {
+            return <Text style={isDetail ? styles.priceText : styles.vendorPrice}>대여 {formatMinOnly(dMin)}</Text>;
+          }
+          break;
+        case 'makeup':
+          const mPrice = pricing.bride_hair_makeup_price || pricing.price_min || pricing.meal_price_per_person;
+          if (mPrice) {
+            return <Text style={isDetail ? styles.priceText : styles.vendorPrice}>신부 {formatMinOnly(mPrice)}</Text>;
+          }
+          break;
+        default:
+          if (pricing.meal_price_per_person && pricing.rental_fee_base) {
+            return (
+              <View style={styles.vendorPriceContainer}>
+                <Text style={styles.vendorPriceSmall}>{formatMeal(pricing.meal_price_per_person)}</Text>
+                <Text style={styles.vendorPrice}>{formatRental(pricing.rental_fee_base)}</Text>
+              </View>
+            );
+          } else if (pricing.meal_price_per_person) {
+            return <Text style={styles.vendorPrice}>{formatMeal(pricing.meal_price_per_person)}</Text>;
+          } else if (pricing.price_min && pricing.price_max) {
+            return <Text style={styles.vendorPrice}>{formatRange(pricing.price_min, pricing.price_max)}</Text>;
+          } else if (pricing.price_min) {
+            return <Text style={styles.vendorPrice}>{formatMinOnly(pricing.price_min)}</Text>;
+          }
+      }
+    } catch (e) {
+      console.error('Price formatting error:', e);
+    }
+
+    return <Text style={isDetail ? styles.priceText : styles.vendorPrice}>가격 문의</Text>;
+  };
+
+  const renderDetailRow = (label, value) => {
+    if (!value) return null;
+    return (
+      <View style={styles.detailRow}>
+        <Text style={styles.detailLabel}>{label}</Text>
+        <Text style={styles.detailValue}>{Array.isArray(value) ? value.join(', ') : value}</Text>
+      </View>
+    );
+  };
+
+  const renderBulletList = (title, items, color = '#3a2e2a') => {
+    if (!items || items.length === 0) return null;
+    return (
+      <View style={styles.listSection}>
+        <Text style={styles.sectionTitle}>{title}</Text>
+        {items.map((item, idx) => (
+          <View key={idx} style={styles.bulletRow}>
+            <View style={[styles.bullet, { backgroundColor: color }]} />
+            <Text style={styles.bulletText}>{item}</Text>
+          </View>
+        ))}
+      </View>
+    );
+  };
 
   const renderBottomTab = () => (
     <View style={tabStyles.container}>
@@ -90,29 +301,29 @@ export default function VendorsScreen() {
         </View>
 
         <ScrollView style={styles.detailContent} showsVerticalScrollIndicator={false}>
-          <Image 
-            source={{ uri: `https://picsum.photos/seed/${selectedVendor.kakao_id}/800/500` }} 
-            style={styles.detailMainImage} 
+          <Image
+            source={{ uri: selectedVendor.content?.thumbnail_url?.startsWith('//') ? `https:${selectedVendor.content.thumbnail_url}` : (selectedVendor.content?.thumbnail_url || `https://picsum.photos/seed/${selectedVendor.basic_info.vendor_id}/800/500`) }}
+            style={styles.detailMainImage}
           />
-          
+
           <View style={styles.detailBody}>
             <View style={styles.detailTitleRow}>
               <View style={{ flex: 1 }}>
-                <Text style={styles.detailCategoryText}>{CATEGORIES.find(c => c.id === selectedVendor.category)?.label}</Text>
-                <Text style={styles.detailName}>{selectedVendor.name}</Text>
+                <Text style={styles.detailCategoryText}>{CATEGORIES.find(c => c.id === selectedVendor.basic_info.category)?.label}</Text>
+                <Text style={styles.detailName}>{selectedVendor.basic_info.name}</Text>
               </View>
-              {selectedVendor.rating && (
+              {(selectedVendor.basic_info.rating || selectedVendor.content?.rating_info?.rating_avg) && (
                 <View style={styles.detailRatingChip}>
                   <Ionicons name="star" size={14} color="#f0b452" />
-                  <Text style={styles.detailRatingValue}>{selectedVendor.rating}</Text>
+                  <Text style={styles.detailRatingValue}>{selectedVendor.basic_info.rating || selectedVendor.content.rating_info.rating_avg}</Text>
                 </View>
               )}
             </View>
 
-            <Text style={styles.detailDescription}>{selectedVendor.description}</Text>
+            <Text style={styles.detailDescription}>{selectedVendor.content?.short_description}</Text>
 
             <View style={styles.tagRow}>
-              {selectedVendor.style && selectedVendor.style.map((s, idx) => (
+              {selectedVendor.content?.tags && selectedVendor.content.tags.map((s, idx) => (
                 <View key={idx} style={styles.styleTag}>
                   <Text style={styles.styleTagText}>#{s}</Text>
                 </View>
@@ -122,36 +333,59 @@ export default function VendorsScreen() {
             <View style={styles.infoSection}>
               <View style={styles.infoRow}>
                 <Ionicons name="location-outline" size={20} color="#8a7870" />
-                <Text style={styles.infoText}>{selectedVendor.region}</Text>
+                <Text style={styles.infoText}>{selectedVendor.basic_info.address || selectedVendor.basic_info.region}</Text>
               </View>
-              {selectedVendor.phone && (
-                <TouchableOpacity style={styles.infoRow} onPress={() => Linking.openURL(`tel:${selectedVendor.phone}`)}>
+              {selectedVendor.basic_info.phone && (
+                <TouchableOpacity style={styles.infoRow} onPress={() => Linking.openURL(`tel:${selectedVendor.basic_info.phone}`)}>
                   <Ionicons name="call-outline" size={20} color="#8a7870" />
-                  <Text style={[styles.infoText, { color: '#007AFF' }]}>{selectedVendor.phone}</Text>
+                  <Text style={[styles.infoText, { color: '#007AFF' }]}>{selectedVendor.basic_info.phone}</Text>
                 </TouchableOpacity>
               )}
-              {selectedVendor.url && (
-                <TouchableOpacity style={styles.infoRow} onPress={() => Linking.openURL(selectedVendor.url)}>
+              {selectedVendor.basic_info.website_url && (
+                <TouchableOpacity style={styles.infoRow} onPress={() => Linking.openURL(selectedVendor.basic_info.website_url)}>
                   <Ionicons name="globe-outline" size={20} color="#8a7870" />
-                  <Text style={[styles.infoText, { color: '#007AFF' }]} numberOfLines={1}>{selectedVendor.url}</Text>
+                  <Text style={[styles.infoText, { color: '#007AFF' }]} numberOfLines={1}>{selectedVendor.basic_info.website_url}</Text>
                 </TouchableOpacity>
               )}
             </View>
 
             <View style={styles.priceSection}>
               <Text style={styles.sectionTitle}>예상 가격대</Text>
-              <Text style={styles.priceText}>
-                {selectedVendor.price_min}만원 ~ {selectedVendor.price_max}만원
-              </Text>
-              <Text style={styles.priceSubText}>* 실제 견적은 상담 내용에 따라 다를 수 있습니다.</Text>
+              {renderPrice(selectedVendor, true)}
+              <Text style={styles.priceSubText}>* {selectedVendor.pricing?.price_note || '실제 견적은 상담 내용에 따라 다를 수 있습니다.'}</Text>
             </View>
+
+            {/* Detailed Info */}
+            <View style={styles.divider} />
+            <View style={styles.detailInfoSection}>
+              <Text style={styles.sectionTitle}>상세 정보</Text>
+              {renderDetailRow('홀 종류', selectedVendor.details?.hall_type)}
+              {renderDetailRow('홀 개수', selectedVendor.details?.hall_count ? `${selectedVendor.details.hall_count}개` : null)}
+              {renderDetailRow('예식 시간', selectedVendor.details?.ceremony_time_minutes ? `${selectedVendor.details.ceremony_time_minutes}분` : null)}
+              {renderDetailRow('식사 형태', selectedVendor.details?.meal_type)}
+              {renderDetailRow('식사 메모', selectedVendor.details?.meal_note)}
+              {renderDetailRow('촬영 톤', selectedVendor.details?.shoot_tones)}
+              {renderDetailRow('실내 촬영', selectedVendor.details?.indoor_shoot ? '가능' : null)}
+              {renderDetailRow('실외 촬영', selectedVendor.details?.outdoor_shoot ? '가능' : null)}
+              {renderDetailRow('드레스 스타일', selectedVendor.details?.dress_style)}
+              {renderDetailRow('피팅 가능', selectedVendor.details?.fittings_available ? '가능' : null)}
+            </View>
+
+            {/* Specialties & Recommendations */}
+            {renderBulletList('업체 특징', selectedVendor.details?.specialties, '#c9a98e')}
+            {renderBulletList('추천 대상', selectedVendor.details?.recommended_for, '#8a7870')}
+
+            {/* Review Summary */}
+            <View style={styles.divider} />
+            {renderBulletList('긍정적인 포인트', selectedVendor.content?.review_summary_positive, '#4CAF50')}
+            {renderBulletList('주의할 포인트', selectedVendor.content?.review_summary_negative, '#F44336')}
           </View>
-          
+
           <View style={{ height: 40 }} />
         </ScrollView>
 
         <View style={styles.ctaBottom}>
-          <TouchableOpacity style={styles.ctaButton} onPress={() => {}}>
+          <TouchableOpacity style={styles.ctaButton} onPress={() => { }}>
             <Text style={styles.ctaButtonText}>상담 예약하기</Text>
           </TouchableOpacity>
         </View>
@@ -171,67 +405,147 @@ export default function VendorsScreen() {
         <View style={{ width: 24 }} />
       </View>
 
-      <View style={styles.searchWrap}>
-        <View style={styles.searchBar}>
-          <Ionicons name="search-outline" size={18} color="#B9B4B4" />
-          <TextInput
-            style={styles.searchInput}
-            placeholder="업체명 또는 설명으로 검색"
-            placeholderTextColor="#B9B4B4"
-            value={searchText}
-            onChangeText={setSearchText}
-          />
-        </View>
-      </View>
-
-      <View style={styles.categoryContainer}>
-        {CATEGORIES.map((cat) => (
-          <TouchableOpacity
-            key={cat.id}
-            style={[styles.categoryBtn, activeCategory === cat.id && styles.categoryBtnActive]}
-            onPress={() => setActiveCategory(cat.id)}
-          >
-            <Ionicons 
-              name={activeCategory === cat.id ? cat.iconActive : cat.icon} 
-              size={22} 
-              color={activeCategory === cat.id ? "#fff" : "#8a7870"} 
-            />
-            <Text style={[styles.categoryLabel, activeCategory === cat.id && styles.categoryLabelActive]}>
-              {cat.label}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-
       <FlatList
         data={filteredVendors}
-        keyExtractor={(item) => item.kakao_id}
+        keyExtractor={(item) => item.basic_info.vendor_id}
         contentContainerStyle={styles.listContainer}
         showsVerticalScrollIndicator={false}
+        ListHeaderComponent={
+          <>
+            <View style={styles.searchWrap}>
+              <View style={styles.searchBar}>
+                <Ionicons name="search-outline" size={18} color="#B9B4B4" />
+                <TextInput
+                  style={styles.searchInput}
+                  placeholder="업체명 또는 설명으로 검색"
+                  placeholderTextColor="#B9B4B4"
+                  value={searchText}
+                  onChangeText={setSearchText}
+                />
+              </View>
+            </View>
+
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              style={styles.categoryContainer}
+              contentContainerStyle={styles.categoryContent}
+              snapToInterval={100} // width(88) + gap(12)
+              decelerationRate="fast"
+            >
+              {CATEGORIES.map((cat) => (
+                <TouchableOpacity
+                  key={cat.id}
+                  style={[styles.categoryBtn, activeCategory === cat.id && styles.categoryBtnActive]}
+                  onPress={() => setActiveCategory(cat.id)}
+                >
+                  <Ionicons
+                    name={activeCategory === cat.id ? cat.iconActive : cat.icon}
+                    size={22}
+                    color={activeCategory === cat.id ? "#fff" : "#8a7870"}
+                  />
+                  <Text style={[styles.categoryLabel, activeCategory === cat.id && styles.categoryLabelActive]}>
+                    {cat.label}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+
+            <View style={styles.filterTopRow}>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.activeFilterScroll}>
+                {Object.entries(selectedFilters).every(([_, list]) => list.length === 0) ? (
+                  <Text style={styles.emptyFilterText}>조건을 선택하여 딱 맞는 업체를 찾아보세요.</Text>
+                ) : (
+                  Object.entries(selectedFilters).map(([cat, list]) =>
+                    list.map((val, idx) => (
+                      <TouchableOpacity
+                        key={`${cat}-${idx}`}
+                        style={styles.activeChip}
+                        onPress={() => toggleFilter(cat, val)}
+                      >
+                        <Text style={styles.activeChipText}>{val}</Text>
+                        <Ionicons name="close" size={14} color="#fff" />
+                      </TouchableOpacity>
+                    ))
+                  )
+                )}
+              </ScrollView>
+              <TouchableOpacity
+                style={styles.filterToggleButton}
+                onPress={() => setIsFilterOpen(!isFilterOpen)}
+                activeOpacity={0.7}
+              >
+                <Ionicons name="options" size={20} color={isFilterOpen ? "#c9a98e" : "#8a7870"} />
+              </TouchableOpacity>
+            </View>
+
+            {isFilterOpen && (
+              <View style={styles.filterExpandedArea}>
+                <View style={styles.filterKeyRow}>
+                  <View style={styles.filterKeyList}>
+                    {FILTER_KEYS.map((fk) => (
+                      <TouchableOpacity
+                        key={fk.id}
+                        style={[styles.filterKeyBtn, activeFilterKey === fk.id && styles.filterKeyBtnActive]}
+                        onPress={() => setActiveFilterKey(fk.id)}
+                      >
+                        <Text style={[styles.filterKeyText, activeFilterKey === fk.id && styles.filterKeyTextActive]}>
+                          {fk.label}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                  <TouchableOpacity style={styles.resetBtn} onPress={resetFilters}>
+                    <Ionicons name="refresh-outline" size={14} color="#8a7870" />
+                    <Text style={styles.resetText}>초기화</Text>
+                  </TouchableOpacity>
+                </View>
+                <ScrollView style={styles.filterValueArea} nestedScrollEnabled showsVerticalScrollIndicator={false}>
+                  <View style={styles.filterValueWrap}>
+                    {filterOptions[activeFilterKey].map((val) => {
+                      const isSelected = selectedFilters[activeFilterKey].includes(val);
+                      return (
+                        <TouchableOpacity
+                          key={val}
+                          style={[styles.filterValueChip, isSelected && styles.filterValueChipActive]}
+                          onPress={() => toggleFilter(activeFilterKey, val)}
+                        >
+                          <Text style={[styles.filterValueText, isSelected && styles.filterValueTextActive]}>
+                            {val}
+                          </Text>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </View>
+                </ScrollView>
+              </View>
+            )}
+          </>
+        }
         renderItem={({ item }) => (
-          <TouchableOpacity 
-            style={styles.vendorCard} 
+          <TouchableOpacity
+            style={styles.vendorCard}
             onPress={() => setSelectedVendor(item)}
             activeOpacity={0.8}
           >
-            <Image 
-              source={{ uri: `https://picsum.photos/seed/${item.kakao_id}/300/200` }} 
-              style={styles.cardImg} 
+            <Image
+              source={{ uri: item.content?.thumbnail_url?.startsWith('//') ? `https:${item.content.thumbnail_url}` : (item.content?.thumbnail_url || `https://picsum.photos/seed/${item.basic_info.vendor_id}/300/200`) }}
+              style={styles.cardImg}
             />
             <View style={styles.cardInfo}>
               <View style={styles.cardHeader}>
-                <Text style={styles.vendorName} numberOfLines={1}>{item.name}</Text>
-                {item.rating && (
+                <Text style={styles.vendorName} numberOfLines={1}>{item.basic_info.name}</Text>
+                {(item.basic_info.rating || item.content?.rating_info?.rating_avg) && (
                   <View style={styles.ratingRow}>
                     <Ionicons name="star" size={12} color="#f0b452" />
-                    <Text style={styles.ratingText}>{item.rating}</Text>
+                    <Text style={styles.ratingText}>{item.basic_info.rating || item.content.rating_info.rating_avg}</Text>
                   </View>
                 )}
               </View>
-              <Text style={styles.vendorDesc} numberOfLines={2}>{item.description}</Text>
+              <Text style={styles.vendorDesc} numberOfLines={2}>{item.content?.short_description}</Text>
               <View style={styles.vendorFooter}>
-                <Text style={styles.vendorLocation}>{item.district || item.region.split(' ')[1]}</Text>
-                <Text style={styles.vendorPrice}>{item.price_min}~{item.price_max}만원</Text>
+                <Text style={styles.vendorLocation}>{item.basic_info.district || item.basic_info.region}</Text>
+                {renderPrice(item)}
               </View>
             </View>
           </TouchableOpacity>
@@ -313,30 +627,169 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
   categoryContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
+    height: 90,
     marginBottom: 15,
+  },
+  categoryContent: {
+    paddingHorizontal: 20,
+    gap: 12,
+    alignItems: 'center',
   },
   categoryBtn: {
     alignItems: 'center',
     justifyContent: 'center',
-    width: '23%',
-    paddingVertical: 10,
-    backgroundColor: '#f6f3f0',
-    borderRadius: 12,
+    width: 88,
+    height: 72,
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#f0e8e4',
+    // Subtle shadow for premium feel
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.05,
+        shadowRadius: 4,
+      },
+      android: {
+        elevation: 2,
+      },
+    }),
   },
   categoryBtnActive: {
     backgroundColor: '#c9a98e',
+    borderColor: '#c9a98e',
+    elevation: 4,
+    shadowOpacity: 0.2,
   },
   categoryLabel: {
-    fontSize: 10,
+    fontSize: 12,
     color: '#8a7870',
-    marginTop: 4,
+    marginTop: 6,
     fontWeight: '600',
   },
   categoryLabelActive: {
     color: '#fff',
+  },
+  filterTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    marginBottom: 10,
+  },
+  activeFilterScroll: {
+    flex: 1,
+    marginRight: 10,
+  },
+  emptyFilterText: {
+    fontSize: 13,
+    color: '#a09a98',
+    alignSelf: 'center',
+    marginTop: 5,
+  },
+  activeChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#8a7870',
+    borderRadius: 20,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    marginRight: 8,
+    gap: 4,
+  },
+  activeChipText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  filterToggleButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#f6f3f0',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  filterExpandedArea: {
+    backgroundColor: '#faf5f2',
+    borderTopWidth: 1,
+    borderBottomWidth: 1,
+    borderColor: '#f0e8e4',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    marginBottom: 10,
+  },
+  filterKeyRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  filterKeyList: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  resetBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
+    backgroundColor: '#fff',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#e8ddd8',
+  },
+  resetText: {
+    fontSize: 11,
+    color: '#8a7870',
+    fontWeight: '500',
+  },
+  filterKeyBtn: {
+    paddingBottom: 4,
+    borderBottomWidth: 2,
+    borderBottomColor: 'transparent',
+  },
+  filterKeyBtnActive: {
+    borderBottomColor: '#c9a98e',
+  },
+  filterKeyText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#8a7870',
+  },
+  filterKeyTextActive: {
+    color: '#3a2e2a',
+    fontWeight: '700',
+  },
+  filterValueArea: {
+    maxHeight: 120,
+  },
+  filterValueWrap: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  filterValueChip: {
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#e8ddd8',
+    borderRadius: 20,
+    paddingVertical: 6,
+    paddingHorizontal: 16,
+  },
+  filterValueChipActive: {
+    backgroundColor: '#c9a98e',
+    borderColor: '#c9a98e',
+  },
+  filterValueText: {
+    fontSize: 13,
+    color: '#8a7870',
+  },
+  filterValueTextActive: {
+    color: '#fff',
+    fontWeight: '600',
   },
   listContainer: {
     paddingHorizontal: 20,
@@ -407,6 +860,21 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '700',
     color: '#e87070',
+  },
+  vendorPriceContainer: {
+    alignItems: 'flex-end',
+  },
+  vendorPriceSmall: {
+    fontSize: 11,
+    color: '#8a7870',
+    fontWeight: '400',
+    marginBottom: 2,
+  },
+  priceTextSmall: {
+    fontSize: 14,
+    color: '#8a7870',
+    fontWeight: '500',
+    marginBottom: 4,
   },
   emptyContainer: {
     alignItems: 'center',
@@ -532,6 +1000,55 @@ const styles = StyleSheet.create({
   priceSubText: {
     fontSize: 12,
     color: '#a09a98',
+  },
+  divider: {
+    height: 1,
+    backgroundColor: '#f0e8e4',
+    marginVertical: 20,
+  },
+  detailInfoSection: {
+    marginBottom: 20,
+  },
+  detailRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f9f7f5',
+  },
+  detailLabel: {
+    fontSize: 14,
+    color: '#8a7870',
+    flex: 1,
+  },
+  detailValue: {
+    fontSize: 14,
+    color: '#3a2e2a',
+    fontWeight: '500',
+    flex: 2,
+    textAlign: 'right',
+  },
+  listSection: {
+    marginBottom: 24,
+  },
+  bulletRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: 8,
+    paddingRight: 10,
+  },
+  bullet: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    marginTop: 7,
+    marginRight: 10,
+  },
+  bulletText: {
+    fontSize: 14,
+    color: '#555050',
+    lineHeight: 20,
+    flex: 1,
   },
   ctaBottom: {
     paddingHorizontal: 20,

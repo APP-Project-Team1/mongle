@@ -20,20 +20,44 @@ const CATEGORY_LABEL = {
 };
 
 function VendorCard({ item }) {
-  const isPlanner = !!item.brand_name;
+  const isPlanner = item.category === 'planner';
+  const md = item.metadata || {};
 
   const handlePress = () => {
-    if (item.url) {
-      // 외부 링크 (카카오맵 등) - 향후 Linking.openURL로 연결 가능
+    if (item.source_id) {
+      if (isPlanner) {
+        router.push(`/planners/${item.source_id}`);
+      } else {
+        router.push(`/vendors/${item.source_id}`);
+      }
+    } else if (item.url) {
+      // 혹시 V1 모의 데이터 url이 있다면
     }
   };
+
+  const getPriceText = () => {
+    if (isPlanner) {
+      return md.price ? `기본 ${(md.price / 10000).toFixed(0)}만원` : '가격 문의';
+    } else {
+      const pl = md.price_level;
+      if (pl === 'premium') return '프리미엄';
+      if (pl === 'high') return '고급';
+      if (pl === 'mid_high') return '중고급';
+      if (pl === 'mid') return '중급';
+      if (pl === 'low') return '가성비';
+      if (item.price_min != null) return `${item.price_min}~${item.price_max}만원`;
+      return '가격 문의';
+    }
+  };
+
+  const categoryLabel = CATEGORY_LABEL[item.category] || CATEGORY_LABEL[md.category] || item.category;
 
   return (
     <TouchableOpacity style={styles.vendorCard} onPress={handlePress} activeOpacity={0.8}>
       <View style={styles.vendorCardInner}>
         <View style={styles.vendorRow}>
           <Text style={styles.vendorName} numberOfLines={1}>
-            {isPlanner ? item.brand_name : item.name}
+            {item.title || item.brand_name || item.name}
           </Text>
           {item.rating != null && (
             <View style={styles.ratingRow}>
@@ -45,27 +69,19 @@ function VendorCard({ item }) {
 
         {isPlanner ? (
           <>
-            <Text style={styles.vendorSub} numberOfLines={1}>{item.name}</Text>
-            <Text style={styles.vendorPrice}>
-              {item.base_price_krw
-                ? `기본 ${(item.base_price_krw / 10000).toFixed(0)}만원`
-                : '가격 문의'}
-            </Text>
+            <Text style={styles.vendorSub} numberOfLines={1}>{md.region ? md.region.join(', ') : item.name}</Text>
+            <Text style={styles.vendorPrice}>{getPriceText()}</Text>
           </>
         ) : (
           <>
-            <Text style={styles.vendorSub} numberOfLines={1}>{item.district || item.region}</Text>
-            <Text style={styles.vendorPrice}>
-              {item.price_min != null
-                ? `${item.price_min}~${item.price_max}만원`
-                : '가격 문의'}
-            </Text>
+            <Text style={styles.vendorSub} numberOfLines={1}>{md.district || md.region || item.district || item.region}</Text>
+            <Text style={styles.vendorPrice}>{getPriceText()}</Text>
           </>
         )}
 
         <View style={styles.categoryChip}>
           <Text style={styles.categoryText}>
-            {CATEGORY_LABEL[item.category] || (isPlanner ? '플래너' : item.category)}
+            {categoryLabel}
           </Text>
         </View>
       </View>

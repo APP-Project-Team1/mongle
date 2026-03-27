@@ -243,7 +243,7 @@ export default function HomeScreen() {
           {categoryHasMore && (
             <TouchableOpacity
               style={styles.moreCard}
-              onPress={() => router.push(`/vendors?category=${CATEGORY_IDS[activeCategoryTab]}`)}
+              onPress={() => router.push(`/vendors?category=${CATEGORY_IDS[catIdx]}`)}
               activeOpacity={0.8}
             >
               <View style={styles.moreCardInner}>
@@ -296,7 +296,7 @@ export default function HomeScreen() {
                 if (subIdx === 2) {
                   router.push('/planners');
                 } else {
-                  router.push(`/vendors?category=${SUB_IDS[activeSubTab]}`);
+                  router.push(`/vendors?category=${SUB_IDS[subIdx]}`);
                 }
               }}
               activeOpacity={0.8}

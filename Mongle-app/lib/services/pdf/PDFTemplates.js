@@ -17,12 +17,12 @@ export const PDFTemplates = {
       generatedAt 
     } = data;
 
-    const categoryRows = categories.map(cat => `
+    const categoryRows = (categories || []).map(cat => `
       <tr>
-        <td>${cat.title}</td>
-        <td style="text-align: right;">${cat.budget.toLocaleString()}원</td>
-        <td style="text-align: right;">${cat.spent.toLocaleString()}원</td>
-        <td style="text-align: right;">${(cat.budget - cat.spent).toLocaleString()}원</td>
+        <td>${cat.title || '항목'}</td>
+        <td style="text-align: right;">${(cat.budget || 0).toLocaleString()}원</td>
+        <td style="text-align: right;">${(cat.spent || 0).toLocaleString()}원</td>
+        <td style="text-align: right;">${((cat.budget || 0) - (cat.spent || 0)).toLocaleString()}원</td>
       </tr>
     `).join('');
 
@@ -56,15 +56,15 @@ export const PDFTemplates = {
         <div class="summary-grid">
           <div class="summary-card">
             <p class="card-label">총 예산</p>
-            <p class="card-value">${totalBudget.toLocaleString()}원</p>
+            <p class="card-value">${(totalBudget || 0).toLocaleString()}원</p>
           </div>
           <div class="summary-card">
             <p class="card-label">현재 지출</p>
-            <p class="card-value">${spentAmount.toLocaleString()}원</p>
+            <p class="card-value">${(spentAmount || 0).toLocaleString()}원</p>
           </div>
           <div class="summary-card">
             <p class="card-label">남은 예산</p>
-            <p class="card-value">${remainingBudget.toLocaleString()}원</p>
+            <p class="card-value">${(remainingBudget || 0).toLocaleString()}원</p>
           </div>
         </div>
 
@@ -98,23 +98,23 @@ export const PDFTemplates = {
   getComparisonReportHTML(analysisResult) {
     const { items, summary } = analysisResult;
     
-    const vendorColumns = items.map(item => `
+    const vendorColumns = (items || []).map(item => `
       <div class="vendor-card">
         <div class="vendor-header">
-          <div class="vendor-badge">${item.realCost <= analysisResult.userBudget ? '예산 내' : '예산 초과'}</div>
-          <p class="vendor-name">${item.vendorName}</p>
-          <p class="vendor-price">${item.realCost.toLocaleString()}원</p>
+          <div class="vendor-badge">${(item.realCost || 0) <= (analysisResult.userBudget || 0) ? '예산 내' : '예산 초과'}</div>
+          <p class="vendor-name">${item.vendorName || '업체명 없음'}</p>
+          <p class="vendor-price">${(item.realCost || 0).toLocaleString()}원</p>
         </div>
         <div class="vendor-section">
           <p class="section-title">주요 포함 항목</p>
           <ul class="item-list">
-            ${item.includedItems.map(i => `<li>${i}</li>`).join('')}
+            ${(item.includedItems || []).map(i => `<li>${i}</li>`).join('')}
           </ul>
         </div>
         <div class="vendor-section">
           <p class="section-title">주의사항</p>
           <ul class="item-list warning">
-            ${item.excludedItems.map(i => `<li>${i}</li>`).join('')}
+            ${(item.excludedItems || []).map(i => `<li>${i}</li>`).join('')}
             ${item.vatIncluded ? '' : '<li>VAT 10% 별도</li>'}
           </ul>
         </div>
@@ -151,7 +151,7 @@ export const PDFTemplates = {
         </div>
         <div class="recommendation">
           <h3>Mongle's Recommendation</h3>
-          <p>종합 분석 결과, <strong>${summary.bestValue.vendorName}</strong> 업체가 구성 대비 가장 합리적인 가격을 제안하고 있습니다.</p>
+          <p>종합 분석 결과, <strong>${(summary && summary.bestValue) ? summary.bestValue.vendorName : '분석 진행 중'}</strong> 업체가 구성 대비 가장 합리적인 가격을 제안하고 있습니다.</p>
         </div>
       </body>
       </html>

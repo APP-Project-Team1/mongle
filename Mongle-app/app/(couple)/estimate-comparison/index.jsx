@@ -90,10 +90,8 @@ export default function EstimateComparisonScreen() {
   const runAnalysis = async (files) => {
     setLoading(true);
     try {
-      // Step A: Parse each PDF (Mocked)
-      const parsedItems = await Promise.all(
-        files.map(file => EstimationParser.parsePdf(file.uri, file.name))
-      );
+      // Step A: Parse Files using AI
+      const parsedItems = await EstimationParser.parseFiles(files);
 
       // Step B: Compare and Analyze
       const analysis = ComparisonEngine.analyze(parsedItems, userBudget);
@@ -165,6 +163,13 @@ export default function EstimateComparisonScreen() {
                 <Ionicons name="images-outline" size={20} color="#fff" style={{marginRight: 8}} />
                 <Text style={styles.pickBtnText}>사진첩에서 선택</Text>
               </TouchableOpacity>
+            </View>
+
+            <View style={styles.tipBox}>
+              <Ionicons name="bulb-outline" size={16} color="#B8A9A5" />
+              <Text style={styles.tipText}>
+                Tip: 견적서 내용을 정면에서 밝게 찍어주시면 AI가 더 정확하게 분석할 수 있어요!
+              </Text>
             </View>
           </View>
         ) : (
@@ -300,5 +305,25 @@ const styles = StyleSheet.create({
     justifyContent: 'center', 
     alignItems: 'center' 
   },
-  mainSaveBtnText: { color: '#fff', fontSize: 16, fontWeight: '700' }
+  mainSaveBtnText: { color: '#fff', fontSize: 16, fontWeight: '700' },
+  
+  // Tip Box
+  tipBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F9F7F6',
+    padding: 12,
+    borderRadius: 10,
+    marginTop: 30,
+    marginHorizontal: 20,
+    gap: 8,
+    borderWidth: 1,
+    borderColor: '#F0E8E4',
+  },
+  tipText: {
+    fontSize: 12,
+    color: '#8A7870',
+    flex: 1,
+    lineHeight: 18,
+  },
 });

@@ -13,16 +13,36 @@ export const ComparisonEngine = {
 
     // 1. Calculate Estimated Real Cost (Total + Options + Hidden - Discount)
     const processedItems = estimates.map((item, index) => {
-      const realCost = item.totalPrice + item.optionsPrice - item.discountPrice + (item.vatIncluded ? 0 : item.totalPrice * 0.1);
+      // Default missing values to 0 or appropriate types
+      const totalPrice = Number(item.totalPrice) || 0;
+      const optionsPrice = Number(item.optionsPrice) || 0;
+      const discountPrice = Number(item.discountPrice) || 0;
+      const vatIncluded = !!item.vatIncluded;
+      const includedItems = Array.isArray(item.includedItems) ? item.includedItems : [];
+      const excludedItems = Array.isArray(item.excludedItems) ? item.excludedItems : [];
+      const refundPolicy = item.refundPolicy || '정보 없음';
+
+      const safeItem = {
+        ...item,
+        totalPrice,
+        optionsPrice,
+        discountPrice,
+        vatIncluded,
+        includedItems,
+        excludedItems,
+        refundPolicy
+      };
+
+      const realCost = totalPrice + optionsPrice - discountPrice + (vatIncluded ? 0 : totalPrice * 0.1);
       
       return {
-        ...item,
+        ...safeItem,
         id: `est-${index}-${Date.now()}`,
         realCost,
         budgetFit: userBudget ? (userBudget - realCost) : 0,
-        riskScore: this.calculateRiskScore(item),
-        completenessScore: this.calculateCompletenessScore(item),
-        valueScore: this.calculateValueScore(item, realCost)
+        riskScore: this.calculateRiskScore(safeItem),
+        completenessScore: this.calculateCompletenessScore(safeItem),
+        valueScore: this.calculateValueScore(safeItem, realCost)
       };
     });
 
@@ -78,8 +98,8 @@ export const ComparisonEngine = {
   getPros(item) {
     const pros = [];
     if (item.vatIncluded) pros.push("VAT 포함 견적 (투명성 높음)");
-    if (item.discountPrice > 0) pros.push(`상당한 할인 혜택 (${item.discountPrice.toLocaleString()}원)`);
-    if (item.includedItems.length > 5) pros.push("기본 포함 품목이 매우 다양함");
+    if (item.discountPrice > 0) pros.push(`상당한 할인 혜택 (${(item.discountPrice || 0).toLocaleString()}원)`);
+    if ((item.includedItems || []).length > 5) pros.push("기본 포함 품목이 매우 다양함");
     if (item.rawFilesIncluded) pros.push("원본 데이터 기본 제공");
     if (item.refundPolicy.includes('100%')) pros.push("환불 규정이 소비자에게 유리");
     

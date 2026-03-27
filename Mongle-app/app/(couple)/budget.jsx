@@ -13,7 +13,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { formatNumber } from '../../lib/utils';
+import { formatNumber, CATEGORY_MAP, CATEGORY_LABEL } from '../../lib/utils';
 import BudgetOptimizationModal from '../../components/budget/BudgetOptimizationModal';
 import { PDFService } from '../../lib/services/pdf/PDFService';
 import { Alert } from 'react-native';
@@ -282,15 +282,32 @@ export default function BudgetHubScreen() {
         totalBudget={budget}
         costItems={costItems}
         onApplyPlan={(plan) => {
-            const updated = [...costItems];
-            plan.changes.forEach((change) => {
-              const idx = updated.findIndex((item) => item.label === change.category);
-              if (idx !== -1) {
-                updated[idx] = { ...updated[idx], value: change.to.price_min.toString() };
+            const updated = costItems.map(item => {
+              // Normalize for comparison
+              const itemLabel = (item.label || '').normalize('NFC').trim();
+              const itemKey = (CATEGORY_MAP[itemLabel] || itemLabel).toLowerCase();
+              
+              const change = plan.changes.find(c => {
+                const changeCat = (c.category || '').normalize('NFC').trim().toLowerCase();
+                // Map back to label then to key just in case
+                const mappedLabel = (CATEGORY_LABEL[changeCat] || changeCat).normalize('NFC').trim();
+                const mappedKey = (CATEGORY_MAP[mappedLabel] || mappedLabel).toLowerCase();
+                
+                return changeCat === itemKey || mappedKey === itemKey;
+              });
+              
+              if (change) {
+                return { ...item, value: change.to.price_min.toString() };
               }
+              return item;
             });
+
             setCostItems(updated);
+            if (plan.finalTotal) {
+              setBudget(plan.finalTotal.toString());
+            }
             setOptimizationModalVisible(false);
+            Alert.alert('알림', 'AI 추천 플랜이 성공적으로 적용되었습니다.');
         }}
       />
     </SafeAreaView>

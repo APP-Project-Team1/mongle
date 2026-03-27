@@ -15,21 +15,32 @@ import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import LottieView from 'lottie-react-native';
+import { signIn } from '../../lib/auth'; // ← Supabase Auth 함수
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isPlanner, setIsPlanner] = useState(false);
   const [showPw, setShowPw] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [modalMessage, setModalMessage] = useState('');
+
+  const showAlert = (message) => {
+    setModalMessage(message);
+    setModalVisible(true);
+  };
+
   const renderBottomTab = () => (
     <View style={tabStyles.container}>
       <TouchableOpacity style={tabStyles.tabItem} onPress={() => router.replace('/(couple)')}>
         <Ionicons name="home-outline" size={24} color="#8a7870" />
         <Text style={tabStyles.tabText}>홈</Text>
       </TouchableOpacity>
-      <TouchableOpacity style={tabStyles.tabItem} onPress={() => router.replace('/(couple)/timeline')}>
+      <TouchableOpacity
+        style={tabStyles.tabItem}
+        onPress={() => router.replace('/(couple)/timeline')}
+      >
         <Ionicons name="calendar-outline" size={24} color="#8a7870" />
         <Text style={tabStyles.tabText}>일정</Text>
       </TouchableOpacity>
@@ -43,6 +54,40 @@ export default function LoginScreen() {
       </TouchableOpacity>
     </View>
   );
+
+  // ── 로그인 처리 ──────────────────────────────────────────
+  const handleLogin = async () => {
+    if (!email || !password) {
+      showAlert('이메일과 비밀번호를 입력해주세요.');
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      // Supabase 로그인
+      const data = await signIn(email, password);
+
+      // 가입 시 저장한 role 확인
+      const userRole = data.user?.user_metadata?.role;
+
+      // 선택한 탭과 실제 role이 다를 경우 안내
+      if (userRole === 'planner' && !isPlanner) {
+        showAlert('웨딩 플래너 계정입니다.\n웨딩 플래너 탭을 선택해주세요.');
+        return;
+      }
+      if (userRole === 'couple' && isPlanner) {
+        showAlert('예비 신혼 계정입니다.\n예비 신혼 탭을 선택해주세요.');
+        return;
+      }
+
+      // _layout.jsx의 onAuthStateChange가 자동으로 화면 전환
+    } catch (e) {
+      showAlert('이메일 또는 비밀번호가 올바르지 않습니다.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -65,25 +110,29 @@ export default function LoginScreen() {
           source={require('../../assets/lottie/Animated_leaves.json')}
           autoPlay
           loop
-          style={{ width: 200, height: 200, left: 100 }}
+          style={{ width: 140, height: 140, left: 80 }}
         />
 
         <View style={styles.form}>
-          {/* 로그인 유형 선택 (탭) */}
+          {/* 로그인 유형 선택 탭 */}
           <View style={styles.roleTabContainer}>
             <TouchableOpacity
               style={[styles.roleTab, !isPlanner && styles.activeRoleTab]}
               onPress={() => setIsPlanner(false)}
               activeOpacity={0.8}
             >
-              <Text style={[styles.roleTabText, !isPlanner && styles.activeRoleTabText]}>예비 신혼</Text>
+              <Text style={[styles.roleTabText, !isPlanner && styles.activeRoleTabText]}>
+                예비 신혼
+              </Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.roleTab, isPlanner && styles.activeRoleTab]}
               onPress={() => setIsPlanner(true)}
               activeOpacity={0.8}
             >
-              <Text style={[styles.roleTabText, isPlanner && styles.activeRoleTabText]}>웨딩 플래너</Text>
+              <Text style={[styles.roleTabText, isPlanner && styles.activeRoleTabText]}>
+                웨딩 플래너
+              </Text>
             </TouchableOpacity>
           </View>
 
@@ -125,25 +174,10 @@ export default function LoginScreen() {
           </View>
 
           <TouchableOpacity
-            style={[styles.loginBtnWrapper, styles.shadow]}
+            style={[styles.loginBtnWrapper, styles.shadow, loading && { opacity: 0.7 }]}
             activeOpacity={0.85}
-            onPress={() => {
-              if (!email || !password) {
-                setModalMessage('이메일과 비밀번호를 입력해주세요.');
-                setModalVisible(true);
-                return;
-              }
-              // Simulated logic: if email contains 'planner' but isPlanner is false, or vice versa
-              if (email.includes('planner') && !isPlanner) {
-                setModalMessage('선택하신 회원 유형이 계정 정보와 일치하지 않습니다.');
-                setModalVisible(true);
-              } else if (!email.includes('planner') && isPlanner && email.includes('@')) {
-                setModalMessage('선택하신 회원 유형이 계정 정보와 일치하지 않습니다.');
-                setModalVisible(true);
-              } else {
-                router.replace('/(couple)');
-              }
-            }}
+            onPress={handleLogin}
+            disabled={loading}
           >
             <LinearGradient
               colors={['#d6a6a6', '#d5d1b3']}
@@ -151,7 +185,7 @@ export default function LoginScreen() {
               end={{ x: 1, y: 1 }}
               style={styles.loginBtnGradient}
             >
-              <Text style={styles.loginBtnText}>로그인</Text>
+              <Text style={styles.loginBtnText}>{loading ? '로그인 중...' : '로그인'}</Text>
             </LinearGradient>
           </TouchableOpacity>
         </View>
@@ -161,12 +195,7 @@ export default function LoginScreen() {
             <Text style={styles.authLinkText}>회원가입</Text>
           </TouchableOpacity>
           <View style={styles.linkDivider} />
-          <TouchableOpacity
-            onPress={() => {
-              setModalMessage('비밀번호 찾기 기능은 준비 중입니다.');
-              setModalVisible(true);
-            }}
-          >
+          <TouchableOpacity onPress={() => showAlert('비밀번호 찾기 기능은 준비 중입니다.')}>
             <Text style={styles.authLinkText}>비밀번호 찾기</Text>
           </TouchableOpacity>
         </View>
@@ -234,14 +263,6 @@ const styles = StyleSheet.create({
   inputIcon: { marginHorizontal: 10 },
   input: { flex: 1, fontSize: 14, color: '#3a2e2a' },
   eyeBtn: { padding: 4 },
-  loginBtn: {
-    backgroundColor: '#c9a98e',
-    borderRadius: 14,
-    paddingVertical: 16,
-    alignItems: 'center',
-    marginTop: 8,
-  },
-
   loginBtnWrapper: {
     width: '100%',
     height: 56,
@@ -254,35 +275,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderRadius: 10,
   },
-
   loginBtnText: { fontSize: 15, fontWeight: '600', color: '#fff', letterSpacing: 0.5 },
-
   shadow: {
-    // iOS
     shadowColor: '#c1a8a8',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.4,
     shadowRadius: 8,
-
-    // Android
     elevation: 6,
-  },
-  dividerRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginVertical: 4 },
-  divider: { flex: 1, height: 1, backgroundColor: '#e8e0dc' },
-  dividerText: { fontSize: 12, color: '#8a7870' },
-  kakaoBtn: {
-    backgroundColor: '#FEE500',
-    borderRadius: 14,
-    paddingVertical: 16,
-    alignItems: 'center',
-  },
-  kakaoBtnText: { fontSize: 15, fontWeight: '600', color: '#3a2e2a', letterSpacing: 0.5 },
-  registerRow: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 6,
-    marginTop: 36,
   },
   authLinksRow: {
     flexDirection: 'row',
@@ -331,8 +330,6 @@ const styles = StyleSheet.create({
     color: '#917878',
     fontWeight: '700',
   },
-
-  // 모달
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.35)',

@@ -1,20 +1,23 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Modal, FlatList, ActivityIndicator } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Modal, FlatList, ActivityIndicator, TextInput, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useProjectStore } from '../../stores';
+import { useProjectStore } from '../../stores/projectStore';
+import { useInvitePartner } from '../../hooks/useApi';
 
 const ProjectSelector = () => {
   const {
     projects,
-    currentProject,
-    currentProjectId,
-    currentProjectName,
+    current_project,
+    current_project_id,
+    current_project_name,
     loading,
     setCurrentProject,
     fetchProjects
   } = useProjectStore();
 
   const [modalVisible, setModalVisible] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState('');
+  const inviteMutation = useInvitePartner();
 
   React.useEffect(() => {
     // 컴포넌트 마운트 시 프로젝트 목록 로드
@@ -28,11 +31,27 @@ const ProjectSelector = () => {
     setModalVisible(false);
   };
 
+  const handleInvite = () => {
+    if (!inviteEmail) return;
+    inviteMutation.mutate({ 
+      partner_email: inviteEmail, 
+      project_id: current_project_id 
+    }, {
+      onSuccess: () => {
+        Alert.alert('초대 성공', `${inviteEmail}님에게 초대를 보냈습니다.`);
+        setInviteEmail('');
+      },
+      onError: (err) => {
+        Alert.alert('초대 실패', err.message);
+      }
+    });
+  };
+
   const renderProjectItem = ({ item }) => (
     <TouchableOpacity
       style={[
         styles.projectItem,
-        currentProjectId === item.id && styles.selectedProjectItem
+        current_project_id === item.id && styles.selectedProjectItem
       ]}
       onPress={() => handleSelectProject(item)}
     >
@@ -45,7 +64,7 @@ const ProjectSelector = () => {
           상태: {item.status || 'active'}
         </Text>
       </View>
-      {currentProjectId === item.id && (
+      {current_project_id === item.id && (
         <Ionicons name="checkmark-circle" size={24} color="#C9716A" />
       )}
     </TouchableOpacity>
@@ -65,7 +84,7 @@ const ProjectSelector = () => {
           <View style={{ flex: 1 }}>
             <Text style={styles.selectorLabel}>현재 프로젝트</Text>
             <Text style={styles.selectorValue}>
-              {currentProjectName || '프로젝트 선택'}
+              {current_project_name || '프로젝트 선택'}
             </Text>
           </View>
           <Ionicons name="chevron-down" size={20} color="#6B5B55" />
@@ -96,20 +115,51 @@ const ProjectSelector = () => {
                 <ActivityIndicator size="large" color="#C9716A" />
                 <Text style={styles.loadingText}>프로젝트 로딩 중...</Text>
               </View>
-            ) : projects.length === 0 ? (
-              <View style={styles.emptyContainer}>
-                <Ionicons name="folder-open-outline" size={48} color="#B8A9A5" />
-                <Text style={styles.emptyText}>생성된 프로젝트가 없습니다</Text>
-                <Text style={styles.emptySubtext}>새 프로젝트를 만들어 보세요</Text>
-              </View>
             ) : (
-              <FlatList
-                data={projects}
-                keyExtractor={(item) => item.id}
-                renderItem={renderProjectItem}
-                showsVerticalScrollIndicator={false}
-                contentContainerStyle={styles.listContainer}
-              />
+              <View style={{ flex: 1 }}>
+                <FlatList
+                  data={projects}
+                  keyExtractor={(item) => item.id}
+                  renderItem={renderProjectItem}
+                  showsVerticalScrollIndicator={false}
+                  contentContainerStyle={styles.listContainer}
+                  ListEmptyComponent={
+                    <View style={styles.emptyContainer}>
+                      <Ionicons name="folder-open-outline" size={48} color="#B8A9A5" />
+                      <Text style={styles.emptyText}>생성된 프로젝트가 없습니다</Text>
+                      <Text style={styles.emptySubtext}>새 프로젝트를 만들어 보세요</Text>
+                    </View>
+                  }
+                />
+                
+                {/* 파트너 초대 섹션 */}
+                {current_project_id && (
+                  <View style={styles.inviteSection}>
+                    <Text style={styles.inviteTitle}>파트너 초대하기</Text>
+                    <View style={styles.inviteInputRow}>
+                      <TextInput
+                        style={styles.inviteInput}
+                        placeholder="파트너 이메일 입력"
+                        value={inviteEmail}
+                        onChangeText={setInviteEmail}
+                        autoCapitalize="none"
+                        keyboardType="email-address"
+                      />
+                      <TouchableOpacity 
+                        style={[styles.inviteBtn, !inviteEmail && styles.inviteBtnDisabled]} 
+                        onPress={handleInvite}
+                        disabled={!inviteEmail || inviteMutation.isPending}
+                      >
+                        {inviteMutation.isPending ? (
+                          <ActivityIndicator size="small" color="#fff" />
+                        ) : (
+                          <Text style={styles.inviteBtnText}>초대</Text>
+                        )}
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                )}
+              </View>
             )}
           </View>
         </View>
@@ -162,7 +212,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    maxHeight: '70%',
+    maxHeight: '85%',
     minHeight: '40%',
   },
   modalHeader: {
@@ -183,10 +233,9 @@ const styles = StyleSheet.create({
   },
 
   loadingContainer: {
-    flex: 1,
+    padding: 40,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 40,
   },
   loadingText: {
     marginTop: 12,
@@ -195,7 +244,6 @@ const styles = StyleSheet.create({
   },
 
   emptyContainer: {
-    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 40,
@@ -246,6 +294,50 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#7A9E8E',
     fontWeight: '500',
+  },
+
+  // 초대 섹션
+  inviteSection: {
+    padding: 20,
+    backgroundColor: '#FAFAF9',
+    borderTopWidth: 1,
+    borderTopColor: '#F2EDE8',
+  },
+  inviteTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#2C2420',
+    marginBottom: 10,
+  },
+  inviteInputRow: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  inviteInput: {
+    flex: 1,
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#E8E8E6',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    height: 44,
+    fontSize: 14,
+  },
+  inviteBtn: {
+    backgroundColor: '#C9716A',
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    minWidth: 70,
+  },
+  inviteBtnDisabled: {
+    backgroundColor: '#B8A9A5',
+  },
+  inviteBtnText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '600',
   },
 });
 

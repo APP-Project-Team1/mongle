@@ -21,9 +21,9 @@ import {
 import { useProjectStore } from '../../stores';
 
 export default function BudgetScreen() {
-  const projectId = useProjectStore((state) => state.currentProjectId) || '1';
+  const project_id = useProjectStore((state) => state.current_project_id) || '1';
 
-  const { data: budget } = useBudget(projectId);
+  const { data: budget } = useBudget(project_id);
   const budgetId = budget?.id;
 
   const { data: budgetItems = [], isLoading, error, refetch } = useBudgetItems(budgetId);

@@ -4,9 +4,9 @@ import { supabase } from '../lib/supabase'
 
 export const useProjectStore = create((set, get) => ({
   projects: [],
-  currentProject: null,
-  currentProjectId: null,
-  currentProjectName: null,
+  current_project: null,
+  current_project_id: null,
+  current_project_name: null,
   loading: false,
   error: null,
 
@@ -65,9 +65,9 @@ export const useProjectStore = create((set, get) => ({
       const { projects } = get()
       set({
         projects: [response, ...projects],
-        currentProject: response,
-        currentProjectId: response.id,
-        currentProjectName: response.name,
+        current_project: response,
+        current_project_id: response.id,
+        current_project_name: response.name,
         loading: false
       })
 
@@ -92,7 +92,7 @@ export const useProjectStore = create((set, get) => ({
       )
       set({
         projects: updatedProjects,
-        currentProject: response,
+        current_project: response,
         loading: false
       })
 
@@ -115,7 +115,7 @@ export const useProjectStore = create((set, get) => ({
       const filteredProjects = projects.filter(project => project.id !== id)
       set({
         projects: filteredProjects,
-        currentProject: null,
+        current_project: null,
         loading: false
       })
 
@@ -129,28 +129,28 @@ export const useProjectStore = create((set, get) => ({
 
   // 현재 프로젝트 설정
   setCurrentProject: (project) => set({
-    currentProject: project,
-    currentProjectId: project?.id ?? null,
-    currentProjectName: project?.name ?? null,
+    current_project: project,
+    current_project_id: project?.id ?? null,
+    current_project_name: project?.name ?? null,
   }),
 
   // 현재 프로젝트 id로 설정
-  setCurrentProjectById: (projectId) => {
-    const project = get().projects.find((p) => p.id === projectId)
+  setCurrentProjectById: (project_id) => {
+    const project = get().projects.find((p) => p.id === project_id)
     if (project) {
       set({
-        currentProject: project,
-        currentProjectId: project.id,
-        currentProjectName: project.name,
+        current_project: project,
+        current_project_id: project.id,
+        current_project_name: project.name,
       })
     }
   },
 
   // 초기화
   resetCurrentProject: () => set({
-    currentProject: null,
-    currentProjectId: null,
-    currentProjectName: null,
+    current_project: null,
+    current_project_id: null,
+    current_project_name: null,
   }),
 
   // 에러 초기화

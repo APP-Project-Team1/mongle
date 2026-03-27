@@ -8,12 +8,18 @@ router = APIRouter()
 
 class TimelineCreate(BaseModel):
     project_id: str
-    title: str
-    description: str
+    step_name: str
+    due_date: Optional[str] = None
+    status: Optional[str] = 'pending'
+    color: Optional[str] = 'rose'
+    description: Optional[str] = None
 
 
 class TimelineUpdate(BaseModel):
-    title: Optional[str] = None
+    step_name: Optional[str] = None
+    due_date: Optional[str] = None
+    status: Optional[str] = None
+    color: Optional[str] = None
     description: Optional[str] = None
 
 
@@ -66,7 +72,10 @@ def create_timeline(data: TimelineCreate):
 
     insert_data = {
         "project_id": data.project_id,
-        "title": data.title,
+        "step_name": data.step_name,
+        "due_date": data.due_date,
+        "status": data.status,
+        "color": data.color,
         "description": data.description
     }
 

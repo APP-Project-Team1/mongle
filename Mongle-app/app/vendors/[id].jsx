@@ -251,7 +251,7 @@ export default function VendorDetailScreen() {
           <View style={styles.infoSection}>
             <View style={styles.infoRow}>
               <Ionicons name="location-outline" size={20} color="#8a7870" />
-              <Text style={styles.infoText}>{selectedVendor.basic_info.address || selectedVendor.basic_info.region}</Text>
+              <Text style={styles.infoText}>{selectedVendor.basic_info.location || selectedVendor.basic_info.address || selectedVendor.basic_info.region || selectedVendor.basic_info.district}</Text>
             </View>
             {selectedVendor.basic_info.phone && (
               <TouchableOpacity style={styles.infoRow} onPress={() => Linking.openURL(`tel:${selectedVendor.basic_info.phone}`)}>

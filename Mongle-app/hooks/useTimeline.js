@@ -2,11 +2,11 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { timelinesApi } from '../lib/api'
 
 // 타임라인 목록 조회
-export const useTimelines = (projectId) => {
+export const useTimelines = (project_id) => {
   return useQuery({
-    queryKey: ['timelines', projectId],
-    queryFn: () => timelinesApi.getTimelines(projectId),
-    enabled: !!projectId
+    queryKey: ['timelines', project_id],
+    queryFn: () => timelinesApi.getTimelines(project_id),
+    enabled: !!project_id
   })
 }
 

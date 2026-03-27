@@ -43,7 +43,7 @@ const CATEGORIES = [
 ];
 
 const FILTER_KEYS = [
-  { id: 'district', label: '지역' },
+  { id: 'location', label: '지역' },
   { id: 'style', label: '스타일' },
   { id: 'price', label: '가격대' },
 ];
@@ -65,7 +65,7 @@ export default function VendorsScreen() {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [activeFilterKey, setActiveFilterKey] = useState('district');
   const [selectedFilters, setSelectedFilters] = useState({
-    district: [],
+    location: [],
     style: [],
     price: [],
   });
@@ -96,7 +96,7 @@ export default function VendorsScreen() {
     });
 
     return {
-      district: Array.from(districts).sort(),
+      location: Array.from(districts).sort(),
       style: Array.from(styles).sort(),
       price: PRICE_RANGES.map((r) => r.label),
     };
@@ -115,7 +115,7 @@ export default function VendorsScreen() {
 
   const resetFilters = () => {
     setSelectedFilters({
-      district: [],
+      location: [],
       style: [],
       price: [],
     });
@@ -132,9 +132,9 @@ export default function VendorsScreen() {
         desc.toLowerCase().includes(searchText.toLowerCase());
       if (!matchSearch) return false;
 
-      // 2. District match
-      if (selectedFilters.district.length > 0) {
-        if (!selectedFilters.district.includes(vendor.basic_info.district)) return false;
+      // 2. Location match
+      if (selectedFilters.location.length > 0) {
+        if (!selectedFilters.location.includes(vendor.basic_info.location || vendor.basic_info.district)) return false;
       }
 
       // 3. Style match
@@ -424,7 +424,7 @@ export default function VendorsScreen() {
               </View>
               <Text style={styles.vendorDesc} numberOfLines={2}>{item.content?.short_description}</Text>
               <View style={styles.vendorFooter}>
-                <Text style={styles.vendorLocation}>{item.basic_info.district || item.basic_info.region}</Text>
+                <Text style={styles.vendorLocation}>{item.basic_info.location || item.basic_info.district || item.basic_info.region}</Text>
                 {renderPrice(item)}
               </View>
             </View>

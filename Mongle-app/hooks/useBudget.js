@@ -2,27 +2,27 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { budgetsApi } from '../lib/api'
 
 // 예산 조회 (프로젝트별 첫 번째 예산)
-export const useBudget = (projectId) => {
+export const useBudget = (project_id) => {
   return useQuery({
-    queryKey: ['budget', projectId],
+    queryKey: ['budget', project_id],
     queryFn: async () => {
-      const budgets = await budgetsApi.getBudgets(projectId)
+      const budgets = await budgetsApi.getBudgets(project_id)
       return budgets.length > 0 ? budgets[0] : { total_budget: 0, spent: 0 }
     },
-    enabled: !!projectId
+    enabled: !!project_id
   })
 }
 
-// 예산 항목 조회 (projectId → 첫 번째 budget → items)
-export const useBudgetItems = (projectId) => {
+// 예산 항목 조회 (project_id → 첫 번째 budget → items)
+export const useBudgetItems = (project_id) => {
   return useQuery({
-    queryKey: ['budgetItems', projectId],
+    queryKey: ['budgetItems', project_id],
     queryFn: async () => {
-      const budgets = await budgetsApi.getBudgets(projectId)
+      const budgets = await budgetsApi.getBudgets(project_id)
       if (budgets.length === 0) return []
       return budgetsApi.getBudgetItems(budgets[0].id)
     },
-    enabled: !!projectId
+    enabled: !!project_id
   })
 }
 

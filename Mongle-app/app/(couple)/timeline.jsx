@@ -13,6 +13,20 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Calendar } from 'react-native-calendars';
 import { router } from 'expo-router';
+import { useProjectStore } from '../../stores/projectStore';
+import { 
+  useTimelines, 
+  useCreateTimeline, 
+  useUpdateTimeline, 
+  useDeleteTimeline,
+  useBudget,
+  useBudgetItems,
+  useUpdateBudgetItem,
+  useCreateBudgetItem,
+  useDeleteBudgetItem
+} from '../../hooks';
+import LoadingSpinner from '../../components/LoadingSpinner';
+import ErrorView from '../../components/ErrorView';
 
 const { width } = Dimensions.get('window');
 
@@ -20,7 +34,7 @@ const { width } = Dimensions.get('window');
 const INITIAL_TIMELINE_ITEMS = [
   {
     id: 1,
-    label: '웨딩홀 계약 완료',
+    category: '웨딩홀 계약 완료',
     dateYear: '2025',
     dateMonth: '10',
     dateDay: '05',
@@ -29,7 +43,7 @@ const INITIAL_TIMELINE_ITEMS = [
   },
   {
     id: 2,
-    label: '스튜디오 계약 완료',
+    category: '스튜디오 계약 완료',
     dateYear: '2025',
     dateMonth: '10',
     dateDay: '20',
@@ -38,7 +52,7 @@ const INITIAL_TIMELINE_ITEMS = [
   },
   {
     id: 3,
-    label: '드레스 1차 시착',
+    category: '드레스 1차 시착',
     dateYear: '2025',
     dateMonth: '11',
     dateDay: '08',
@@ -47,7 +61,7 @@ const INITIAL_TIMELINE_ITEMS = [
   },
   {
     id: 4,
-    label: '드레스 2차 시착 — 진행 중',
+    category: '드레스 2차 시착 — 진행 중',
     dateYear: '2026',
     dateMonth: '01',
     dateDay: '15',
@@ -56,7 +70,7 @@ const INITIAL_TIMELINE_ITEMS = [
   },
   {
     id: 5,
-    label: '웨딩홀 식순 미팅',
+    category: '웨딩홀 식순 미팅',
     dateYear: '2026',
     dateMonth: '01',
     dateDay: '21',
@@ -65,7 +79,7 @@ const INITIAL_TIMELINE_ITEMS = [
   },
   {
     id: 6,
-    label: '본식 스냅 촬영',
+    category: '본식 스냅 촬영',
     dateYear: '2026',
     dateMonth: '03',
     dateDay: '10',
@@ -74,7 +88,7 @@ const INITIAL_TIMELINE_ITEMS = [
   },
   {
     id: 7,
-    label: '본식',
+    category: '본식',
     dateYear: '2026',
     dateMonth: '07',
     dateDay: '25',
@@ -89,10 +103,10 @@ const formatDate = (item) => {
 };
 
 const STATUS_OPTIONS = [
-  { value: 'done', label: '완료' },
-  { value: 'active', label: '진행 중' },
-  { value: 'next', label: '다음 예정' },
-  { value: 'future', label: '미래' },
+  { amount: 'done', category: '완료' },
+  { amount: 'active', category: '진행 중' },
+  { amount: 'next', category: '다음 예정' },
+  { amount: 'future', category: '미래' },
 ];
 
 // ── 비용/잔금 통합 데이터 ────────────────────────────────
@@ -100,63 +114,63 @@ const STATUS_OPTIONS = [
 const INITIAL_COST_ITEMS = [
   {
     id: 1,
-    label: '웨딩홀',
-    value: '380', // 만원 단위 숫자 문자열
+    category: '웨딩홀',
+    amount: '380', // 만원 단위 숫자 문자열
     warn: false,
     hasBalance: true,
-    balanceDue: '2026-06-25',
-    balanceAmount: '190',
+    due_date: '2026-06-25',
+    spent: '190',
     urgent: false,
   },
   {
     id: 2,
-    label: '스튜디오',
-    value: '160',
+    category: '스튜디오',
+    amount: '160',
     warn: false,
     hasBalance: true,
-    balanceDue: '2026-03-10',
-    balanceAmount: '80',
+    due_date: '2026-03-10',
+    spent: '80',
     urgent: false,
   },
   {
     id: 3,
-    label: '드레스',
-    value: '95',
+    category: '드레스',
+    amount: '95',
     warn: false,
     hasBalance: true,
-    balanceDue: '2026-02-01',
-    balanceAmount: '72',
+    due_date: '2026-02-01',
+    spent: '72',
     urgent: true,
   },
   {
     id: 4,
-    label: '메이크업',
-    value: '28',
+    category: '메이크업',
+    amount: '28',
     warn: false,
     hasBalance: false,
-    balanceDue: '',
-    balanceAmount: '',
+    due_date: '',
+    spent: '',
     urgent: false,
   },
   {
     id: 5,
-    label: '헤어 (추가 옵션)',
-    value: '8',
+    category: '헤어 (추가 옵션)',
+    amount: '8',
     warn: true,
     hasBalance: false,
-    balanceDue: '',
-    balanceAmount: '',
+    due_date: '',
+    spent: '',
     urgent: false,
   },
   {
     id: 6,
-    label: '예상 추가 비용',
-    value: '', // 빈 문자열 = 미정
+    category: '예상 추가 비용',
+    amount: '', // 빈 문자열 = 미정
     warn: false,
     gray: true,
     hasBalance: false,
-    balanceDue: '',
-    balanceAmount: '',
+    due_date: '',
+    spent: '',
     urgent: false,
   },
 ];
@@ -174,7 +188,7 @@ const formatBalanceSub = (dueDateStr) => {
 };
 
 // 숫자 문자열 합산 (빈 문자열은 0 취급)
-const sumValues = (items) => items.reduce((acc, item) => acc + (parseInt(item.value) || 0), 0);
+const sumValues = (items) => items.reduce((acc, item) => acc + (parseInt(item.amount) || 0), 0);
 // ────────────────────────────────────────────────────────
 
 // ────────────────────────────────────────────────────────
@@ -191,8 +205,8 @@ function TimelineEditModal({ visible, items, onClose, onSave }) {
     }
   }, [visible]);
 
-  const updateField = (idx, field, value) => {
-    setDraft((prev) => prev.map((item, i) => (i === idx ? { ...item, [field]: value } : item)));
+  const updateField = (idx, field, amount) => {
+    setDraft((prev) => prev.map((item, i) => (i === idx ? { ...item, [field]: amount } : item)));
   };
 
   const deleteItem = (idx) => {
@@ -203,7 +217,7 @@ function TimelineEditModal({ visible, items, onClose, onSave }) {
   const addItem = () => {
     const newItem = {
       id: Date.now(),
-      label: '',
+      step_name: '',
       dateYear: '',
       dateMonth: '',
       dateDay: '',
@@ -263,7 +277,7 @@ function TimelineEditModal({ visible, items, onClose, onSave }) {
                       />
                       <View style={{ flex: 1 }}>
                         <Text style={modalStyles.collapsedLabel} numberOfLines={1}>
-                          {item.label || '새 일정'}
+                          {item.step_name || '새 일정'}
                         </Text>
                         <Text style={modalStyles.collapsedDate}>
                           {formatDate(item) || '날짜 미입력'}
@@ -277,8 +291,8 @@ function TimelineEditModal({ visible, items, onClose, onSave }) {
                       <Text style={modalStyles.fieldLabel}>일정 이름</Text>
                       <TextInput
                         style={modalStyles.input}
-                        value={item.label}
-                        onChangeText={(v) => updateField(idx, 'label', v)}
+                        value={item.step_name}
+                        onChangeText={(v) => updateField(idx, 'step_name', v)}
                         placeholder="예: 드레스 시착"
                         placeholderTextColor="#C8BFBB"
                       />
@@ -353,7 +367,7 @@ function TimelineEditModal({ visible, items, onClose, onSave }) {
                                   isSelected && { color: opt.hex, fontWeight: '600' },
                                 ]}
                               >
-                                {opt.label}
+                                {opt.category}
                               </Text>
                             </TouchableOpacity>
                           );
@@ -401,52 +415,51 @@ function TimelineEditModal({ visible, items, onClose, onSave }) {
 
 // ── 일정 색상 팔레트 ─────────────────────────────────────
 const COLOR_OPTIONS = [
-  { key: 'rose', label: '로즈', hex: '#C9716A', bg: '#F5EAE9', text: '#C9716A' },
-  { key: 'sage', label: '세이지', hex: '#7A9E8E', bg: '#EBF2EE', text: '#7A9E8E' },
-  { key: 'lavender', label: '라벤더', hex: '#9B8EC4', bg: '#F0EDF8', text: '#9B8EC4' },
-  { key: 'sky', label: '스카이', hex: '#6A9EC9', bg: '#E9F2F8', text: '#6A9EC9' },
-  { key: 'peach', label: '피치', hex: '#D4956A', bg: '#F8EFE9', text: '#D4956A' },
-  { key: 'mint', label: '민트', hex: '#5BAD9A', bg: '#E6F4F1', text: '#5BAD9A' },
+  { key: 'rose', category: '로즈', hex: '#C9716A', bg: '#F5EAE9', text: '#C9716A' },
+  { key: 'sage', category: '세이지', hex: '#7A9E8E', bg: '#EBF2EE', text: '#7A9E8E' },
+  { key: 'lavender', category: '라벤더', hex: '#9B8EC4', bg: '#F0EDF8', text: '#9B8EC4' },
+  { key: 'sky', category: '스카이', hex: '#6A9EC9', bg: '#E9F2F8', text: '#6A9EC9' },
+  { key: 'peach', category: '피치', hex: '#D4956A', bg: '#F8EFE9', text: '#D4956A' },
+  { key: 'mint', category: '민트', hex: '#5BAD9A', bg: '#E6F4F1', text: '#5BAD9A' },
 ];
 // ────────────────────────────────────────────────────────
 
-// ── 일정 추가 모달 ──────────────────────────────────────
 function ScheduleAddModal({ visible, preselectedDate, onClose, onSave }) {
-  const [label, setLabel] = useState('');
+  const [step_name, setStepName] = useState('');
   const [color, setColor] = useState('rose');
   const [status, setStatus] = useState('future');
-  const [dateYear, setDateYear] = useState('');
-  const [dateMonth, setDateMonth] = useState('');
-  const [dateDay, setDateDay] = useState('');
+  const [date_year, set_date_year] = useState('');
+  const [date_month, set_date_month] = useState('');
+  const [date_day, set_date_day] = useState('');
 
   React.useEffect(() => {
     if (visible && preselectedDate) {
       const [y, m, d] = preselectedDate.split('-');
-      setDateYear(y ?? '');
-      setDateMonth(m ?? '');
-      setDateDay(d ?? '');
+      set_date_year(y ?? '');
+      set_date_month(m ?? '');
+      set_date_day(d ?? '');
     }
     if (visible) {
-      setLabel('');
+      setStepName('');
       setColor('rose');
       setStatus('future');
     }
   }, [visible]);
 
   const handleSave = () => {
-    if (!label.trim() || !dateYear || !dateMonth || !dateDay) return;
+    if (!step_name.trim() || !date_year || !date_month || !date_day) return;
     onSave({
-      dateYear,
-      dateMonth: String(parseInt(dateMonth)),
-      dateDay: String(parseInt(dateDay)),
-      label: label.trim(),
+      date_year,
+      date_month: String(parseInt(date_month)),
+      date_day: String(parseInt(date_day)),
+      step_name: step_name.trim(),
       color,
       status,
     });
     onClose();
   };
 
-  const isValid = label.trim() && dateYear.length === 4 && dateMonth && dateDay;
+  const isValid = step_name.trim() && date_year.length === 4 && date_month && date_day;
   const selectedColorOpt = COLOR_OPTIONS.find((c) => c.key === color);
 
   return (
@@ -467,8 +480,8 @@ function ScheduleAddModal({ visible, preselectedDate, onClose, onSave }) {
             <Text style={modalStyles.fieldLabel}>일정 이름</Text>
             <TextInput
               style={[modalStyles.input, { marginBottom: 16 }]}
-              value={label}
-              onChangeText={setLabel}
+              value={step_name}
+              onChangeText={setStepName}
               placeholder="예: 부케 상담 · 오후 3시"
               placeholderTextColor="#C8BFBB"
             />
@@ -478,8 +491,8 @@ function ScheduleAddModal({ visible, preselectedDate, onClose, onSave }) {
             <View style={[modalStyles.dateRow, { marginBottom: 16 }]}>
               <TextInput
                 style={[modalStyles.input, modalStyles.dateInput]}
-                value={dateYear}
-                onChangeText={(v) => setDateYear(v.replace(/\D/g, '').slice(0, 4))}
+                value={date_year}
+                onChangeText={(v) => set_date_year(v.replace(/\D/g, '').slice(0, 4))}
                 placeholder="2026"
                 placeholderTextColor="#C8BFBB"
                 keyboardType="number-pad"
@@ -488,8 +501,8 @@ function ScheduleAddModal({ visible, preselectedDate, onClose, onSave }) {
               <Text style={modalStyles.dateSep}>년</Text>
               <TextInput
                 style={[modalStyles.input, modalStyles.dateInputSm]}
-                value={dateMonth}
-                onChangeText={(v) => setDateMonth(v.replace(/\D/g, '').slice(0, 2))}
+                value={date_month}
+                onChangeText={(v) => set_date_month(v.replace(/\D/g, '').slice(0, 2))}
                 placeholder="01"
                 placeholderTextColor="#C8BFBB"
                 keyboardType="number-pad"
@@ -498,8 +511,8 @@ function ScheduleAddModal({ visible, preselectedDate, onClose, onSave }) {
               <Text style={modalStyles.dateSep}>월</Text>
               <TextInput
                 style={[modalStyles.input, modalStyles.dateInputSm]}
-                value={dateDay}
-                onChangeText={(v) => setDateDay(v.replace(/\D/g, '').slice(0, 2))}
+                value={date_day}
+                onChangeText={(v) => set_date_day(v.replace(/\D/g, '').slice(0, 2))}
                 placeholder="01"
                 placeholderTextColor="#C8BFBB"
                 keyboardType="number-pad"
@@ -513,17 +526,17 @@ function ScheduleAddModal({ visible, preselectedDate, onClose, onSave }) {
             <View style={[modalStyles.statusRow, { marginBottom: 16 }]}>
               {STATUS_OPTIONS.map((opt) => (
                 <TouchableOpacity
-                  key={opt.value}
+                  key={opt.amount}
                   style={[
                     modalStyles.statusBtn,
-                    status === opt.value && modalStyles.statusBtnActive,
+                    status === opt.amount && modalStyles.statusBtnActive,
                   ]}
-                  onPress={() => setStatus(opt.value)}
+                  onPress={() => setStatus(opt.amount)}
                 >
                   <Text
-                    style={[modalStyles.statusBtnText, status === opt.value && { color: '#fff' }]}
+                    style={[modalStyles.statusBtnText, status === opt.amount && { color: '#fff' }]}
                   >
-                    {opt.label}
+                    {opt.category}
                   </Text>
                 </TouchableOpacity>
               ))}
@@ -556,7 +569,7 @@ function ScheduleAddModal({ visible, preselectedDate, onClose, onSave }) {
                         isSelected && { color: opt.hex, fontWeight: '600' },
                       ]}
                     >
-                      {opt.label}
+                      {opt.category}
                     </Text>
                   </TouchableOpacity>
                 );
@@ -564,7 +577,7 @@ function ScheduleAddModal({ visible, preselectedDate, onClose, onSave }) {
             </View>
 
             {/* 미리보기 */}
-            {label.trim() ? (
+            {step_name.trim() ? (
               <View
                 style={[
                   scheduleModalStyles.preview,
@@ -572,7 +585,7 @@ function ScheduleAddModal({ visible, preselectedDate, onClose, onSave }) {
                 ]}
               >
                 <Text style={[scheduleModalStyles.previewText, { color: selectedColorOpt.text }]}>
-                  {`${parseInt(dateMonth) || 'MM'}월 ${parseInt(dateDay) || 'DD'}일 — ${label.trim()}`}
+                  {`${parseInt(date_month) || 'MM'}월 ${parseInt(date_day) || 'DD'}일 — ${step_name.trim()}`}
                 </Text>
               </View>
             ) : null}
@@ -657,8 +670,8 @@ function CostEditModal({ visible, items, onClose, onSave }) {
     }
   }, [visible]);
 
-  const updateField = (idx, field, value) => {
-    setDraft((prev) => prev.map((item, i) => (i === idx ? { ...item, [field]: value } : item)));
+  const updateField = (idx, field, amount) => {
+    setDraft((prev) => prev.map((item, i) => (i === idx ? { ...item, [field]: amount } : item)));
   };
 
   const deleteItem = (idx) => {
@@ -669,13 +682,13 @@ function CostEditModal({ visible, items, onClose, onSave }) {
   const addCostItem = () => {
     const newItem = {
       id: Date.now(),
-      label: '',
-      value: '',
+      category: '',
+      amount: '',
       warn: false,
       gray: false,
       hasBalance: false,
-      balanceDue: '',
-      balanceAmount: '',
+      due_date: '',
+      spent: '',
       urgent: false,
     };
     setDraft((prev) => {
@@ -771,11 +784,11 @@ function CostEditModal({ visible, items, onClose, onSave }) {
                         >
                           <View style={{ flex: 1 }}>
                             <Text style={modalStyles.collapsedLabel} numberOfLines={1}>
-                              {item.label || '새 항목'}
+                              {item.category || '새 항목'}
                             </Text>
                             <Text style={modalStyles.collapsedDate}>
-                              {item.value ? `${item.value}만원` : '미정'}
-                              {item.hasBalance ? ` · 잔금 ${item.balanceAmount}만원` : ''}
+                              {item.amount ? `${item.amount}만원` : '미정'}
+                              {item.hasBalance ? ` · 잔금 ${item.spent}만원` : ''}
                             </Text>
                           </View>
                           {item.warn && (
@@ -794,8 +807,8 @@ function CostEditModal({ visible, items, onClose, onSave }) {
                           <Text style={modalStyles.fieldLabel}>항목명</Text>
                           <TextInput
                             style={[modalStyles.input, { marginBottom: 12 }]}
-                            value={item.label}
-                            onChangeText={(v) => updateField(idx, 'label', v)}
+                            value={item.category}
+                            onChangeText={(v) => updateField(idx, 'category', v)}
                             placeholder="예: 웨딩홀"
                             placeholderTextColor="#C8BFBB"
                           />
@@ -804,8 +817,8 @@ function CostEditModal({ visible, items, onClose, onSave }) {
                           <View style={costModalStyles.amountRow}>
                             <TextInput
                               style={[modalStyles.input, { flex: 1 }]}
-                              value={item.value}
-                              onChangeText={(v) => updateField(idx, 'value', v.replace(/\D/g, ''))}
+                              value={item.amount}
+                              onChangeText={(v) => updateField(idx, 'amount', v.replace(/\D/g, ''))}
                               placeholder="미정이면 빈칸"
                               placeholderTextColor="#C8BFBB"
                               keyboardType="number-pad"
@@ -856,9 +869,9 @@ function CostEditModal({ visible, items, onClose, onSave }) {
                               <View style={costModalStyles.amountRow}>
                                 <TextInput
                                   style={[modalStyles.input, { flex: 1 }]}
-                                  value={item.balanceAmount}
+                                  value={item.spent}
                                   onChangeText={(v) =>
-                                    updateField(idx, 'balanceAmount', v.replace(/\D/g, ''))
+                                    updateField(idx, 'spent', v.replace(/\D/g, ''))
                                   }
                                   placeholder="0"
                                   placeholderTextColor="#C8BFBB"
@@ -872,12 +885,12 @@ function CostEditModal({ visible, items, onClose, onSave }) {
                               <View style={modalStyles.dateRow}>
                                 <TextInput
                                   style={[modalStyles.input, { flex: 2, textAlign: 'center' }]}
-                                  value={item.balanceDue ? item.balanceDue.split('-')[0] : ''}
+                                  value={item.due_date ? item.due_date.split('-')[0] : ''}
                                   onChangeText={(v) => {
-                                    const parts = (item.balanceDue || '--').split('-');
+                                    const parts = (item.due_date || '--').split('-');
                                     updateField(
                                       idx,
-                                      'balanceDue',
+                                      'due_date',
                                       `${v.replace(/\D/g, '').slice(0, 4)}-${parts[1] || ''}-${parts[2] || ''}`,
                                     );
                                   }}
@@ -889,12 +902,12 @@ function CostEditModal({ visible, items, onClose, onSave }) {
                                 <Text style={modalStyles.dateSep}>년</Text>
                                 <TextInput
                                   style={[modalStyles.input, { flex: 1.5, textAlign: 'center' }]}
-                                  value={item.balanceDue ? item.balanceDue.split('-')[1] : ''}
+                                  value={item.due_date ? item.due_date.split('-')[1] : ''}
                                   onChangeText={(v) => {
-                                    const parts = (item.balanceDue || '--').split('-');
+                                    const parts = (item.due_date || '--').split('-');
                                     updateField(
                                       idx,
-                                      'balanceDue',
+                                      'due_date',
                                       `${parts[0] || ''}-${v.replace(/\D/g, '').slice(0, 2)}-${parts[2] || ''}`,
                                     );
                                   }}
@@ -906,12 +919,12 @@ function CostEditModal({ visible, items, onClose, onSave }) {
                                 <Text style={modalStyles.dateSep}>월</Text>
                                 <TextInput
                                   style={[modalStyles.input, { flex: 1.5, textAlign: 'center' }]}
-                                  value={item.balanceDue ? item.balanceDue.split('-')[2] : ''}
+                                  value={item.due_date ? item.due_date.split('-')[2] : ''}
                                   onChangeText={(v) => {
-                                    const parts = (item.balanceDue || '--').split('-');
+                                    const parts = (item.due_date || '--').split('-');
                                     updateField(
                                       idx,
-                                      'balanceDue',
+                                      'due_date',
                                       `${parts[0] || ''}-${parts[1] || ''}-${v.replace(/\D/g, '').slice(0, 2)}`,
                                     );
                                   }}
@@ -984,9 +997,9 @@ function CostEditModal({ visible, items, onClose, onSave }) {
                             ]}
                           />
                           <View>
-                            <Text style={costModalStyles.balanceCardLabel}>{item.label} 잔금</Text>
+                            <Text style={costModalStyles.balanceCardLabel}>{item.category} 잔금</Text>
                             <Text style={costModalStyles.balanceCardSub}>
-                              {formatBalanceSub(item.balanceDue)}
+                              {formatBalanceSub(item.due_date)}
                             </Text>
                           </View>
                         </View>
@@ -997,7 +1010,7 @@ function CostEditModal({ visible, items, onClose, onSave }) {
                               item.urgent && { color: '#C9716A' },
                             ]}
                           >
-                            {item.balanceAmount ? `${item.balanceAmount}만원` : '미정'}
+                            {item.spent ? `${item.spent}만원` : '미정'}
                           </Text>
                           <TouchableOpacity
                             onPress={() => {
@@ -1211,62 +1224,156 @@ const costModalStyles = StyleSheet.create({
 // ────────────────────────────────────────────────────────
 
 export default function TimelineScreen() {
-  const [selectedDate, setSelectedDate] = useState('2026-01-15');
-  const [visibleMonth, setVisibleMonth] = useState('2026-01');
-  const [timelineItems, setTimelineItems] = useState(INITIAL_TIMELINE_ITEMS);
+  const current_project_id = useProjectStore((state) => state.current_project_id);
+  const { data: projects = [] } = useProjectStore((state) => ({ data: state.projects })); // Assuming projects are in store
+  const current_project = projects.find(p => p.id === current_project_id);
+
+  const { data: timelines = [], isLoading: isTimelineLoading, isError: isTimelineError, refetch: refetchTimelines } = useTimelines(current_project_id);
+  const { data: budget, isLoading: isBudgetLoading } = useBudget(current_project_id);
+  const { data: budgetItems = [], isLoading: isItemsLoading, isError: isItemsError, refetch: refetchItems } = useBudgetItems(current_project_id);
+
+  const createTimeline = useCreateTimeline();
+  const updateTimeline = useUpdateTimeline();
+  const deleteTimeline = useDeleteTimeline();
+  
+  const createBudgetItem = useCreateBudgetItem();
+  const updateBudgetItem = useUpdateBudgetItem();
+  const deleteBudgetItem = useDeleteBudgetItem();
+
+  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const [visibleMonth, setVisibleMonth] = useState(new Date().toISOString().slice(0, 7));
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [scheduleAddModalVisible, setScheduleAddModalVisible] = useState(false);
-  const [costItems, setCostItems] = useState(INITIAL_COST_ITEMS);
-  const [budget, setBudget] = useState('1000');
   const [costEditModalVisible, setCostEditModalVisible] = useState(false);
 
-  // timelineItems에서 달력 마킹 파생
-  const markedDates = timelineItems.reduce((acc, item) => {
-    if (!item.dateYear || !item.dateMonth || !item.dateDay) return acc;
+  if (isTimelineLoading || isBudgetLoading || isItemsLoading) return <LoadingSpinner />;
+  if (isTimelineError || isItemsError) return <ErrorView onRetry={() => { refetchTimelines(); refetchItems(); }} />;
+
+  // ── 데이터 매핑 (DB -> UI) ──────────────────────────
+  const mappedTimelineItems = timelines.map(item => {
+    const d = new Date(item.due_date);
+    return {
+      ...item,
+      date_year: String(d.getFullYear()),
+      date_month: String(d.getMonth() + 1),
+      date_day: String(d.getDate()),
+    };
+  });
+
+  const mappedCostItems = budgetItems.map(item => ({
+    id: item.id,
+    category: item.category,
+    amount: String(item.amount || ''),
+    warn: item.status === 'warning',
+    hasBalance: !!item.due_date,
+    due_date: item.due_date || '',
+    spent: String(item.spent || ''),
+    urgent: item.status === 'urgent',
+  }));
+
+  // D-Day 계산
+  let dDayText = 'D-Day';
+  let weddingDateText = '날짜 미정';
+  if (current_project?.wedding_date) {
+    const weddingDate = new Date(current_project.wedding_date);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const diffTime = weddingDate - today;
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    dDayText = diffDays === 0 ? 'D-Day' : (diffDays > 0 ? `D-${diffDays}` : `D+${Math.abs(diffDays)}`);
+    weddingDateText = `${weddingDate.getFullYear()}년 ${weddingDate.getMonth() + 1}월 ${weddingDate.getDate()}일 (${['일', '월', '화', '수', '목', '금', '토'][weddingDate.getDay()]})`;
+  }
+
+  // 달력 마킹 (mappedTimelineItems 사용)
+  const markedDates = mappedTimelineItems.reduce((acc, item) => {
     const pad = (v) => String(parseInt(v)).padStart(2, '0');
-    const key = `${item.dateYear}-${pad(item.dateMonth)}-${pad(item.dateDay)}`;
+    const key = `${item.date_year}-${pad(item.date_month)}-${pad(item.date_day)}`;
     const colorOpt = COLOR_OPTIONS.find((c) => c.key === (item.color ?? 'rose'));
     acc[key] = { selected: true, selectedColor: colorOpt ? colorOpt.hex : '#C9716A' };
     return acc;
   }, {});
 
-  // 현재 달력에 보이는 월의 일정만 필터링 (날짜순)
-  const visibleEvents = timelineItems
+  const visibleEvents = mappedTimelineItems
     .filter((item) => {
-      if (!item.dateYear || !item.dateMonth || !item.dateDay) return false;
       const pad = (v) => String(parseInt(v)).padStart(2, '0');
-      const dateStr = `${item.dateYear}-${pad(item.dateMonth)}-${pad(item.dateDay)}`;
+      const dateStr = `${item.date_year}-${pad(item.date_month)}-${pad(item.date_day)}`;
       return dateStr.startsWith(visibleMonth);
     })
     .sort((a, b) => {
       const pad = (v) => String(parseInt(v)).padStart(2, '0');
-      const da = `${a.dateYear}-${pad(a.dateMonth)}-${pad(a.dateDay)}`;
-      const db = `${b.dateYear}-${pad(b.dateMonth)}-${pad(b.dateDay)}`;
+      const da = `${a.date_year}-${pad(a.date_month)}-${pad(a.date_day)}`;
+      const db = `${b.date_year}-${pad(b.date_month)}-${pad(b.date_day)}`;
       return da.localeCompare(db);
     });
 
   const [visibleYear, visibleMonthNum] = visibleMonth.split('-');
   const monthLabel = `${parseInt(visibleYear)}년 ${parseInt(visibleMonthNum)}월`;
 
-  // 달력 일정 추가 → timelineItems에 직접 추가
-  const handleAddSchedule = ({ dateYear, dateMonth, dateDay, label, color, status }) => {
-    const newItem = {
-      id: Date.now(),
-      label,
-      dateYear,
-      dateMonth,
-      dateDay,
-      status: status ?? 'future',
-      color: color ?? 'rose',
-    };
-    setTimelineItems((prev) =>
-      [...prev, newItem].sort((a, b) => {
-        const pad = (v) => String(parseInt(v)).padStart(2, '0');
-        const da = `${a.dateYear}-${pad(a.dateMonth)}-${pad(a.dateDay)}`;
-        const db = `${b.dateYear}-${pad(b.dateMonth)}-${pad(b.dateDay)}`;
-        return da.localeCompare(db);
-      }),
-    );
+  const handleAddSchedule = async (data) => {
+    const dateStr = `${data.date_year}-${data.date_month.padStart(2, '0')}-${data.date_day.padStart(2, '0')}`;
+    await createTimeline.mutateAsync({
+      project_id: current_project_id,
+      step_name: data.step_name,
+      due_date: dateStr,
+      status: data.status,
+      color: data.color
+    });
+  };
+
+  const handleSaveTimeline = async (nextItems) => {
+    const nextIds = nextItems.map(n => n.id);
+    const deletedItems = timelines.filter(t => !nextIds.includes(t.id));
+    for (const d of deletedItems) {
+      await deleteTimeline.mutateAsync(d.id);
+    }
+
+    for (const item of nextItems) {
+      const dateStr = `${item.date_year}-${item.date_month.padStart(2, '0')}-${item.date_day.padStart(2, '0')}`;
+      if (timelines.find(t => t.id === item.id)) {
+        await updateTimeline.mutateAsync({ 
+          id: item.id, 
+          step_name: item.step_name, 
+          due_date: dateStr, 
+          status: item.status, 
+          color: item.color 
+        });
+      } else {
+        await createTimeline.mutateAsync({ 
+          project_id: current_project_id, 
+          step_name: item.step_name, 
+          due_date: dateStr, 
+          status: item.status, 
+          color: item.color 
+        });
+      }
+    }
+  };
+
+  const handleSaveCost = async (nextItems, nextBudgetValue) => {
+    const nextIds = nextItems.map(n => n.id);
+    const deletedItems = budgetItems.filter(b => !nextIds.includes(b.id));
+    for (const d of deletedItems) {
+      await deleteBudgetItem.mutateAsync(d.id);
+    }
+
+    for (const item of nextItems) {
+      const payload = {
+        category: item.category,
+        amount: parseInt(item.amount) || 0,
+        spent: parseInt(item.spent) || 0,
+        due_date: item.hasBalance ? item.due_date : null,
+        status: item.urgent ? 'urgent' : (item.warn ? 'warning' : 'normal'),
+      };
+
+      if (budgetItems.find(b => b.id === item.id)) {
+        await updateBudgetItem.mutateAsync({ id: item.id, ...payload });
+      } else {
+        await createBudgetItem.mutateAsync({ 
+          budget_id: budget.id, 
+          ...payload,
+        });
+      }
+    }
   };
 
   return (
@@ -1276,8 +1383,8 @@ export default function TimelineScreen() {
         <View style={styles.bannerCard}>
           <View style={styles.topSection}>
             <View style={styles.ddayWrap}>
-              <Text style={styles.ddayText}>D-127</Text>
-              <Text style={styles.ddaySub}>2026년 7월 25일 (토)</Text>
+              <Text style={styles.ddayText}>{dDayText}</Text>
+              <Text style={styles.ddaySub}>{weddingDateText}</Text>
             </View>
             <View style={styles.statBox}>
               <Text style={styles.statValueRose}>73%</Text>
@@ -1319,7 +1426,7 @@ export default function TimelineScreen() {
 
           <View style={styles.timelineWrap}>
             <View style={styles.timelineLine} />
-            {timelineItems.map((item) => {
+            {mappedTimelineItems.map((item) => {
               // 도트 색상: done=초록, active=로즈(채움), next=로즈(빈 원), future=회색(빈 원)
               const dotStyle =
                 item.status === 'done'
@@ -1341,7 +1448,7 @@ export default function TimelineScreen() {
                         item.status === 'next' && { color: '#6B5B55' },
                       ]}
                     >
-                      {item.label}
+                      {item.step_name}
                     </Text>
                     <Text style={[styles.tlDate, item.status === 'active' && { color: '#C9716A' }]}>
                       {formatDate(item)}
@@ -1391,7 +1498,7 @@ export default function TimelineScreen() {
                 const borderColor = colorOpt ? colorOpt.hex : '#C9716A';
                 const textColor = colorOpt ? colorOpt.text : '#C9716A';
                 const pad = (v) => String(parseInt(v)).padStart(2, '0');
-                const displayLabel = `${parseInt(item.dateMonth)}월 ${parseInt(item.dateDay)}일 — ${item.label}`;
+                const displayLabel = `${parseInt(item.dateMonth)}월 ${parseInt(item.dateDay)}일 — ${item.category}`;
                 return (
                   <View
                     key={item.id}
@@ -1420,37 +1527,36 @@ export default function TimelineScreen() {
               <Text style={styles.editBtnText}>수정</Text>
             </TouchableOpacity>
           </View>
-          {costItems.map((item) => (
+          {mappedCostItems.map((item) => (
             <View key={item.id} style={styles.costRow}>
-              <Text style={styles.costLabel}>{item.label}</Text>
+              <Text style={styles.costLabel}>{item.category}</Text>
               <Text
                 style={[
                   styles.costValue,
                   item.warn && { color: '#C9716A' },
-                  item.gray && { color: '#B8A9A5' },
                 ]}
               >
                 {item.warn ? '⚠ ' : ''}
-                {item.value ? `${item.value}만원` : '미정'}
+                {item.amount ? `${item.amount}만원` : '미정'}
               </Text>
             </View>
           ))}
           <View style={styles.costTotalRow}>
             <Text style={styles.costTotalLabel}>현재 합계</Text>
-            <Text style={styles.costTotalValue}>{sumValues(costItems)}만원</Text>
+            <Text style={styles.costTotalValue}>{sumValues(mappedCostItems)}만원</Text>
           </View>
           <View style={styles.progressBar}>
             <View
               style={[
                 styles.progressFill,
                 {
-                  width: `${Math.min(100, Math.round((sumValues(costItems) / (parseInt(budget) || 1)) * 100))}%`,
+                  width: `${Math.min(100, Math.round((sumValues(mappedCostItems) / (parseInt(budget?.total_amount || 1000) || 1)) * 100))}%`,
                 },
               ]}
             />
           </View>
           <Text style={styles.progressSub}>
-            예산 {budget}만원 중 {sumValues(costItems)}만원 사용
+            예산 {budget?.total_amount || 0}만원 중 {sumValues(mappedCostItems)}만원 사용
           </Text>
         </View>
 
@@ -1459,18 +1565,18 @@ export default function TimelineScreen() {
           <View style={styles.cardTitleRow}>
             <Text style={styles.cardTitle}>잔금 일정</Text>
           </View>
-          {costItems
+          {mappedCostItems
             .filter((item) => item.hasBalance)
-            .sort((a, b) => (a.balanceDue > b.balanceDue ? 1 : -1))
+            .sort((a, b) => (a.due_date > b.due_date ? 1 : -1))
             .map((item) => (
               <View key={item.id} style={styles.balanceRow}>
                 <View style={[styles.balanceDot, item.urgent && { backgroundColor: '#C9716A' }]} />
                 <View style={{ flex: 1 }}>
-                  <Text style={styles.balanceLabel}>{item.label} 잔금</Text>
-                  <Text style={styles.balanceSub}>{formatBalanceSub(item.balanceDue)}</Text>
+                  <Text style={styles.balanceLabel}>{item.category} 잔금</Text>
+                  <Text style={styles.balanceSub}>{formatBalanceSub(item.due_date)}</Text>
                 </View>
-                <Text style={[styles.balanceAmount, item.urgent && { color: '#C9716A' }]}>
-                  {item.balanceAmount ? `${item.balanceAmount}만원` : '미정'}
+                <Text style={[styles.spent, item.urgent && { color: '#C9716A' }]}>
+                  {item.spent ? `${item.spent}만원` : '미정'}
                 </Text>
               </View>
             ))}
@@ -1480,9 +1586,9 @@ export default function TimelineScreen() {
       {/* 타임라인 수정 모달 */}
       <TimelineEditModal
         visible={editModalVisible}
-        items={timelineItems}
+        items={mappedTimelineItems}
         onClose={() => setEditModalVisible(false)}
-        onSave={(updated) => setTimelineItems(updated)}
+        onSave={(updated) => handleSaveTimeline(updated)}
       />
 
       {/* 일정 추가 모달 */}
@@ -1493,15 +1599,12 @@ export default function TimelineScreen() {
         onSave={handleAddSchedule}
       />
 
-      {/* 비용/잔금 수정 모달 */}
+      {/* 비용/잔금 수정 모달 코드가 이미 하단부에 존재하므로, handleSaveCost와 연결합니다. */}
       <CostEditModal
         visible={costEditModalVisible}
-        items={costItems}
+        items={mappedCostItems}
         onClose={() => setCostEditModalVisible(false)}
-        onSave={(updatedItems, updatedBudget) => {
-          setCostItems(updatedItems);
-          setBudget(updatedBudget);
-        }}
+        onSave={(updatedItems, updatedBudget) => handleSaveCost(updatedItems, updatedBudget)}
       />
     </SafeAreaView>
   );
@@ -1956,5 +2059,5 @@ const styles = StyleSheet.create({
   },
   balanceLabel: { fontSize: 13, fontWeight: '500', color: '#2C2420' },
   balanceSub: { fontSize: 10, color: '#B8A9A5', marginTop: 2 },
-  balanceAmount: { fontSize: 13, fontWeight: '500', color: '#2C2420' },
+  spent: { fontSize: 13, fontWeight: '500', color: '#2C2420' },
 });

@@ -11,6 +11,7 @@ import {
   budgetsApi,
   chatsApi,
   vendorsApi,
+  couplesApi,
 } from '../lib/api'
 
 // ─────────────────────────────────────────────
@@ -101,11 +102,11 @@ export const useProjects = () => {
   })
 }
 
-export const useProject = (projectId) => {
+export const useProject = (project_id) => {
   return useQuery({
-    queryKey: ['projects', projectId],
-    queryFn: () => projectsApi.getProject(projectId),
-    enabled: !!projectId,
+    queryKey: ['projects', project_id],
+    queryFn: () => projectsApi.getProject(project_id),
+    enabled: !!project_id,
   })
 }
 
@@ -144,11 +145,11 @@ export const useDeleteProject = () => {
 // 타임라인 (Timelines)
 // ─────────────────────────────────────────────
 
-export const useTimelines = (projectId) => {
+export const useTimelines = (project_id) => {
   return useQuery({
-    queryKey: ['timelines', projectId],
-    queryFn: () => timelinesApi.getTimelines(projectId),
-    enabled: !!projectId,
+    queryKey: ['timelines', project_id],
+    queryFn: () => timelinesApi.getTimelines(project_id),
+    enabled: !!project_id,
   })
 }
 
@@ -186,19 +187,19 @@ export const useDeleteTimeline = () => {
 // 예산 (Budgets)
 // ─────────────────────────────────────────────
 
-export const useBudgets = (projectId) => {
+export const useBudgets = (project_id) => {
   return useQuery({
-    queryKey: ['budgets', projectId],
-    queryFn: () => budgetsApi.getBudgets(projectId),
-    enabled: !!projectId,
+    queryKey: ['budgets', project_id],
+    queryFn: () => budgetsApi.getBudgets(project_id),
+    enabled: !!project_id,
   })
 }
 
-export const useBudgetItems = (budgetId) => {
+export const useBudgetItems = (budget_id) => {
   return useQuery({
-    queryKey: ['budgetItems', budgetId],
-    queryFn: () => budgetsApi.getBudgetItems(budgetId),
-    enabled: !!budgetId,
+    queryKey: ['budgetItems', budget_id],
+    queryFn: () => budgetsApi.getBudgetItems(budget_id),
+    enabled: !!budget_id,
   })
 }
 
@@ -236,19 +237,19 @@ export const useDeleteBudgetItem = () => {
 // 채팅 (Chats)
 // ─────────────────────────────────────────────
 
-export const useChats = (projectId) => {
+export const useChats = (project_id) => {
   return useQuery({
-    queryKey: ['chats', projectId],
-    queryFn: () => chatsApi.getChats(projectId),
-    enabled: !!projectId,
+    queryKey: ['chats', project_id],
+    queryFn: () => chatsApi.getChats(project_id),
+    enabled: !!project_id,
   })
 }
 
-export const useMessages = (chatId) => {
+export const useMessages = (chat_id) => {
   return useQuery({
-    queryKey: ['messages', chatId],
-    queryFn: () => chatsApi.getMessages(chatId),
-    enabled: !!chatId,
+    queryKey: ['messages', chat_id],
+    queryFn: () => chatsApi.getMessages(chat_id),
+    enabled: !!chat_id,
   })
 }
 
@@ -327,6 +328,37 @@ export const useDeleteVendor = () => {
     mutationFn: (id) => vendorsApi.deleteVendor(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['vendors'] })
+    },
+  })
+}
+// ─────────────────────────────────────────────
+// 커플 (Couples)
+// ─────────────────────────────────────────────
+
+export const useInvitations = () => {
+  return useQuery({
+    queryKey: ['invitations'],
+    queryFn: () => couplesApi.getInvitations(),
+  })
+}
+
+export const useInvitePartner = () => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (data) => couplesApi.invitePartner(data),
+    onSuccess: () => {
+      // 필요 시 관련 쿼리 무효화
+    },
+  })
+}
+
+export const useAcceptInvitation = () => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (data) => couplesApi.acceptInvitation(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['invitations'] })
+      queryClient.invalidateQueries({ queryKey: ['projects'] })
     },
   })
 }

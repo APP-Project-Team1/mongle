@@ -20,6 +20,21 @@ class BudgetUpdate(BaseModel):
     spent: Optional[float] = None
     notes: Optional[str] = None
 
+class BudgetItemCreate(BaseModel):
+    budget_id: str
+    category: str
+    amount: float = 0.0
+    spent: float = 0.0
+    status: Optional[str] = 'normal'
+    due_date: Optional[str] = None
+
+class BudgetItemUpdate(BaseModel):
+    category: Optional[str] = None
+    amount: Optional[float] = None
+    spent: Optional[float] = None
+    status: Optional[str] = None
+    due_date: Optional[str] = None
+
 
 # DB 테스트
 @router.get('/test')
@@ -125,8 +140,9 @@ def get_budget_items(budget_id: str):
 
 # 예산 항목 생성
 @router.post('/items')
-def create_budget_item(data: dict):
-    result = supabase.table('budget_items').insert(data).select().single().execute()
+def create_budget_item(data: BudgetItemCreate):
+    insert_data = data.dict(exclude_unset=True)
+    result = supabase.table('budget_items').insert(insert_data).select().single().execute()
     if result.error:
         raise HTTPException(status_code=500, detail=str(result.error))
     return result.data
@@ -134,8 +150,8 @@ def create_budget_item(data: dict):
 
 # 예산 항목 수정
 @router.put('/items/{item_id}')
-def update_budget_item(item_id: str, data: dict):
-    update_data = {k: v for k, v in data.items() if v is not None}
+def update_budget_item(item_id: str, data: BudgetItemUpdate):
+    update_data = data.dict(exclude_unset=True)
     if not update_data:
         raise HTTPException(status_code=400, detail='수정할 값이 없습니다.')
     existing = supabase.table('budget_items').select('*').eq('id', item_id).single().execute()

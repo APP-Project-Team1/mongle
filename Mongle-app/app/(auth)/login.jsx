@@ -14,11 +14,32 @@ import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import LottieView from 'lottie-react-native';
+import { useAuthStore } from '../../stores/authStore';
+import { Alert } from 'react-native';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPw, setShowPw] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const signIn = useAuthStore((state) => state.signIn);
+
+  const handleLogin = async () => {
+    if (!email.trim() || !password.trim()) {
+      Alert.alert('알림', '이메일과 비밀번호를 모두 입력해주세요.');
+      return;
+    }
+
+    setLoading(true);
+    const { error } = await signIn(email, password);
+
+    if (error) {
+      Alert.alert('로그인 실패', error.message || '이메일 또는 비밀번호를 확인해주세요.');
+      setLoading(false);
+    } else {
+      router.replace('/(couple)');
+    }
+  };
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -85,7 +106,8 @@ export default function LoginScreen() {
           <TouchableOpacity
             style={[styles.loginBtnWrapper, styles.shadow]}
             activeOpacity={0.85}
-            onPress={() => router.replace('/(couple)')}
+            onPress={handleLogin}
+            disabled={loading}
           >
             <LinearGradient
               colors={['#d6a6a6', '#d5d1b3']}
@@ -93,7 +115,9 @@ export default function LoginScreen() {
               end={{ x: 1, y: 1 }}
               style={styles.loginBtnGradient}
             >
-              <Text style={styles.loginBtnText}>로그인</Text>
+              <Text style={styles.loginBtnText}>
+                {loading ? '로그인 중...' : '로그인'}
+              </Text>
             </LinearGradient>
           </TouchableOpacity>
         </View>

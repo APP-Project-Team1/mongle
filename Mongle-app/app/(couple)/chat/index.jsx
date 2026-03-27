@@ -20,11 +20,11 @@ import LoadingSpinner from '../../../components/common/LoadingSpinner';
 import ErrorView from '../../../components/common/ErrorView';
 
 export default function ChatScreen() {
-  const projectId = useProjectStore((state) => state.currentProjectId) || '1';
+  const project_id = useProjectStore((state) => state.current_project_id) || '1';
   const { data: currentUser } = useCurrentUser();
   const currentUserId = currentUser?.id || 'me';
 
-  const { data: rooms = [], isLoading, error, refetch } = useChats(projectId);
+  const { data: rooms = [], isLoading, error, refetch } = useChats(project_id);
   const createChatMutation = useCreateChat();
 
   const [isCreateModalVisible, setCreateModalVisible] = useState(false);

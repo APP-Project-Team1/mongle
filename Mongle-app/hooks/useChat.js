@@ -2,20 +2,20 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { chatsApi } from '../lib/api'
 
 // 채팅방 목록 조회
-export const useChats = (projectId) => {
+export const useChats = (project_id) => {
   return useQuery({
-    queryKey: ['chats', projectId],
-    queryFn: () => chatsApi.getChats(projectId),
-    enabled: !!projectId
+    queryKey: ['chats', project_id],
+    queryFn: () => chatsApi.getChats(project_id),
+    enabled: !!project_id
   })
 }
 
 // 채팅방 메시지 조회
-export const useChatMessages = (chatId) => {
+export const useChatMessages = (chat_id) => {
   return useQuery({
-    queryKey: ['chatMessages', chatId],
-    queryFn: () => chatsApi.getMessages(chatId),
-    enabled: !!chatId
+    queryKey: ['chatMessages', chat_id],
+    queryFn: () => chatsApi.getMessages(chat_id),
+    enabled: !!chat_id
   })
 }
 

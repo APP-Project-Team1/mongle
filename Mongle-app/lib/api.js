@@ -88,7 +88,7 @@ export const projectsApi = {
 
 // 타임라인 관련 API
 export const timelinesApi = {
-  getTimelines: (projectId) => api.get('/timelines', { project_id: projectId }),
+  getTimelines: (project_id) => api.get('/timelines', { project_id }),
   getTimeline: (id) => api.get(`/timelines/${id}`),
   createTimeline: (data) => api.post('/timelines', data),
   updateTimeline: (id, data) => api.put(`/timelines/${id}`, data),
@@ -97,32 +97,31 @@ export const timelinesApi = {
 
 // 예산 관련 API
 export const budgetsApi = {
-  getBudgets: (projectId) => api.get('/budgets', { project_id: projectId }),
+  getBudgets: (project_id) => api.get('/budgets', { project_id }),
   getBudget: (id) => api.get(`/budgets/${id}`),
   createBudget: (data) => api.post('/budgets', data),
   updateBudget: (id, data) => api.put(`/budgets/${id}`, data),
   deleteBudget: (id) => api.del(`/budgets/${id}`),
-  getBudgetItems: (budgetId) => api.get('/budget-items', { budget_id: budgetId }),
-  createBudgetItem: (data) => api.post('/budget-items', data),
-  updateBudgetItem: (id, data) => api.put(`/budget-items/${id}`, data),
-  deleteBudgetItem: (id) => api.del(`/budget-items/${id}`),
+  getBudgetItems: (budget_id) => api.get('/budgets/items', { budget_id }),
+  createBudgetItem: (data) => api.post('/budgets/items', data),
+  updateBudgetItem: (id, data) => api.put('/budgets/items/${id}', data),
+  deleteBudgetItem: (id) => api.del('/budgets/items/${id}'),
 }
 
 // 커플 관련 API
 export const couplesApi = {
-  getCouples: () => api.get('/couples'),
-  createCouple: (data) => api.post('/couples', data),
-  updateCouple: (id, data) => api.put(`/couples/${id}`, data),
-  deleteCouple: (id) => api.del(`/couples/${id}`),
+  invitePartner: (data) => api.post('/couples/invite', data),
+  getInvitations: () => api.get('/couples/invitations'),
+  acceptInvitation: (data) => api.post('/couples/accept', data),
 }
 
 // 채팅 관련 API
 export const chatsApi = {
-  getChats: (projectId) => api.get('/chats', { project_id: projectId }),
+  getChats: (project_id) => api.get('/chats', { project_id }),
   getChat: (id) => api.get(`/chats/${id}`),
   createChat: (data) => api.post('/chats', data),
   deleteChat: (id) => api.del(`/chats/${id}`),
-  getMessages: (chatId) => api.get('/messages', { chat_id: chatId }),
+  getMessages: (chat_id) => api.get('/messages', { chat_id }),
   sendMessage: (data) => api.post('/messages', data),
 }
 

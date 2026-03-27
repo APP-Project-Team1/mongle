@@ -13,6 +13,10 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useProjectStore } from '../../stores/projectStore';
+import { useAuthStore } from '../../stores/authStore';
+import { useInvitations, useAcceptInvitation } from '../../hooks/useApi';
+import LoadingSpinner from '../components/common/LoadingSpinner';
 
 const { width } = Dimensions.get('window');
 
@@ -73,11 +77,28 @@ let persistedSubTab = 0;
 let persistedSearchText = '';
 
 export default function HomeScreen() {
+  const { current_project_id, projects } = useProjectStore();
+  const current_project = projects.find(p => p.id === current_project_id);
+  const user = useAuthStore(state => state.user);
+
   const [activeCategoryTab, setActiveCategoryTabState] = useState(persistedCategoryTab);
   const [activeSubTab, setActiveSubTabState] = useState(persistedSubTab);
   const [activeBanner, setActiveBanner] = useState(0);
   const [searchText, setSearchTextState] = useState(persistedSearchText);
   const bannerRef = useRef(null);
+
+  // Invitations logic
+  const { data: invitations, isLoading: isInvitesLoading } = useInvitations();
+  const acceptMutation = useAcceptInvitation();
+
+  const handleAcceptInvite = (id) => {
+    acceptMutation.mutate({ invitation_id: id });
+  };
+
+  // Wedding Date calculation
+  const weddingDate = currentProject?.wedding_date ? new Date(currentProject.wedding_date) : null;
+  const dDay = weddingDate ? Math.ceil((weddingDate - new Date()) / (1000 * 60 * 60 * 24)) : null;
+  const dDayText = dDay !== null ? (dDay === 0 ? 'D-Day' : `D-${dDay}`) : '날짜 미정';
 
   const setActiveCategoryTab = (index) => {
     persistedCategoryTab = index;
@@ -113,14 +134,12 @@ export default function HomeScreen() {
 
       {/* ── 헤더 ── */}
       <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.plannerBtn}
-          activeOpacity={0.7}
-          onPress={() => router.push('/(planner)/dashboard')}
-        >
-          <Ionicons name="briefcase-outline" size={16} color="#917878" />
-          <Text style={styles.plannerBtnText}>플래너</Text>
-        </TouchableOpacity>
+        <View style={styles.headerLeft}>
+          <Text style={styles.welcomeText}>{user?.email?.split('@')[0] || '사용자'}님,</Text>
+          <Text style={styles.projectInfo}>
+            {currentProject?.name || '나의 결혼'} {dDayText}
+          </Text>
+        </View>
         <Text style={styles.logo}>Mongle</Text>
         <TouchableOpacity style={styles.notifBtn} activeOpacity={0.7}>
           <Ionicons name="notifications-outline" size={20} color="#3a2e2a" />
@@ -142,6 +161,25 @@ export default function HomeScreen() {
           <Ionicons name="options-outline" size={16} color="#B9B4B4" />
         </View>
       </View>
+
+      {/* ── 초대 배너 ── */}
+      {invitations && invitations.length > 0 && (
+        <View style={styles.inviteBanner}>
+          <Ionicons name="mail-open-outline" size={20} color="#C9716A" />
+          <Text style={styles.inviteText}>
+            {invitations[0].profiles?.nickname || invitations[0].profiles?.email}님에게 초대가 왔어요!
+          </Text>
+          <TouchableOpacity 
+            style={styles.acceptBtn} 
+            onPress={() => handleAcceptInvite(invitations[0].id)}
+            disabled={acceptMutation.isPending}
+          >
+            <Text style={styles.acceptBtnText}>
+              {acceptMutation.isPending ? '수락 중...' : '수락'}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      )}
 
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* ── 배너 ── */}
@@ -321,6 +359,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 8,
     paddingBottom: 12,
+  },
+  headerLeft: {
+    flex: 1,
+  },
+  welcomeText: {
+    fontSize: 12,
+    color: '#8a7870',
+    marginBottom: 2,
+  },
+  projectInfo: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#3a2e2a',
   },
   logo: {
     flex: 1,
@@ -518,12 +569,34 @@ const styles = StyleSheet.create({
     color: '#3a2e2a',
     fontWeight: '600',
   },
-  subTabUnderline: {
-    position: 'absolute',
-    bottom: -1,
-    width: '40%',
-    height: 2,
-    backgroundColor: '#c9a98e',
-    borderRadius: 1,
+  // 초대 배너
+  inviteBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFF5F5',
+    marginHorizontal: 20,
+    marginVertical: 10,
+    padding: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#FFECEC',
+    gap: 10,
+  },
+  inviteText: {
+    flex: 1,
+    fontSize: 13,
+    color: '#3a2e2a',
+    fontWeight: '500',
+  },
+  acceptBtn: {
+    backgroundColor: '#C9716A',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+  },
+  acceptBtnText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: '600',
   },
 });

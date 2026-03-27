@@ -16,14 +16,17 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useAuthStore } from '../../stores/authStore';
 
 export default function RegisterScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPw, setShowPw] = useState(false);
   const [isEmailVerified, setIsEmailVerified] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [modalConfig, setModalConfig] = useState({ title: '', message: '', onConfirm: null });
+  const signUp = useAuthStore((state) => state.signUp);
 
   const showModal = (title, message, onConfirm = null) => {
     setModalConfig({ title, message, onConfirm });
@@ -50,11 +53,19 @@ export default function RegisterScreen() {
 
   const isSignUpEnabled = isEmailVerified && isValidPassword(password);
 
-  const handleRegister = () => {
+  const handleRegister = async () => {
     if (isSignUpEnabled) {
-      showModal('환영합니다!', '회원가입이 완료되었습니다.', () => {
-        router.replace('/(auth)/login');
-      });
+      setLoading(true);
+      const { error } = await signUp(email, password);
+
+      if (error) {
+        showModal('오류', error.message || '회원가입 중 오류가 발생했습니다.');
+        setLoading(false);
+      } else {
+        showModal('환영합니다!', '회원가입이 완료되었습니다.', () => {
+          router.replace('/(auth)/login');
+        });
+      }
     }
   };
 
@@ -165,7 +176,9 @@ export default function RegisterScreen() {
                 end={{ x: 1, y: 1 }}
                 style={styles.registerBtnGradient}
               >
-                <Text style={styles.registerBtnText}>가입하기</Text>
+                <Text style={styles.registerBtnText}>
+                  {loading ? '가입 중...' : '가입하기'}
+                </Text>
               </LinearGradient>
             </TouchableOpacity>
           </View>

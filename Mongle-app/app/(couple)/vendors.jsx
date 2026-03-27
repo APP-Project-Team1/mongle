@@ -7,7 +7,7 @@ import { useProjectStore } from '../../stores';
 const CATEGORY_OPTIONS = ['전체', '식장', '스튜디오', '드레스', '메이크업', '사진', '기타'];
 
 export default function VendorsScreen() {
-  const projectId = useProjectStore((state) => state.currentProjectId) || '1';
+  const project_id = useProjectStore((state) => state.current_project_id) || '1';
 
   const [selectedCategory, setSelectedCategory] = useState('전체');
   const [modalVisible, setModalVisible] = useState(false);
@@ -16,8 +16,9 @@ export default function VendorsScreen() {
   const [form, setForm] = useState({
     name: '',
     category: '',
+    location: '',
     price_range: '',
-    contact: '',
+    contact_info: '',
     memo: '',
     recommended: false,
   });
@@ -27,7 +28,7 @@ export default function VendorsScreen() {
     isLoading,
     error,
     refetch,
-  } = useVendors({ projectId });
+  } = useVendors({ project_id });
 
   const createVendorMutation = useCreateVendor();
   const updateVendorMutation = useUpdateVendor();
@@ -47,8 +48,9 @@ export default function VendorsScreen() {
     setForm({
       name: '',
       category: '',
+      location: '',
       price_range: '',
-      contact: '',
+      contact_info: '',
       memo: '',
       recommended: false,
     });
@@ -60,8 +62,9 @@ export default function VendorsScreen() {
     setForm({
       name: vendor.name ?? '',
       category: vendor.category ?? '',
+      location: vendor.location ?? '',
       price_range: vendor.price_range ?? '',
-      contact: vendor.contact ?? '',
+      contact_info: vendor.contact_info ?? vendor.contact ?? '',
       memo: vendor.memo ?? '',
       recommended: Boolean(vendor.recommended || vendor.is_recommended),
     });
@@ -74,8 +77,9 @@ export default function VendorsScreen() {
     setForm({
       name: '',
       category: '',
+      location: '',
       price_range: '',
-      contact: '',
+      contact_info: '',
       memo: '',
       recommended: false,
     });
@@ -103,8 +107,9 @@ export default function VendorsScreen() {
       project_id: projectId,
       name: form.name.trim(),
       category: form.category.trim(),
+      location: form.location.trim(),
       price_range: form.price_range.trim(),
-      contact: form.contact.trim(),
+      contact_info: { phone: form.contact_info.trim() },
       memo: form.memo.trim(),
       recommended: form.recommended,
     };
@@ -183,8 +188,12 @@ export default function VendorsScreen() {
             {item.price_range ? ` · ${item.price_range}` : ''}
           </Text>
 
-          {!!item.contact && (
-            <Text style={styles.subText}>연락처: {item.contact}</Text>
+          {!!item.location && (
+            <Text style={styles.subText}>위치: {item.location}</Text>
+          )}
+
+          {!!item.contact_info && (
+            <Text style={styles.subText}>연락처: {typeof item.contact_info === 'object' ? item.contact_info.phone : item.contact_info}</Text>
           )}
 
           {!!item.memo && (
@@ -282,16 +291,16 @@ export default function VendorsScreen() {
 
             <TextInput
               style={styles.input}
-              placeholder="가격대"
-              value={form.price_range}
-              onChangeText={(text) => handleChange('price_range', text)}
+              placeholder="위치 (예: 서울 강남구)"
+              value={form.location}
+              onChangeText={(text) => handleChange('location', text)}
             />
 
             <TextInput
               style={styles.input}
               placeholder="연락처"
-              value={form.contact}
-              onChangeText={(text) => handleChange('contact', text)}
+              value={form.contact_info}
+              onChangeText={(text) => handleChange('contact_info', text)}
             />
 
             <TextInput

@@ -10,11 +10,12 @@ import {
   Platform,
   ScrollView,
   BackHandler,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import plannersData from './planners.json';
+import { supabase } from '../../lib/supabase';
 
 const FILTER_KEYS = [
   { id: 'activity_regions', label: '지역' },
@@ -36,20 +37,21 @@ export default function PlannersScreen() {
   const [showScrollTop, setShowScrollTop] = useState(false);
   const flatListRef = useRef(null);
 
+  const [plannersData, setPlannersData] = useState([]);
+  const [loading, setLoading] = useState(true);
+
   useEffect(() => {
-    const handleBackPress = () => {
-      router.replace('/(couple)');
-      return true;
-    };
+    async function fetchPlanners() {
+      const { data, error } = await supabase
+        .from('wedding_planners')
+        .select('*')
+        .not('brand_name', 'is', null)
+        .order('created_at', { ascending: false });
 
-    const subscription = BackHandler.addEventListener(
-      'hardwareBackPress',
-      handleBackPress
-    );
-
-    return () => {
-      subscription.remove();
-    };
+      if (!error && data) setPlannersData(data);
+      setLoading(false);
+    }
+    fetchPlanners();
   }, []);
 
   const filterOptions = useMemo(() => {
@@ -58,9 +60,9 @@ export default function PlannersScreen() {
     const styles = new Set();
 
     plannersData.forEach((planner) => {
-      planner.activity_regions.forEach((r) => regions.add(r));
-      planner.specialties.forEach((s) => specialties.add(s));
-      planner.style_keywords.forEach((k) => styles.add(k));
+      planner.activity_regions?.forEach((r) => regions.add(r));
+      planner.specialties?.forEach((s) => specialties.add(s));
+      planner.style_keywords?.forEach((k) => styles.add(k));
     });
 
     return {
@@ -68,35 +70,38 @@ export default function PlannersScreen() {
       specialties: Array.from(specialties),
       style_keywords: Array.from(styles),
     };
-  }, []);
+  }, [plannersData]);
 
   const filteredPlanners = useMemo(() => {
     return plannersData.filter((planner) => {
-      if (searchText && !planner.name.includes(searchText) && !planner.brand_name.includes(searchText)) {
+      if (
+        searchText &&
+        !planner.name.includes(searchText) &&
+        !planner.brand_name.includes(searchText)
+      ) {
         return false;
       }
 
+      // filteredPlanners useMemo
       if (selectedFilters.activity_regions.length > 0) {
-        if (!selectedFilters.activity_regions.some((r) => planner.activity_regions.includes(r))) {
+        if (!selectedFilters.activity_regions.some((r) => planner.activity_regions?.includes(r))) {
           return false;
         }
       }
-
       if (selectedFilters.specialties.length > 0) {
-        if (!selectedFilters.specialties.some((s) => planner.specialties.includes(s))) {
+        if (!selectedFilters.specialties.some((s) => planner.specialties?.includes(s))) {
           return false;
         }
       }
-
       if (selectedFilters.style_keywords.length > 0) {
-        if (!selectedFilters.style_keywords.some((k) => planner.style_keywords.includes(k))) {
+        if (!selectedFilters.style_keywords.some((k) => planner.style_keywords?.includes(k))) {
           return false;
         }
       }
 
       return true;
     });
-  }, [searchText, selectedFilters]);
+  }, [searchText, selectedFilters, plannersData]);
 
   const toggleFilter = (category, value) => {
     setSelectedFilters((prev) => {
@@ -123,7 +128,10 @@ export default function PlannersScreen() {
         <Ionicons name="home-outline" size={24} color="#c9a98e" />
         <Text style={[tabStyles.tabText, { color: '#c9a98e' }]}>홈</Text>
       </TouchableOpacity>
-      <TouchableOpacity style={tabStyles.tabItem} onPress={() => router.replace('/(couple)/timeline')}>
+      <TouchableOpacity
+        style={tabStyles.tabItem}
+        onPress={() => router.replace('/(couple)/timeline')}
+      >
         <Ionicons name="calendar-outline" size={24} color="#8a7870" />
         <Text style={tabStyles.tabText}>일정</Text>
       </TouchableOpacity>
@@ -153,6 +161,12 @@ export default function PlannersScreen() {
     ...selectedFilters.style_keywords.map((v) => ({ cat: 'style_keywords', val: v })),
   ];
 
+  if (loading)
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <ActivityIndicator style={{ flex: 1 }} color="#c9a98e" />
+      </SafeAreaView>
+    );
 
   // --- List View return ---
   return (
@@ -179,7 +193,11 @@ export default function PlannersScreen() {
       </View>
 
       <View style={styles.filterTopRow}>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.activeFilterScroll}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={styles.activeFilterScroll}
+        >
           {allSelectedChips.length === 0 ? (
             <Text style={styles.emptyFilterText}>조건을 선택하여 딱 맞는 플래너를 찾아보세요.</Text>
           ) : (
@@ -200,7 +218,7 @@ export default function PlannersScreen() {
           onPress={() => setIsFilterOpen(!isFilterOpen)}
           activeOpacity={0.7}
         >
-          <Ionicons name="options" size={20} color={isFilterOpen ? "#c9a98e" : "#8a7870"} />
+          <Ionicons name="options" size={20} color={isFilterOpen ? '#c9a98e' : '#8a7870'} />
         </TouchableOpacity>
       </View>
 
@@ -211,10 +229,18 @@ export default function PlannersScreen() {
               {FILTER_KEYS.map((fk) => (
                 <TouchableOpacity
                   key={fk.id}
-                  style={[styles.filterKeyBtn, activeFilterKey === fk.id && styles.filterKeyBtnActive]}
+                  style={[
+                    styles.filterKeyBtn,
+                    activeFilterKey === fk.id && styles.filterKeyBtnActive,
+                  ]}
                   onPress={() => setActiveFilterKey(fk.id)}
                 >
-                  <Text style={[styles.filterKeyText, activeFilterKey === fk.id && styles.filterKeyTextActive]}>
+                  <Text
+                    style={[
+                      styles.filterKeyText,
+                      activeFilterKey === fk.id && styles.filterKeyTextActive,
+                    ]}
+                  >
                     {fk.label}
                   </Text>
                 </TouchableOpacity>
@@ -225,7 +251,11 @@ export default function PlannersScreen() {
               <Text style={styles.resetText}>초기화</Text>
             </TouchableOpacity>
           </View>
-          <ScrollView style={styles.filterValueArea} nestedScrollEnabled showsVerticalScrollIndicator={false}>
+          <ScrollView
+            style={styles.filterValueArea}
+            nestedScrollEnabled
+            showsVerticalScrollIndicator={false}
+          >
             <View style={styles.filterValueWrap}>
               {filterOptions[activeFilterKey].map((val) => {
                 const isSelected = selectedFilters[activeFilterKey].includes(val);
@@ -235,7 +265,9 @@ export default function PlannersScreen() {
                     style={[styles.filterValueChip, isSelected && styles.filterValueChipActive]}
                     onPress={() => toggleFilter(activeFilterKey, val)}
                   >
-                    <Text style={[styles.filterValueText, isSelected && styles.filterValueTextActive]}>
+                    <Text
+                      style={[styles.filterValueText, isSelected && styles.filterValueTextActive]}
+                    >
                       {val}
                     </Text>
                   </TouchableOpacity>
@@ -263,23 +295,27 @@ export default function PlannersScreen() {
             <Image source={{ uri: item.profile_image_url }} style={styles.cardProfileImg} />
             <View style={styles.cardInfo}>
               <View style={styles.cardHeaderRow}>
-                <Text style={styles.cardName}>{item.name} <Text style={styles.cardTitleText}>{item.title}</Text></Text>
+                <Text style={styles.cardName}>
+                  {item.name} <Text style={styles.cardTitleText}>{item.title}</Text>
+                </Text>
                 <View style={styles.cardRatingRow}>
                   <Ionicons name="star" size={12} color="#f0b452" />
                   <Text style={styles.cardRating}>{item.rating}</Text>
                 </View>
               </View>
 
-              <Text style={styles.cardOneLiner} numberOfLines={1}>"{item.one_liner}"</Text>
+              <Text style={styles.cardOneLiner} numberOfLines={1}>
+                "{item.one_liner}"
+              </Text>
 
               <View style={styles.cardMetaRow}>
-                <Text style={styles.cardMetaText}>{item.activity_regions.join(', ')}</Text>
+                <Text style={styles.cardMetaText}>{item.activity_regions?.join(', ')}</Text>
                 <View style={styles.metaDot} />
                 <Text style={styles.cardMetaText}>경력 {item.career_years}년</Text>
               </View>
 
               <View style={styles.cardTagsRow}>
-                {item.specialties.slice(0, 3).map((s, idx) => (
+                {item.specialties?.slice(0, 3).map((s, idx) => (
                   <View key={idx} style={styles.smallTag}>
                     <Text style={styles.smallTagText}>{s}</Text>
                   </View>

@@ -41,7 +41,7 @@ export const ComparisonTable = ({ items }) => {
               </View>
               {items.map(item => {
                 let value = item[row.key];
-                if (row.isPrice) value = value.toLocaleString() + '원';
+                if (row.isPrice) value = (value !== undefined && value !== null) ? value.toLocaleString() + '원' : '정보 없음';
                 if (row.isBool) value = value ? '포함' : '별도';
 
                 const isHighlight = row.key === 'realCost' && item.realCost === Math.min(...items.map(i => i.realCost));

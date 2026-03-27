@@ -58,7 +58,16 @@ export const PDFService = {
    */
   async saveBudgetSummary(budgetData) {
     const html = PDFTemplates.getBudgetSummaryHTML({
-      ...budgetData,
+      projectName: budgetData.projectName || '몽글 웨딩 프로젝트',
+      weddingDate: budgetData.weddingDate || '미정',
+      totalBudget: budgetData.totalBudget || 0,
+      spentAmount: budgetData.spent || 0,
+      remainingBudget: (budgetData.totalBudget || 0) - (budgetData.spent || 0),
+      categories: (budgetData.items || []).map(item => ({
+        title: item.category || '기타',
+        budget: item.amount || 0, // In this simplified view, we treat amount as spent
+        spent: item.amount || 0
+      })),
       generatedAt: new Date().toLocaleString()
     });
     const dateStr = new Date().toISOString().split('T')[0];

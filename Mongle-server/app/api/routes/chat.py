@@ -28,11 +28,25 @@ def test_chat_db():
     return result.data
 
 
-# 전체 채팅 목록
+import uuid
+
+# 프로젝트별 또는 전체 채팅 목록
 @router.get('/')
-def get_chats():
-    result = supabase.table('chats').select('*').execute()
-    return result.data
+def get_chats(project_id: Optional[str] = None):
+    try:
+        query = supabase.table('chats').select('*')
+        if project_id:
+            # UUID 형식 검증
+            try:
+                uuid.UUID(project_id)
+                query = query.eq('project_id', project_id)
+            except ValueError:
+                # 유효하지 않은 UUID면 빈 결과 반환
+                return []
+        result = query.execute()
+        return result.data
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 # 프로젝트별 채팅
@@ -108,27 +122,30 @@ def delete_chat(chat_id: str):
 # 채팅방 메시지 조회
 @router.get('/{chat_id}/messages')
 def get_messages(chat_id: str):
-    result = supabase.table('messages').select('*').eq('chat_id', chat_id).order('created_at', {'ascending': True}).execute()
-    return result.data
+    try:
+        result = supabase.table('messages').select('*').eq('chat_id', chat_id).order('created_at', {'ascending': True}).execute()
+        return result.data
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 # 채팅방에 메시지 추가
 @router.post('/{chat_id}/messages')
 def create_message(chat_id: str, data: ChatMessageCreate):
-    if chat_id != data.chat_id:
-        raise HTTPException(status_code=400, detail='chat_id mismatch')
+    try:
+        if chat_id != data.chat_id:
+            raise HTTPException(status_code=400, detail='chat_id mismatch')
 
-    chat_check = supabase.table('chats').select('*').eq('id', chat_id).execute()
-    if not chat_check.data:
-        raise HTTPException(status_code=404, detail='해당 채팅을 찾을 수 없습니다.')
+        chat_check = supabase.table('chats').select('*').eq('id', chat_id).execute()
+        if not chat_check.data:
+            raise HTTPException(status_code=404, detail='해당 채팅을 찾을 수 없습니다.')
 
-    result = supabase.table('messages').insert({
-        'chat_id': data.chat_id,
-        'sender': data.sender,
-        'content': data.content
-    }).select().single().execute()
+        result = supabase.table('messages').insert({
+            'chat_id': data.chat_id,
+            'sender_id': data.sender if '-' in data.sender else None,
+            'content': data.content
+        }).select().single().execute()
 
-    if result.error:
-        raise HTTPException(status_code=500, detail=str(result.error))
-
-    return result.data
+        return result.data
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

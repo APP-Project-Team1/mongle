@@ -113,14 +113,24 @@ def delete_budget(budget_id: str):
     return {'deleted': True}
 
 
-# 예산 항목 목록 조회
+import uuid
+
+# 예산 항목 목록 조회 ( compatibility: GET /budget-items?budget_id=... )
 @router.get('/items')
-def get_budget_items(budget_id: str):
-    query = supabase.table('budget_items').select('*')
-    if budget_id:
-        query = query.eq('budget_id', budget_id)
-    result = query.execute()
-    return result.data
+@router.get('/')
+def get_budget_items(budget_id: Optional[str] = None):
+    try:
+        query = supabase.table('budget_items').select('*')
+        if budget_id:
+            try:
+                uuid.UUID(budget_id)
+                query = query.eq('budget_id', budget_id)
+            except ValueError:
+                return []
+        result = query.execute()
+        return result.data
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 # 예산 항목 생성

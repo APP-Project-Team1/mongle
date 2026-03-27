@@ -15,7 +15,8 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { useChats, useCreateChat, useProjectStore, useCurrentUser } from '../../../hooks';
+import { useChats, useCreateChat, useCurrentUser } from '../../../hooks';
+import { useProjectStore } from '../../../stores';
 import LoadingSpinner from '../../../components/common/LoadingSpinner';
 import ErrorView from '../../../components/common/ErrorView';
 

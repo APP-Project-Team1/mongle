@@ -30,15 +30,23 @@ def get_projects():
     return result.data
 
 
+import uuid
+
 # 프로젝트 단일 조회
 @router.get("/{project_id}")
 def get_project(project_id: str):
-    result = supabase.table("projects").select("*").eq("id", project_id).execute()
+    try:
+        try:
+            uuid.UUID(project_id)
+        except ValueError:
+            raise HTTPException(status_code=404, detail="해당 프로젝트를 찾을 수 없습니다.")
 
-    if not result.data:
-        raise HTTPException(status_code=404, detail="해당 프로젝트를 찾을 수 없습니다.")
-
-    return result.data[0]
+        result = supabase.table("projects").select("*").eq("id", project_id).execute()
+        if not result.data:
+            raise HTTPException(status_code=404, detail="해당 프로젝트를 찾을 수 없습니다.")
+        return result.data[0]
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 # 프로젝트 생성

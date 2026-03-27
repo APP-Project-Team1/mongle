@@ -97,7 +97,7 @@ def create_chat(data: ChatCreate):
 # 채팅 수정
 @router.put('/{chat_id}')
 def update_chat(chat_id: str, data: ChatUpdate):
-    update_data = data.dict(exclude_unset=True)
+    update_data = data.model_dump(exclude_unset=True)
     if not update_data:
         raise HTTPException(status_code=400, detail='수정할 값이 없습니다.')
 

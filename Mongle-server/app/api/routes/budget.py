@@ -43,10 +43,14 @@ def test_campaigns_db():
     return result.data
 
 
-# 전체 예산 조회
+# 예산 조회 (프로젝트별 필터링 지원)
 @router.get('/')
-def get_budgets():
-    result = supabase.table('budgets').select('*').execute()
+def get_budgets(project_id: Optional[str] = None):
+    query = supabase.table('budgets').select('*')
+    if project_id:
+        query = query.eq('project_id', project_id)
+    
+    result = query.execute()
     return result.data
 
 
@@ -99,7 +103,7 @@ def create_budget(data: BudgetCreate):
 # 예산 수정
 @router.put('/{budget_id}')
 def update_budget(budget_id: str, data: BudgetUpdate):
-    update_data = data.dict(exclude_unset=True)
+    update_data = data.model_dump(exclude_unset=True)
     if not update_data:
         raise HTTPException(status_code=400, detail='수정할 값이 없습니다.')
 
@@ -130,9 +134,8 @@ def delete_budget(budget_id: str):
 
 import uuid
 
-# 예산 항목 목록 조회 ( compatibility: GET /budget-items?budget_id=... )
+# 예산 항목 목록 조회 (GET /budgets/items?budget_id=... )
 @router.get('/items')
-@router.get('/')
 def get_budget_items(budget_id: Optional[str] = None):
     try:
         query = supabase.table('budget_items').select('*')
@@ -151,7 +154,7 @@ def get_budget_items(budget_id: Optional[str] = None):
 # 예산 항목 생성
 @router.post('/items')
 def create_budget_item(data: BudgetItemCreate):
-    insert_data = data.dict(exclude_unset=True)
+    insert_data = data.model_dump(exclude_unset=True)
     result = supabase.table('budget_items').insert(insert_data).select().single().execute()
     if result.error:
         raise HTTPException(status_code=500, detail=str(result.error))
@@ -161,7 +164,7 @@ def create_budget_item(data: BudgetItemCreate):
 # 예산 항목 수정
 @router.put('/items/{item_id}')
 def update_budget_item(item_id: str, data: BudgetItemUpdate):
-    update_data = data.dict(exclude_unset=True)
+    update_data = data.model_dump(exclude_unset=True)
     if not update_data:
         raise HTTPException(status_code=400, detail='수정할 값이 없습니다.')
     existing = supabase.table('budget_items').select('*').eq('id', item_id).single().execute()

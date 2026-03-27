@@ -15,7 +15,7 @@ import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useProjectStore } from '../../stores/projectStore';
 import { useAuthStore } from '../../stores/authStore';
-import { useInvitations, useAcceptInvitation } from '../../hooks/useApi';
+import { useInvites, useAcceptInvite } from '../../hooks/useApi';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 
 const { width } = Dimensions.get('window');
@@ -54,14 +54,14 @@ const BANNER_DATA = [
 ];
 
 // 카테고리 탭별 업체 데이터
-const CATEGORY_VENDOR_DATA = {
+const VENDOR_MAP = {
   0: studioData.slice(0, 6).map(mapVendor),
   1: dressData.slice(0, 6).map(mapVendor),
   2: makeupData.slice(0, 6).map(mapVendor),
   3: packageData.slice(0, 6).map(mapVendor),
 };
 
-const SUB_VENDOR_DATA = {
+const SUB_MAP = {
   0: hallData.slice(0, 6).map(mapVendor),
   1: videoSnapData.slice(0, 6).map(mapVendor),
   2: plannersData.slice(0, 6).map(mapPlanner),
@@ -77,37 +77,37 @@ let persistedSubTab = 0;
 let persistedSearchText = '';
 
 export default function HomeScreen() {
-  const { current_project_id, projects } = useProjectStore();
-  const current_project = projects.find(p => p.id === current_project_id);
+  const { active_id, projects } = useProjectStore();
+  const active = projects.find(p => p.id === active_id);
   const user = useAuthStore(state => state.user);
 
-  const [activeCategoryTab, setActiveCategoryTabState] = useState(persistedCategoryTab);
-  const [activeSubTab, setActiveSubTabState] = useState(persistedSubTab);
+  const [catIdx, setCatIdx] = useState(persistedCategoryTab);
+  const [subIdx, setSubIdx] = useState(persistedSubTab);
   const [activeBanner, setActiveBanner] = useState(0);
   const [searchText, setSearchTextState] = useState(persistedSearchText);
   const bannerRef = useRef(null);
 
   // Invitations logic
-  const { data: invitations, isLoading: isInvitesLoading } = useInvitations();
-  const acceptMutation = useAcceptInvitation();
+  const { data: invitations, isLoading: isInvitesLoading } = useInvites();
+  const acceptMutation = useAcceptInvite();
 
-  const handleAcceptInvite = (id) => {
+  const onAccept = (id) => {
     acceptMutation.mutate({ invitation_id: id });
   };
 
   // Wedding Date calculation
-  const weddingDate = currentProject?.wedding_date ? new Date(currentProject.wedding_date) : null;
+  const weddingDate = active?.wedding_date ? new Date(active.wedding_date) : null;
   const dDay = weddingDate ? Math.ceil((weddingDate - new Date()) / (1000 * 60 * 60 * 24)) : null;
   const dDayText = dDay !== null ? (dDay === 0 ? 'D-Day' : `D-${dDay}`) : '날짜 미정';
 
-  const setActiveCategoryTab = (index) => {
+  const setCat = (index) => {
     persistedCategoryTab = index;
-    setActiveCategoryTabState(index);
+    setCatIdx(index);
   };
 
-  const setActiveSubTab = (index) => {
+  const setSub = (index) => {
     persistedSubTab = index;
-    setActiveSubTabState(index);
+    setSubIdx(index);
   };
 
   const setSearchText = (text) => {
@@ -121,12 +121,12 @@ export default function HomeScreen() {
   };
 
   // 카테고리 탭 데이터
-  const categoryVendors = (CATEGORY_VENDOR_DATA[activeCategoryTab] ?? []).slice(0, MAX_VISIBLE);
-  const categoryHasMore = (CATEGORY_VENDOR_DATA[activeCategoryTab] ?? []).length > MAX_VISIBLE;
+  const categoryVendors = (VENDOR_MAP[catIdx] ?? []).slice(0, MAX_VISIBLE);
+  const categoryHasMore = (VENDOR_MAP[catIdx] ?? []).length > MAX_VISIBLE;
 
   // 서브 탭 데이터
-  const subVendors = (SUB_VENDOR_DATA[activeSubTab] ?? []).slice(0, MAX_VISIBLE);
-  const subHasMore = (SUB_VENDOR_DATA[activeSubTab] ?? []).length > MAX_VISIBLE;
+  const subVendors = (SUB_MAP[subIdx] ?? []).slice(0, MAX_VISIBLE);
+  const subHasMore = (SUB_MAP[subIdx] ?? []).length > MAX_VISIBLE;
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -137,7 +137,7 @@ export default function HomeScreen() {
         <View style={styles.headerLeft}>
           <Text style={styles.welcomeText}>{user?.email?.split('@')[0] || '사용자'}님,</Text>
           <Text style={styles.projectInfo}>
-            {currentProject?.name || '나의 결혼'} {dDayText}
+            {active?.name || '나의 결혼'} {dDayText}
           </Text>
         </View>
         <Text style={styles.logo}>Mongle</Text>
@@ -169,9 +169,9 @@ export default function HomeScreen() {
           <Text style={styles.inviteText}>
             {invitations[0].profiles?.nickname || invitations[0].profiles?.email}님에게 초대가 왔어요!
           </Text>
-          <TouchableOpacity 
-            style={styles.acceptBtn} 
-            onPress={() => handleAcceptInvite(invitations[0].id)}
+          <TouchableOpacity
+            style={styles.acceptBtn}
+            onPress={() => onAccept(invitations[0].id)}
             disabled={acceptMutation.isPending}
           >
             <Text style={styles.acceptBtnText}>
@@ -212,14 +212,14 @@ export default function HomeScreen() {
           {CATEGORY_TABS.map((tab, i) => (
             <TouchableOpacity
               key={tab}
-              onPress={() => setActiveCategoryTab(i)}
+              onPress={() => setCat(i)}
               style={styles.subTab}
               activeOpacity={0.7}
             >
-              <Text style={[styles.subTabText, i === activeCategoryTab && styles.subTabTextActive]}>
+              <Text style={[styles.subTabText, i === catIdx && styles.subTabTextActive]}>
                 {tab}
               </Text>
-              {i === activeCategoryTab && <View style={styles.subTabUnderline} />}
+              {i === catIdx && <View style={styles.subTabUnderline} />}
             </TouchableOpacity>
           ))}
         </View>
@@ -258,14 +258,14 @@ export default function HomeScreen() {
           {SUB_TABS.map((tab, i) => (
             <TouchableOpacity
               key={tab}
-              onPress={() => setActiveSubTab(i)}
+              onPress={() => setSub(i)}
               style={styles.subTab}
               activeOpacity={0.7}
             >
-              <Text style={[styles.subTabText, i === activeSubTab && styles.subTabTextActive]}>
+              <Text style={[styles.subTabText, i === subIdx && styles.subTabTextActive]}>
                 {tab}
               </Text>
-              {i === activeSubTab && <View style={styles.subTabUnderline} />}
+              {i === subIdx && <View style={styles.subTabUnderline} />}
             </TouchableOpacity>
           ))}
         </View>
@@ -282,7 +282,7 @@ export default function HomeScreen() {
               key={vendor.id}
               vendor={vendor}
               onPress={() => {
-                const route = activeSubTab === 2 ? `/planners/${vendor.id}` : `/vendors/${vendor.id}`;
+                const route = subIdx === 2 ? `/planners/${vendor.id}` : `/vendors/${vendor.id}`;
                 router.push(route);
               }}
             />
@@ -291,7 +291,7 @@ export default function HomeScreen() {
             <TouchableOpacity
               style={styles.moreCard}
               onPress={() => {
-                if (activeSubTab === 2) {
+                if (subIdx === 2) {
                   router.push('/planners');
                 } else {
                   router.push('/vendors');

@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.api.routes import timelines, projects, budget, chat, vendors, couples
+from app.api.routes import timelines, projects, budget, chat, vendors, couples, messages
 
 app = FastAPI()
 
@@ -18,6 +18,8 @@ app.include_router(budget.router, prefix="/budgets", tags=["budgets"])
 app.include_router(vendors.router, prefix="/vendors", tags=["vendors"])
 app.include_router(chat.router, prefix="/chats", tags=["chats"])
 app.include_router(couples.router, prefix="/couples", tags=["couples"])
+app.include_router(messages.router, prefix="/messages", tags=["messages"])
+app.include_router(budget.router, prefix="/budget-items", tags=["budgets"]) # Compatibility bridge
 
 
 @app.get("/")

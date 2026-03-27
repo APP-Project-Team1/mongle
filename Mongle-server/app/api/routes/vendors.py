@@ -34,7 +34,7 @@ def get_vendor(vendor_id: str):
 
 @router.post('/')
 def create_vendor(data: VendorCreate):
-    insert_data = data.dict(exclude_unset=True)
+    insert_data = data.model_dump(exclude_unset=True)
     result = supabase.table('vendors').insert(insert_data).select().single().execute()
     if result.error:
         raise HTTPException(status_code=500, detail=str(result.error))
@@ -42,7 +42,7 @@ def create_vendor(data: VendorCreate):
 
 @router.put('/{vendor_id}')
 def update_vendor(vendor_id: str, data: VendorUpdate):
-    update_data = data.dict(exclude_unset=True)
+    update_data = data.model_dump(exclude_unset=True)
     if not update_data:
         raise HTTPException(status_code=400, detail='수정할 값이 없습니다.')
 

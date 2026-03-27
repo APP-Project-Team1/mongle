@@ -22,7 +22,7 @@ VENDORS_CACHE = load_sample_data()
 async def optimize_budget(req: BudgetOptimizeRequest):
     try:
         analyzer = BudgetAnalyzer(VENDORS_CACHE, [])
-        result = await analyzer.analyze(req.dict())
+        result = await analyzer.analyze(req.model_dump())
         return result
     except Exception as e:
         print(f"Error optimizing budget: {e}")

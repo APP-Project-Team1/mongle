@@ -4,14 +4,14 @@ import { supabase } from '../lib/supabase'
 
 export const useProjectStore = create((set, get) => ({
   projects: [],
-  current_project: null,
-  current_project_id: null,
-  current_project_name: null,
+  active: null,
+  active_id: null,
+  active_name: null,
   loading: false,
   error: null,
 
   // 프로젝트 목록 조회
-  fetchProjects: async () => {
+  loadProjects: async () => {
     set({ loading: true, error: null })
     try {
       const response = await projectsApi.getProjects()
@@ -29,7 +29,7 @@ export const useProjectStore = create((set, get) => ({
     set({ loading: true, error: null })
     try {
       const response = await projectsApi.getProject(id)
-      set({ currentProject: response, loading: false })
+      set({ active: response, loading: false })
       return { data: response, error: null }
     } catch (error) {
       const msg = error.response?.data?.message || error.message || '프로젝트 상세 조회 실패'
@@ -68,9 +68,9 @@ export const useProjectStore = create((set, get) => ({
       const { projects } = get()
       set({
         projects: [response, ...projects],
-        current_project: response,
-        current_project_id: response.id,
-        current_project_name: response.name,
+        active: response,
+        active_id: response.id,
+        active_name: response.name,
         loading: false
       })
 
@@ -95,7 +95,7 @@ export const useProjectStore = create((set, get) => ({
       )
       set({
         projects: updatedProjects,
-        current_project: response,
+        active: response,
         loading: false
       })
 
@@ -118,7 +118,7 @@ export const useProjectStore = create((set, get) => ({
       const filteredProjects = projects.filter(project => project.id !== id)
       set({
         projects: filteredProjects,
-        current_project: null,
+        active: null,
         loading: false
       })
 
@@ -131,29 +131,29 @@ export const useProjectStore = create((set, get) => ({
   },
 
   // 현재 프로젝트 설정
-  setCurrentProject: (project) => set({
-    current_project: project,
-    current_project_id: project?.id ?? null,
-    current_project_name: project?.name ?? null,
+  setActive: (project) => set({
+    active: project,
+    active_id: project?.id ?? null,
+    active_name: project?.name ?? null,
   }),
 
   // 현재 프로젝트 id로 설정
-  setCurrentProjectById: (project_id) => {
+  setActiveById: (project_id) => {
     const project = get().projects.find((p) => p.id === project_id)
     if (project) {
       set({
-        current_project: project,
-        current_project_id: project.id,
-        current_project_name: project.name,
+        active: project,
+        active_id: project.id,
+        active_name: project.name,
       })
     }
   },
 
   // 초기화
-  resetCurrentProject: () => set({
-    current_project: null,
-    current_project_id: null,
-    current_project_name: null,
+  resetActive: () => set({
+    active: null,
+    active_id: null,
+    active_name: null,
   }),
 
   // 에러 초기화

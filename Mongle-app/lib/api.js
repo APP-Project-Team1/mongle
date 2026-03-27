@@ -110,9 +110,9 @@ export const budgetsApi = {
 
 // 커플 관련 API
 export const couplesApi = {
-  invitePartner: (data) => api.post('/couples/invite', data),
-  getInvitations: () => api.get('/couples/invitations'),
-  acceptInvitation: (data) => api.post('/couples/accept', data),
+  invite: (data) => api.post('/couples/invite', data),
+  listInvites: () => api.get('/couples/invitations'),
+  accept: (data) => api.post('/couples/accept', data),
 }
 
 // 채팅 관련 API

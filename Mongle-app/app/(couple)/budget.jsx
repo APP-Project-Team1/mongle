@@ -44,8 +44,11 @@ const formatBalanceSub = (dueDateStr) => {
 const sumValues = (items) => items.reduce((acc, item) => acc + (parseInt(item.value) || 0), 0);
 
 export default function BudgetHubScreen() {
-  const project_id = useProjectStore((state) => state.current_project_id);
-  const { data: budgets, isLoading: isBudgetsLoading } = useBudgets(project_id);
+  const { active_id, active_name } = useProjectStore((state) => ({ 
+    active_id: state.active_id, 
+    active_name: state.active_name 
+  }));
+  const { data: budgets, isLoading: isBudgetsLoading } = useBudgets(active_id);
   const activeBudget = budgets?.[0];
   const { data: items, isLoading: isItemsLoading } = useBudgetItems(activeBudget?.id);
 
@@ -115,8 +118,8 @@ export default function BudgetHubScreen() {
             </View>
             <View style={{ flexDirection: 'row', gap: 8 }}>
               <TouchableOpacity 
-                  style={[styles.detailBtn, { backgroundColor: '#EBF2EE' }]}
-                  onPress={handleExportPDF}
+                   style={[styles.detailBtn, { backgroundColor: '#EBF2EE' }]}
+                   onPress={handleExportPDF}
               >
                 <Ionicons name="download-outline" size={14} color="#7A9E8E" />
                 <Text style={[styles.detailBtnText, { color: '#7A9E8E', marginLeft: 4 }]}>PDF 저장</Text>
@@ -136,7 +139,9 @@ export default function BudgetHubScreen() {
             <View style={[styles.progressFill, { width: `${progress}%` }]} />
           </View>
           <View style={styles.progressLabelRow}>
-            <Text style={styles.progressSubText}>예산 {formatNumber(budgetVal)}만원 중 {progress}% 사용</Text>
+            <Text style={styles.progressSubText}>
+              {active_name || '나의 결혼'} 예산 {formatNumber(budgetVal)}만원 중 {progress}% 사용
+            </Text>
           </View>
         </View>
 
@@ -513,7 +518,7 @@ const styles = StyleSheet.create({
   progressSubText: { fontSize: 12, color: '#8A7870' },
 
   menuGrid: { flexDirection: 'row', gap: 12, marginBottom: 24 },
-  menuCard: { flex: 1, backgroundColor: '#fff', borderRadius: 16, padding: 16, borderWith: 1, borderColor: '#F0E8E4' },
+  menuCard: { flex: 1, backgroundColor: '#fff', borderRadius: 16, padding: 16, borderWidth: 1, borderColor: '#F0E8E4' },
   menuIconBox: { width: 44, height: 44, borderRadius: 12, justifyContent: 'center', alignItems: 'center', marginBottom: 10 },
   menuTitle: { fontSize: 15, fontWeight: '700', color: '#2C2420', marginBottom: 4 },
   menuDesc: { fontSize: 11, color: '#8A7870' },

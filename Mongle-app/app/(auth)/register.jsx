@@ -19,6 +19,7 @@ import { useAuthStore } from '../../stores/authStore';
 
 export default function RegisterScreen() {
   const [email, setEmail] = useState('');
+  const [nickname, setNickname] = useState('');
   const [password, setPassword] = useState('');
   const [isPlanner, setIsPlanner] = useState(false);
   const [showPw, setShowPw] = useState(false);
@@ -76,7 +77,7 @@ export default function RegisterScreen() {
     return pwRegex.test(pw);
   };
 
-  const isSignUpEnabled = isEmailVerified && isValidPassword(password);
+  const isSignUpEnabled = isEmailVerified && isValidPassword(password) && nickname.trim().length > 0;
 
   const handleRegister = async () => {
     if (!isSignUpEnabled) return;
@@ -84,7 +85,7 @@ export default function RegisterScreen() {
     try {
       setLoading(true);
       const role = isPlanner ? 'planner' : 'couple';
-      const { data, error } = await signUp(email, password, role);
+      const { data, error } = await signUp(email, password, role, nickname.trim());
 
       if (error) {
         if (error.message?.includes('already registered')) {
@@ -150,6 +151,19 @@ export default function RegisterScreen() {
                   웨딩 플래너
                 </Text>
               </TouchableOpacity>
+            </View>
+
+            {/* 닉네임 입력 */}
+            <View style={styles.inputWrap}>
+              <Ionicons name="person-outline" size={16} color="#8a7870" style={styles.inputIcon} />
+              <TextInput
+                style={styles.input}
+                placeholder="닉네임"
+                placeholderTextColor="#8a7870"
+                value={nickname}
+                onChangeText={setNickname}
+                autoCapitalize="none"
+              />
             </View>
 
             {/* 이메일 입력 & 형식 확인 */}

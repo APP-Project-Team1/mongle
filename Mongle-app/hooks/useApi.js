@@ -335,29 +335,29 @@ export const useDeleteVendor = () => {
 // 커플 (Couples)
 // ─────────────────────────────────────────────
 
-export const useInvitations = () => {
+export const useInvites = () => {
   return useQuery({
-    queryKey: ['invitations'],
-    queryFn: () => couplesApi.getInvitations(),
+    queryKey: ['invites'],
+    queryFn: () => couplesApi.listInvites(),
   })
 }
 
-export const useInvitePartner = () => {
+export const useInvite = () => {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (data) => couplesApi.invitePartner(data),
+    mutationFn: (data) => couplesApi.invite(data),
     onSuccess: () => {
       // 필요 시 관련 쿼리 무효화
     },
   })
 }
 
-export const useAcceptInvitation = () => {
+export const useAcceptInvite = () => {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (data) => couplesApi.acceptInvitation(data),
+    mutationFn: (data) => couplesApi.accept(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['invitations'] })
+      queryClient.invalidateQueries({ queryKey: ['invites'] })
       queryClient.invalidateQueries({ queryKey: ['projects'] })
     },
   })

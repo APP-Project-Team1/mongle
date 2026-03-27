@@ -30,10 +30,14 @@ def test_db():
     return result.data
 
 
-# 전체 타임라인 조회
+# 전체 타임라인 조회 (프로젝트 필터링 지원)
 @router.get("/")
-def get_timelines():
-    result = supabase.table("timelines").select("*").execute()
+def get_timelines(project_id: Optional[str] = None):
+    query = supabase.table("timelines").select("*")
+    if project_id:
+        query = query.eq("project_id", project_id)
+    
+    result = query.execute()
     return result.data
 
 
@@ -80,13 +84,13 @@ def create_timeline(data: TimelineCreate):
     }
 
     result = supabase.table("timelines").insert(insert_data).execute()
-    return result.data
+    return result.data[0] if result.data else None
 
 
 # 타임라인 수정
 @router.put("/{timeline_id}")
 def update_timeline(timeline_id: str, data: TimelineUpdate):
-    update_data = data.dict(exclude_unset=True)
+    update_data = data.model_dump(exclude_unset=True)
 
     if not update_data:
         raise HTTPException(status_code=400, detail="수정할 값이 없습니다.")
@@ -97,7 +101,7 @@ def update_timeline(timeline_id: str, data: TimelineUpdate):
         raise HTTPException(status_code=404, detail="해당 타임라인을 찾을 수 없습니다.")
 
     result = supabase.table("timelines").update(update_data).eq("id", timeline_id).execute()
-    return result.data
+    return result.data[0] if result.data else None
 
 
 # 타임라인 삭제

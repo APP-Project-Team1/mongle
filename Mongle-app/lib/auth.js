@@ -45,11 +45,21 @@ export const signOut = async () => {
 
 // 로그인 유저의 역할 조회
 export const fetchUserRole = async (userId) => {
-  const { data, error } = await supabase
-    .from('user_profiles')
-    .select('role, planner_id, couple_id')
+  // 1. 프로필 테이블에서 기본 정보(닉네임 등) 조회
+  const { data: profile, error: profileError } = await supabase
+    .from('profiles')
+    .select('nickname, avatar_url')
     .eq('id', userId)
     .single();
-  if (error) throw error;
-  return data;
+  
+  // 2. Auth 메타데이터에서 역할 조회 ( profiles 테이블에 role이 없을 경우 대비 )
+  const { data: { user }, error: userError } = await supabase.auth.getUser();
+  const role = user?.user_metadata?.role || 'couple';
+
+  if (profileError && profileError.code !== 'PGRST116') throw profileError;
+  
+  return {
+    ...profile,
+    role: role
+  };
 };

@@ -2,32 +2,32 @@ import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Modal, FlatList, ActivityIndicator, TextInput, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useProjectStore } from '../stores/projectStore';
-import { useInvitePartner } from '../hooks/useApi';
+import { useInvite } from '../hooks/useApi';
 
 const ProjectSelector = () => {
   const {
     projects,
-    current_project,
-    current_project_id,
-    current_project_name,
+    active,
+    active_id,
+    active_name,
     loading,
-    setCurrentProject,
-    fetchProjects
+    setActive,
+    loadProjects
   } = useProjectStore();
 
   const [modalVisible, setModalVisible] = useState(false);
   const [inviteEmail, setInviteEmail] = useState('');
-  const inviteMutation = useInvitePartner();
+  const inviteMutation = useInvite();
 
   React.useEffect(() => {
     // 컴포넌트 마운트 시 프로젝트 목록 로드
     if (projects.length === 0) {
-      fetchProjects();
+      loadProjects();
     }
   }, []);
 
   const handleSelectProject = (project) => {
-    setCurrentProject(project);
+    setActive(project);
     setModalVisible(false);
   };
 
@@ -35,7 +35,7 @@ const ProjectSelector = () => {
     if (!inviteEmail) return;
     inviteMutation.mutate({ 
       partner_email: inviteEmail, 
-      project_id: current_project_id 
+      project_id: active_id 
     }, {
       onSuccess: () => {
         Alert.alert('초대 성공', `${inviteEmail}님에게 초대를 보냈습니다.`);
@@ -51,7 +51,7 @@ const ProjectSelector = () => {
     <TouchableOpacity
       style={[
         styles.projectItem,
-        current_project_id === item.id && styles.selectedProjectItem
+        active_id === item.id && styles.selectedProjectItem
       ]}
       onPress={() => handleSelectProject(item)}
     >
@@ -64,7 +64,7 @@ const ProjectSelector = () => {
           상태: {item.status || 'active'}
         </Text>
       </View>
-      {current_project_id === item.id && (
+      {active_id === item.id && (
         <Ionicons name="checkmark-circle" size={24} color="#C9716A" />
       )}
     </TouchableOpacity>
@@ -84,7 +84,7 @@ const ProjectSelector = () => {
           <View style={{ flex: 1 }}>
             <Text style={styles.selectorLabel}>현재 프로젝트</Text>
             <Text style={styles.selectorValue}>
-              {current_project_name || '프로젝트 선택'}
+              {active_name || '프로젝트 선택'}
             </Text>
           </View>
           <Ionicons name="chevron-down" size={20} color="#6B5B55" />
@@ -133,7 +133,7 @@ const ProjectSelector = () => {
                 />
                 
                 {/* 파트너 초대 섹션 */}
-                {current_project_id && (
+                {active_id && (
                   <View style={styles.inviteSection}>
                     <Text style={styles.inviteTitle}>파트너 초대하기</Text>
                     <View style={styles.inviteInputRow}>

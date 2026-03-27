@@ -73,7 +73,7 @@ def get_project(project_id: str, user = Depends(get_current_user)):
 
 @router.post("/")
 def create_project(data: ProjectCreate, user = Depends(get_current_user)):
-    insert_data = data.dict()
+    insert_data = data.model_dump()
     # Remove None values to let DB use defaults
     insert_data = {k: v for k, v in insert_data.items() if v is not None}
     insert_data["owner_id"] = user.id
@@ -90,12 +90,12 @@ def create_project(data: ProjectCreate, user = Depends(get_current_user)):
 
 @router.put("/{project_id}")
 def update_project(project_id: str, data: ProjectUpdate, user = Depends(get_current_user)):
-    update_data = data.dict(exclude_unset=True)
+    update_data = data.model_dump(exclude_unset=True)
     if not update_data:
         raise HTTPException(status_code=400, detail="수정할 값이 없습니다.")
 
     result = supabase.table("projects").update(update_data).eq("id", project_id).execute()
-    return result.data
+    return result.data[0] if result.data else None
 
 @router.delete("/{project_id}")
 def delete_project(project_id: str, user = Depends(get_current_user)):

@@ -21,8 +21,8 @@ import LoadingSpinner from '../../../components/common/LoadingSpinner';
 import ErrorView from '../../../components/common/ErrorView';
 
 export default function ChatScreen() {
-  const { current_project_id, projects, fetchProjects, createProject } = useProjectStore();
-  const project_id = current_project_id || (projects.length > 0 ? projects[0].id : null);
+  const { active_id, projects, loadProjects, createProject } = useProjectStore();
+  const project_id = active_id || (projects.length > 0 ? projects[0].id : null);
   
   const { data: currentUser } = useCurrentUser();
   const currentUserId = currentUser?.id || 'me';
@@ -34,10 +34,10 @@ export default function ChatScreen() {
   const [newRoomTitle, setNewRoomTitle] = useState('');
 
   useEffect(() => {
-    if (!current_project_id && projects.length === 0) {
-      fetchProjects();
+    if (!active_id && projects.length === 0) {
+      loadProjects();
     }
-  }, [current_project_id]);
+  }, [active_id]);
 
   const AIAssistantEntry = () => (
     <TouchableOpacity

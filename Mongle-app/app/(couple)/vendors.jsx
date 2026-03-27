@@ -7,7 +7,7 @@ import { useProjectStore } from '../../stores';
 const CATEGORY_OPTIONS = ['전체', '식장', '스튜디오', '드레스', '메이크업', '사진', '기타'];
 
 export default function VendorsScreen() {
-  const project_id = useProjectStore((state) => state.current_project_id) || '1';
+  const active_id = useProjectStore((state) => state.active_id) || '1';
 
   const [selectedCategory, setSelectedCategory] = useState('전체');
   const [modalVisible, setModalVisible] = useState(false);
@@ -28,7 +28,7 @@ export default function VendorsScreen() {
     isLoading,
     error,
     refetch,
-  } = useVendors({ project_id });
+  } = useVendors({ project_id: active_id });
 
   const createVendorMutation = useCreateVendor();
   const updateVendorMutation = useUpdateVendor();
@@ -104,7 +104,7 @@ export default function VendorsScreen() {
     }
 
     const payload = {
-      project_id: projectId,
+      project_id: active_id,
       name: form.name.trim(),
       category: form.category.trim(),
       location: form.location.trim(),

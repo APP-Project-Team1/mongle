@@ -332,11 +332,11 @@ function ScheduleAddModal({ visible, preselectedDate, onClose, onSave }) {
 }
 
 export default function TimelineScreen() {
-  const current_project_id = useProjectStore((state) => state.current_project_id);
+  const active_id = useProjectStore((state) => state.active_id);
   const projects = useProjectStore((state) => state.projects);
-  const current_project = projects.find(p => p.id === current_project_id);
+  const active = projects.find(p => p.id === active_id);
 
-  const { data: timelines = [], isLoading: isTimelineLoading, isError: isTimelineError, refetch: refetchTimelines } = useTimelines(current_project_id);
+  const { data: timelines = [], isLoading: isTimelineLoading, isError: isTimelineError, refetch: refetchTimelines } = useTimelines(active_id);
   
   const createTimeline = useCreateTimeline();
   const updateTimeline = useUpdateTimeline();
@@ -370,7 +370,7 @@ export default function TimelineScreen() {
   const handleAddSchedule = async (data) => {
     const dateStr = `${data.date_year}-${data.date_month.padStart(2, '0')}-${data.date_day.padStart(2, '0')}`;
     await createTimeline.mutateAsync({
-      project_id: current_project_id,
+      project_id: active_id,
       step_name: data.step_name,
       due_date: dateStr,
       status: data.status,
@@ -389,7 +389,7 @@ export default function TimelineScreen() {
       if (timelines.find(t => t.id === item.id)) {
         await updateTimeline.mutateAsync({ id: item.id, step_name: item.step_name, due_date: dateStr, status: item.status, color: item.color });
       } else {
-        await createTimeline.mutateAsync({ project_id: current_project_id, step_name: item.step_name, due_date: dateStr, status: item.status, color: item.color });
+        await createTimeline.mutateAsync({ project_id: active_id, step_name: item.step_name, due_date: dateStr, status: item.status, color: item.color });
       }
     }
   };

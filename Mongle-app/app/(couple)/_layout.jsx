@@ -3,8 +3,25 @@ import { Tabs } from 'expo-router';
 import { TouchableOpacity, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
+import { supabase } from '../../lib/supabase';
+import { useEffect, useState } from 'react';
 
 export default function CoupleLayout() {
+  const [session, setSession] = useState(null);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+    });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
   return (
     <Tabs
       screenOptions={{
@@ -73,9 +90,6 @@ export default function CoupleLayout() {
           title: '마이',
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="person-outline" size={size} color={color} />
-          ),
-          tabBarButton: (props) => (
-            <TouchableOpacity {...props} onPress={() => router.push('/(auth)/login')} />
           ),
         }}
       />

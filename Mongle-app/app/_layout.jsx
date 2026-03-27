@@ -8,6 +8,7 @@ import { NotificationProvider } from '../context/NotificationContext';
 import { supabase } from '../lib/supabase';
 import { fetchUserRole } from '../lib/auth';
 import { View, ActivityIndicator, StyleSheet } from 'react-native';
+import { AuthContext } from '../context/AuthContext';
 
 // QueryClient 인스턴스 생성
 const queryClient = new QueryClient({
@@ -80,10 +81,11 @@ function AuthGate() {
     // 로그인 상태
     else {
       if (role === 'planner') {
-        if (!inPlannerGroup && !inVendorsGroup && !inPlannersGroup) router.replace('/(couple)');
+        if (!inPlannerGroup && !inCoupleGroup && !inVendorsGroup && !inPlannersGroup)
+          router.replace('/(couple)');
       } else {
         // 일반 유저 혹은 역할 로딩 대기 중일 때 (기본은 couple)
-        if (!inCoupleGroup && !inAuthGroup && !inVendorsGroup && !inPlannersGroup) router.replace('/(couple)');
+        if (!inCoupleGroup && !inVendorsGroup && !inPlannersGroup) router.replace('/(couple)');
       }
     }
   }, [session, role, loading, segments]);
@@ -98,8 +100,11 @@ function AuthGate() {
     );
   }
 
-  // 로딩이 끝나야 실제 페이지(Slot)를 렌더링함
-  return <Slot />;
+  return (
+    <AuthContext.Provider value={{ session, role }}>
+      <Slot />
+    </AuthContext.Provider>
+  );
 }
 
 export default function RootLayout() {

@@ -15,7 +15,8 @@ import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import LottieView from 'lottie-react-native';
-import { signIn } from '../../lib/auth'; // ← Supabase Auth 함수
+import { signIn, signOut } from '../../lib/auth';
+import { fetchUserRole } from '../../lib/auth';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
@@ -68,20 +69,23 @@ export default function LoginScreen() {
       // Supabase 로그인
       const data = await signIn(email, password);
 
-      // 가입 시 저장한 role 확인
-      const userRole = data.user?.user_metadata?.role;
+      // ✅ user_metadata 대신 user_profiles 테이블에서 직접 role 확인
+      const profile = await fetchUserRole(data.user.id);
+      const userRole = profile.role; // 'planner' | 'couple'
 
-      // 선택한 탭과 실제 role이 다를 경우 안내
+      // 선택한 탭과 실제 role이 다를 경우 안내 후 로그아웃
       if (userRole === 'planner' && !isPlanner) {
+        await signOut();
         showAlert('웨딩 플래너 계정입니다.\n웨딩 플래너 탭을 선택해주세요.');
         return;
       }
       if (userRole === 'couple' && isPlanner) {
+        await signOut();
         showAlert('예비 신혼 계정입니다.\n예비 신혼 탭을 선택해주세요.');
         return;
       }
 
-      // _layout.jsx의 onAuthStateChange가 자동으로 화면 전환
+      // AuthGate의 onAuthStateChange가 자동으로 화면 전환
     } catch (e) {
       showAlert('이메일 또는 비밀번호가 올바르지 않습니다.');
     } finally {

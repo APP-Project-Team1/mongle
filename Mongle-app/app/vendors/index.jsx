@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
+import { useLocalSearchParams } from 'expo-router';
 import {
   View,
   Text,
@@ -56,8 +57,11 @@ const PRICE_RANGES = [
 ];
 
 export default function VendorsScreen() {
+  const { category } = useLocalSearchParams();
   const [searchText, setSearchText] = useState('');
-  const [activeCategory, setActiveCategory] = useState('hall');
+  const [activeCategory, setActiveCategory] = useState(
+    category && VENDOR_DATA_MAP[category] ? category : 'hall'
+  );
   const [showScrollTop, setShowScrollTop] = useState(false);
   const flatListRef = useRef(null);
 

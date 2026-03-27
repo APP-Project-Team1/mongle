@@ -12,11 +12,12 @@ export const ComparisonEngine = {
     if (!estimates || estimates.length === 0) return null;
 
     // 1. Calculate Estimated Real Cost (Total + Options + Hidden - Discount)
-    const processedItems = estimates.map(item => {
+    const processedItems = estimates.map((item, index) => {
       const realCost = item.totalPrice + item.optionsPrice - item.discountPrice + (item.vatIncluded ? 0 : item.totalPrice * 0.1);
       
       return {
         ...item,
+        id: `est-${index}-${Date.now()}`,
         realCost,
         budgetFit: userBudget ? (userBudget - realCost) : 0,
         riskScore: this.calculateRiskScore(item),
@@ -40,6 +41,7 @@ export const ComparisonEngine = {
         budgetStatus: userBudget ? (sortedByPrice[0].realCost <= userBudget ? 'OK' : 'EXCEED') : 'NONE'
       },
       insights: processedItems.map(item => ({
+        id: item.id,
         vendorName: item.vendorName,
         pros: this.getPros(item),
         cons: this.getCons(item),

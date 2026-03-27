@@ -2,6 +2,7 @@ import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
 import { Platform } from 'react-native';
 import { PDFTemplates } from './PDFTemplates';
+import { HistoryService } from '../history/HistoryService';
 
 /**
  * PDF Service
@@ -34,6 +35,14 @@ export const PDFService = {
           dialogTitle: fileName,
           UTI: 'com.adobe.pdf'
         });
+        
+        // Add to persistent history
+        await HistoryService.addHistory({
+          name: fileName,
+          type: fileName.includes('budget') ? '예산 명세서' : '견적 비교서',
+          uri: uri
+        });
+
         return { success: true, uri };
       } else {
         throw new Error('Sharing is not available on this device');

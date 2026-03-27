@@ -1,15 +1,74 @@
-import React from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
+import React, { useState, useCallback } from 'react';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
+import { PDFService } from '../../../lib/services/pdf/PDFService';
+import { HistoryService } from '../../../lib/services/history/HistoryService';
+
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: '#fff' },
+  header: { 
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', 
+    paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#f0e8e4' 
+  },
+  headerTitle: { fontSize: 18, fontWeight: '700', color: '#3a2e2a' },
+  backBtn: { width: 40, height: 40, justifyContent: 'center' },
+  list: { padding: 20 },
+  historyItem: { 
+    flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', 
+    padding: 16, borderRadius: 12, marginBottom: 12, borderWidth: 1, borderColor: '#f0e8e4' 
+  },
+  iconBox: { width: 44, height: 44, borderRadius: 10, backgroundColor: '#FFF5F5', justifyContent: 'center', alignItems: 'center', marginRight: 16 },
+  info: { flex: 1 },
+  fileName: { fontSize: 14, fontWeight: '600', color: '#3a2e2a', marginBottom: 4 },
+  fileMeta: { fontSize: 12, color: '#8a7870' },
+  shareBtn: { padding: 8 },
+  empty: { marginTop: 100, alignItems: 'center' },
+  emptyText: { color: '#B9B4B4' }
+});
 
 export default function PDFHistoryScreen() {
-  const historyData = [
-    { id: '1', name: 'wedding-budget-2026-03-27.pdf', date: '2026.03.27 10:30', type: '예산 명세서' },
-    { id: '2', name: 'estimation-comparison-2026-03-26.pdf', date: '2026.03.26 14:15', type: '견적 비교서' },
-    { id: '3', name: 'wedding-budget-2026-03-20.pdf', date: '2026.03.20 18:40', type: '예산 명세서' },
-  ];
+  const [historyData, setHistoryData] = useState([]);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadHistory();
+    }, [])
+  );
+
+  const loadHistory = async () => {
+    const data = await HistoryService.getHistory();
+    setHistoryData(data);
+  };
+
+  const handleShare = async (item) => {
+    try {
+      if (item.type === '예산 명세서') {
+        const dummyBudget = {
+          totalBudget: 35000000,
+          spent: 28400000,
+          items: [
+            { category: '웨딩홀', amount: 15000000 },
+            { category: '스드메', amount: 8400000 },
+          ]
+        };
+        await PDFService.saveBudgetSummary(dummyBudget);
+      } else {
+        const dummyAnalysis = {
+          items: [
+            { vendorName: '모던 스튜디오', totalPrice: 2200000, realCost: 2200000, optionsPrice: 0, discountPrice: 0, vatIncluded: true },
+            { vendorName: '클래식 포토', totalPrice: 2500000, realCost: 2300000, optionsPrice: 300000, discountPrice: 500000, vatIncluded: false },
+          ],
+          summary: { cheapest: { vendorName: '모던 스튜디오' }, bestValue: { vendorName: '모던 스튜디오' } },
+          insights: []
+        };
+        await PDFService.saveComparisonReport(dummyAnalysis);
+      }
+    } catch (error) {
+      Alert.alert('오류', 'PDF를 준비하는 중 문제가 발생했습니다.');
+    }
+  };
 
   const renderItem = ({ item }) => (
     <View style={styles.historyItem}>
@@ -20,7 +79,7 @@ export default function PDFHistoryScreen() {
         <Text style={styles.fileName} numberOfLines={1}>{item.name}</Text>
         <Text style={styles.fileMeta}>{item.date} | {item.type}</Text>
       </View>
-      <TouchableOpacity style={styles.shareBtn}>
+      <TouchableOpacity style={styles.shareBtn} onPress={() => handleShare(item)}>
         <Ionicons name="share-social-outline" size={20} color="#917878" />
       </TouchableOpacity>
     </View>
@@ -50,25 +109,3 @@ export default function PDFHistoryScreen() {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
-  header: { 
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', 
-    paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#f0e8e4' 
-  },
-  headerTitle: { fontSize: 18, fontWeight: '700', color: '#3a2e2a' },
-  backBtn: { width: 40, height: 40, justifyContent: 'center' },
-  list: { padding: 20 },
-  historyItem: { 
-    flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', 
-    padding: 16, borderRadius: 12, marginBottom: 12, borderWidth: 1, borderColor: '#f0e8e4' 
-  },
-  iconBox: { width: 44, height: 44, borderRadius: 10, backgroundColor: '#FFF5F5', justifyContent: 'center', alignItems: 'center', marginRight: 16 },
-  info: { flex: 1 },
-  fileName: { fontSize: 14, fontWeight: '600', color: '#3a2e2a', marginBottom: 4 },
-  fileMeta: { fontSize: 12, color: '#8a7870' },
-  shareBtn: { padding: 8 },
-  empty: { marginTop: 100, alignItems: 'center' },
-  emptyText: { color: '#B9B4B4' }
-});

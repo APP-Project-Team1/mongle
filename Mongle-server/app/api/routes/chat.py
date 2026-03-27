@@ -71,9 +71,14 @@ def get_chat(chat_id: str):
     return result.data
 
 
-# 채팅 생성
 @router.post('/')
 def create_chat(data: ChatCreate):
+    # UUID 형식 검증
+    try:
+        uuid.UUID(data.project_id)
+    except ValueError:
+        raise HTTPException(status_code=404, detail='유효하지 않은 project_id 형식입니다.')
+
     project_check = supabase.table('projects').select('*').eq('id', data.project_id).execute()
     if not project_check.data:
         raise HTTPException(status_code=404, detail='해당 project_id의 프로젝트가 없습니다.')

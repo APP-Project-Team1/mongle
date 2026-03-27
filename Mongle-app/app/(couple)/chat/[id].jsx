@@ -131,19 +131,19 @@ export default function ChatRoomScreen() {
               style={styles.input}
               placeholder="메시지 입력..."
               placeholderTextColor="#8a7870"
-              value={message}
-              onChangeText={setMessage}
+              value={messageText}
+              onChangeText={setMessageText}
               multiline
             />
             <TouchableOpacity
-              style={[styles.sendBtn, message.trim() ? styles.sendBtnActive : {}]}
+              style={[styles.sendBtn, messageText.trim() ? styles.sendBtnActive : {}]}
               onPress={handleSend}
-              disabled={!message.trim()}
+              disabled={!messageText.trim()}
             >
               <Ionicons
                 name="send"
                 size={18}
-                color={message.trim() ? "#fff" : "#c9a98e"}
+                color={messageText.trim() ? "#fff" : "#c9a98e"}
               />
             </TouchableOpacity>
           </View>

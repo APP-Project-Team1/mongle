@@ -10,7 +10,7 @@ export const InsightSection = ({ insights }) => {
     <View style={styles.container}>
       <Text style={styles.title}>업체별 심층 분석</Text>
       {insights.map((insight, idx) => (
-        <View key={insight.vendorName} style={styles.card}>
+        <View key={insight.id} style={styles.card}>
           <View style={styles.cardHeader}>
             <View style={styles.indexCircle}><Text style={styles.indexText}>{idx + 1}</Text></View>
             <Text style={styles.vendorName}>{insight.vendorName}</Text>

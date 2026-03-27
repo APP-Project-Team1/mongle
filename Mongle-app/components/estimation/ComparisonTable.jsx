@@ -27,7 +27,7 @@ export const ComparisonTable = ({ items }) => {
               <Text style={styles.headerText}>구분</Text>
             </View>
             {items.map(item => (
-              <View key={item.vendorName} style={styles.headerValueCell}>
+              <View key={item.id} style={styles.headerValueCell}>
                 <Text style={styles.vendorNameText} numberOfLines={1}>{item.vendorName}</Text>
               </View>
             ))}
@@ -47,7 +47,7 @@ export const ComparisonTable = ({ items }) => {
                 const isHighlight = row.key === 'realCost' && item.realCost === Math.min(...items.map(i => i.realCost));
 
                 return (
-                  <View key={item.vendorName} style={[styles.valueCell, isHighlight && styles.highlightCell]}>
+                  <View key={item.id} style={[styles.valueCell, isHighlight && styles.highlightCell]}>
                     <Text style={[styles.valueText, isHighlight && styles.highlightText]}>{value}</Text>
                   </View>
                 );

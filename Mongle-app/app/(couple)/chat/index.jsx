@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -21,7 +21,9 @@ import LoadingSpinner from '../../../components/common/LoadingSpinner';
 import ErrorView from '../../../components/common/ErrorView';
 
 export default function ChatScreen() {
-  const projectId = useProjectStore((state) => state.currentProjectId) || '1';
+  const { currentProjectId, projects, fetchProjects, createProject } = useProjectStore();
+  const projectId = currentProjectId || (projects.length > 0 ? projects[0].id : null);
+  
   const { data: currentUser } = useCurrentUser();
   const currentUserId = currentUser?.id || 'me';
 
@@ -30,6 +32,12 @@ export default function ChatScreen() {
 
   const [isCreateModalVisible, setCreateModalVisible] = useState(false);
   const [newRoomTitle, setNewRoomTitle] = useState('');
+
+  React.useEffect(() => {
+    if (!currentProjectId) {
+      fetchProjects();
+    }
+  }, [currentProjectId]);
 
   const AIAssistantEntry = () => (
     <TouchableOpacity
@@ -58,15 +66,42 @@ export default function ChatScreen() {
       return;
     }
 
+    let activeProjectId = projectId;
+    
+    // DEBUG: Start flow
+    Alert.alert('DEBUG', `Current projectId: ${activeProjectId}`);
+
+    // 프로젝트가 없거나 '1'인 경우 기본 프로젝트 생성 시도
+    if (!activeProjectId || activeProjectId === '1') {
+      try {
+        Alert.alert('DEBUG', 'Creating default project...');
+        const { data, error: projError } = await createProject({
+          title: '몽글 웨딩 프로젝트',
+          description: '기본 웨딩 프로젝트입니다.'
+        });
+        if (projError) {
+          Alert.alert('DEBUG', `Project creation error: ${projError}`);
+          throw new Error(projError);
+        }
+        activeProjectId = data.id;
+        Alert.alert('DEBUG', `Project created: ${activeProjectId}`);
+      } catch (err) {
+        Alert.alert('오류', `프로젝트 생성 실패: ${err.message}`);
+        return;
+      }
+    }
+
     try {
+      Alert.alert('DEBUG', `Creating chat room with project: ${activeProjectId}`);
       await createChatMutation.mutateAsync({
-        project_id: projectId,
+        project_id: activeProjectId,
         title: newRoomTitle.trim()
       });
       setCreateModalVisible(false);
       setNewRoomTitle('');
     } catch (err) {
-      Alert.alert('오류', '채팅방 생성에 실패했습니다.');
+      const msg = err.response?.detail || err.message || '채팅방 생성에 실패했습니다.';
+      Alert.alert('오류', msg);
     }
   };
 

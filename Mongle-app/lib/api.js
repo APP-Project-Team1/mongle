@@ -9,10 +9,10 @@ function getBaseUrl() {
   }
   if (Platform.OS === 'android') {
     const host = Constants.expoConfig?.hostUri?.split(':').shift();
-    return host ? `http://${host}:8001` : 'http://10.0.2.2:8001';
+    return host ? `http://${host}:8000` : 'http://10.0.2.2:8000';
   }
   const host = Constants.expoConfig?.hostUri?.split(':').shift();
-  return host ? `http://${host}:8001` : 'http://127.0.0.1:8001';
+  return host ? `http://${host}:8000` : 'http://127.0.0.1:8000';
 }
 
 const baseURL = getBaseUrl();
@@ -79,33 +79,33 @@ export const api = {
 
 // 프로젝트 관련 API
 export const projectsApi = {
-  getProjects: () => api.get('/projects'),
+  getProjects: () => api.get('/projects/'),
   getProject: (id) => api.get(`/projects/${id}`),
-  createProject: (data) => api.post('/projects', data),
+  createProject: (data) => api.post('/projects/', data),
   updateProject: (id, data) => api.put(`/projects/${id}`, data),
   deleteProject: (id) => api.del(`/projects/${id}`),
 }
 
 // 타임라인 관련 API
 export const timelinesApi = {
-  getTimelines: (project_id) => api.get('/timelines', { project_id }),
+  getTimelines: (project_id) => api.get('/timelines/', { project_id }),
   getTimeline: (id) => api.get(`/timelines/${id}`),
-  createTimeline: (data) => api.post('/timelines', data),
+  createTimeline: (data) => api.post('/timelines/', data),
   updateTimeline: (id, data) => api.put(`/timelines/${id}`, data),
   deleteTimeline: (id) => api.del(`/timelines/${id}`),
 }
 
 // 예산 관련 API
 export const budgetsApi = {
-  getBudgets: (project_id) => api.get('/budgets', { project_id }),
+  getBudgets: (project_id) => api.get('/budgets/', { project_id }),
   getBudget: (id) => api.get(`/budgets/${id}`),
-  createBudget: (data) => api.post('/budgets', data),
+  createBudget: (data) => api.post('/budgets/', data),
   updateBudget: (id, data) => api.put(`/budgets/${id}`, data),
   deleteBudget: (id) => api.del(`/budgets/${id}`),
-  getBudgetItems: (budget_id) => api.get('/budgets/items', { budget_id }),
-  createBudgetItem: (data) => api.post('/budgets/items', data),
-  updateBudgetItem: (id, data) => api.put('/budgets/items/${id}', data),
-  deleteBudgetItem: (id) => api.del('/budgets/items/${id}'),
+  getBudgetItems: (budget_id) => api.get('/budget-items/', { budget_id }),
+  createBudgetItem: (data) => api.post('/budget-items/', data),
+  updateBudgetItem: (id, data) => api.put(`/budget-items/${id}`, data),
+  deleteBudgetItem: (id) => api.del(`/budget-items/${id}`),
 }
 
 // 커플 관련 API
@@ -117,30 +117,30 @@ export const couplesApi = {
 
 // 채팅 관련 API
 export const chatsApi = {
-  getChats: (project_id) => api.get('/chats', { project_id }),
+  getChats: (project_id) => api.get('/chats/', { project_id }),
   getChat: (id) => api.get(`/chats/${id}`),
-  createChat: (data) => api.post('/chats', data),
+  createChat: (data) => api.post('/chats/', data),
   deleteChat: (id) => api.del(`/chats/${id}`),
-  getMessages: (chat_id) => api.get('/messages', { chat_id }),
-  sendMessage: (data) => api.post('/messages', data),
+  getMessages: (chat_id) => api.get('/messages/', { chat_id }),
+  sendMessage: (data) => api.post('/messages/', data),
 }
 
 // 업체 관련 API
 export const vendorsApi = {
-  getVendors: (params = {}) => api.get('/vendors', params),
+  getVendors: (params = {}) => api.get('/vendors/', params),
   getVendor: (id) => api.get(`/vendors/${id}`),
-  createVendor: (data) => api.post('/vendors', data),
+  createVendor: (data) => api.post('/vendors/', data),
   updateVendor: (id, data) => api.put(`/vendors/${id}`, data),
   deleteVendor: (id) => api.del(`/vendors/${id}`),
 }
 
 // 인증 관련 API (Supabase와 연동)
 export const authApi = {
-  signUp: (data) => api.post('/auth/signup', data),
-  signIn: (data) => api.post('/auth/signin', data),
-  signOut: () => api.post('/auth/signout'),
-  getCurrentUser: () => api.get('/auth/me'),
-  resetPassword: (data) => api.post('/auth/reset-password', data),
+  signUp: (data) => api.post('/auth/signup/', data),
+  signIn: (data) => api.post('/auth/signin/', data),
+  signOut: () => api.post('/auth/signout/'),
+  getCurrentUser: () => api.get('/auth/me/'),
+  resetPassword: (data) => api.post('/auth/reset-password/', data),
 }
 
 export const BASE_URL = baseURL;

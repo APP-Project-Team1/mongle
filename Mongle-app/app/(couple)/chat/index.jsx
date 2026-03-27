@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -15,12 +15,15 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { useChats, useCreateChat, useProjectStore, useCurrentUser } from '../../../hooks';
+import { useChats, useCreateChat, useCurrentUser } from '../../../hooks';
+import { useProjectStore } from '../../../stores';
 import LoadingSpinner from '../../../components/common/LoadingSpinner';
 import ErrorView from '../../../components/common/ErrorView';
 
 export default function ChatScreen() {
-  const project_id = useProjectStore((state) => state.current_project_id) || '1';
+  const { current_project_id, projects, fetchProjects, createProject } = useProjectStore();
+  const project_id = current_project_id || (projects.length > 0 ? projects[0].id : null);
+  
   const { data: currentUser } = useCurrentUser();
   const currentUserId = currentUser?.id || 'me';
 
@@ -29,6 +32,12 @@ export default function ChatScreen() {
 
   const [isCreateModalVisible, setCreateModalVisible] = useState(false);
   const [newRoomTitle, setNewRoomTitle] = useState('');
+
+  useEffect(() => {
+    if (!current_project_id && projects.length === 0) {
+      fetchProjects();
+    }
+  }, [current_project_id]);
 
   const AIAssistantEntry = () => (
     <TouchableOpacity
@@ -57,15 +66,35 @@ export default function ChatScreen() {
       return;
     }
 
+    let activeProjectId = project_id;
+    
+    // 프로젝트가 없거나 '1'인 경우 기본 프로젝트 생성 시도
+    if (!activeProjectId || activeProjectId === '1') {
+      try {
+        const { data, error: projError } = await createProject({
+          name: '몽글 웨딩 프로젝트',
+          description: '기본 웨딩 프로젝트입니다.'
+        });
+        if (projError) {
+          throw new Error(projError);
+        }
+        activeProjectId = data.id;
+      } catch (err) {
+        Alert.alert('오류', `프로젝트 생성 실패: ${err.message}`);
+        return;
+      }
+    }
+
     try {
       await createChatMutation.mutateAsync({
-        project_id: projectId,
+        project_id: activeProjectId,
         title: newRoomTitle.trim()
       });
       setCreateModalVisible(false);
       setNewRoomTitle('');
     } catch (err) {
-      Alert.alert('오류', '채팅방 생성에 실패했습니다.');
+      const msg = err.response?.detail || err.message || '채팅방 생성에 실패했습니다.';
+      Alert.alert('오류', msg);
     }
   };
 
@@ -249,6 +278,7 @@ const styles = StyleSheet.create({
   },
   emptyContainer: {
     flex: 1,
+    paddingTop: 80,
     justifyContent: 'center',
     alignItems: 'center',
   },

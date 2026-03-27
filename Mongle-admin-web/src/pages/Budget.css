@@ -1,0 +1,132 @@
+.budget-page {
+  display: flex;
+  flex-direction: column;
+}
+
+.budget-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 20px;
+}
+
+.budget-card {
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  padding: 24px;
+}
+
+.budget-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.budget-card-header .couple-name {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.unpaid-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.bg-unpaid {
+  background-color: var(--stage-1-bg);
+  color: var(--stage-1-color);
+}
+
+.bg-paid {
+  background-color: var(--stage-4-bg);
+  color: var(--stage-4-color);
+}
+
+.budget-details {
+  background-color: var(--bg-tertiary);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+}
+
+.detail-label {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.detail-val {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.vendor-costs {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.vendor-cost-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-main);
+  margin-bottom: 4px;
+}
+
+.vendor-cost-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px dashed var(--border-color);
+}
+
+.vendor-cost-row:last-child {
+  border-bottom: none;
+}
+
+.vendor-name-sm {
+  font-size: 14px;
+  color: var(--text-main);
+}
+
+.vendor-amt {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.paid-tag {
+  color: var(--stage-4-color);
+  font-size: 11px;
+  font-weight: 600;
+  background-color: var(--stage-4-bg);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.unpaid-tag {
+  color: var(--stage-2-color);
+  font-size: 11px;
+  font-weight: 600;
+  background-color: var(--stage-2-bg);
+  padding: 2px 6px;
+  border-radius: 4px;
+}

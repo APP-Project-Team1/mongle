@@ -8,7 +8,6 @@ import {
   StatusBar,
   KeyboardAvoidingView,
   Platform,
-  Alert,
   ScrollView,
   Modal,
 } from 'react-native';
@@ -21,31 +20,57 @@ import { useAuthStore } from '../../stores/authStore';
 export default function RegisterScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [isPlanner, setIsPlanner] = useState(false);
   const [showPw, setShowPw] = useState(false);
   const [isEmailVerified, setIsEmailVerified] = useState(false);
   const [loading, setLoading] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [modalConfig, setModalConfig] = useState({ title: '', message: '', onConfirm: null });
+  
   const signUp = useAuthStore((state) => state.signUp);
+
+  const renderBottomTab = () => (
+    <View style={tabStyles.container}>
+      <TouchableOpacity style={tabStyles.tabItem} onPress={() => router.replace('/(couple)')}>
+        <Ionicons name="home-outline" size={24} color="#8a7870" />
+        <Text style={tabStyles.tabText}>홈</Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={tabStyles.tabItem}
+        onPress={() => router.replace('/(couple)/timeline')}
+      >
+        <Ionicons name="calendar-outline" size={24} color="#8a7870" />
+        <Text style={tabStyles.tabText}>일정</Text>
+      </TouchableOpacity>
+      <TouchableOpacity style={tabStyles.tabItem} onPress={() => router.replace('/(couple)/chat')}>
+        <Ionicons name="chatbubble-outline" size={24} color="#8a7870" />
+        <Text style={tabStyles.tabText}>채팅</Text>
+      </TouchableOpacity>
+      <TouchableOpacity style={tabStyles.tabItem} onPress={() => router.push('/(auth)/login')}>
+        <Ionicons name="person-outline" size={24} color="#c9a98e" />
+        <Text style={[tabStyles.tabText, { color: '#c9a98e' }]}>마이</Text>
+      </TouchableOpacity>
+    </View>
+  );
 
   const showModal = (title, message, onConfirm = null) => {
     setModalConfig({ title, message, onConfirm });
     setModalVisible(true);
   };
 
-  // 이메일 정규식 검사
+  // 이메일 형식 검사
   const handleVerifyEmail = () => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       showModal('알림', '유효한 이메일 형식을 입력해주세요.');
       return;
     }
-    showModal('알림', '이메일 인증이 완료되었습니다.', () => {
+    showModal('알림', '이메일 확인이 완료되었습니다.', () => {
       setIsEmailVerified(true);
     });
   };
 
-  // 비밀번호 정규식: 영문 대/소문자, 숫자, 특수문자 포함 8~16자
+  // 비밀번호 유효성: 영문 대/소문자, 숫자, 특수문자 포함 8~16자
   const isValidPassword = (pw) => {
     const pwRegex = /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,16}$/;
     return pwRegex.test(pw);
@@ -54,18 +79,31 @@ export default function RegisterScreen() {
   const isSignUpEnabled = isEmailVerified && isValidPassword(password);
 
   const handleRegister = async () => {
-    if (isSignUpEnabled) {
+    if (!isSignUpEnabled) return;
+
+    try {
       setLoading(true);
-      const { error } = await signUp(email, password);
+      const role = isPlanner ? 'planner' : 'couple';
+      const { data, error } = await signUp(email, password, role);
 
       if (error) {
-        showModal('오류', error.message || '회원가입 중 오류가 발생했습니다.');
-        setLoading(false);
+        if (error.message?.includes('already registered')) {
+          showModal('알림', '이미 가입된 이메일입니다.');
+        } else {
+          showModal('알림', error.message || '회원가입 중 오류가 발생했습니다.');
+        }
       } else {
-        showModal('환영합니다!', '회원가입이 완료되었습니다.', () => {
-          router.replace('/(auth)/login');
-        });
+        const roleText = isPlanner ? '웨딩 플래너' : '예비 신혼';
+        showModal(
+          '환영합니다!',
+          `${roleText} 가입이 완료되었습니다.`,
+          () => router.replace('/(auth)/login'),
+        );
       }
+    } catch (e) {
+      showModal('알림', '오류가 발생했습니다.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -92,7 +130,29 @@ export default function RegisterScreen() {
           </View>
 
           <View style={styles.form}>
-            {/* 이메일(아이디) 입력 & 인증 */}
+            {/* 가입 유형 선택 탭 */}
+            <View style={styles.roleTabContainer}>
+              <TouchableOpacity
+                style={[styles.roleTab, !isPlanner && styles.activeRoleTab]}
+                onPress={() => setIsPlanner(false)}
+                activeOpacity={0.8}
+              >
+                <Text style={[styles.roleTabText, !isPlanner && styles.activeRoleTabText]}>
+                  예비 신혼
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.roleTab, isPlanner && styles.activeRoleTab]}
+                onPress={() => setIsPlanner(true)}
+                activeOpacity={0.8}
+              >
+                <Text style={[styles.roleTabText, isPlanner && styles.activeRoleTabText]}>
+                  웨딩 플래너
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* 이메일 입력 & 형식 확인 */}
             <View style={styles.emailContainer}>
               <View style={[styles.inputWrap, styles.emailInputWrap]}>
                 <Ionicons name="mail-outline" size={16} color="#8a7870" style={styles.inputIcon} />
@@ -103,7 +163,7 @@ export default function RegisterScreen() {
                   value={email}
                   onChangeText={(text) => {
                     setEmail(text);
-                    setIsEmailVerified(false); // 이메일 변경 시 인증 초기화
+                    setIsEmailVerified(false);
                   }}
                   keyboardType="email-address"
                   autoCapitalize="none"
@@ -119,7 +179,7 @@ export default function RegisterScreen() {
                 <Text
                   style={[styles.verifyBtnText, isEmailVerified && styles.verifyBtnTextDisabled]}
                 >
-                  {isEmailVerified ? '인증완료' : '인증'}
+                  {isEmailVerified ? '확인완료' : '확인'}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -165,13 +225,18 @@ export default function RegisterScreen() {
 
             {/* 가입하기 버튼 */}
             <TouchableOpacity
-              style={[styles.registerBtnWrapper, !isSignUpEnabled && styles.registerBtnDisabled]}
+              style={[
+                styles.registerBtnWrapper,
+                (!isSignUpEnabled || loading) && styles.registerBtnDisabled,
+              ]}
               activeOpacity={0.85}
               onPress={handleRegister}
-              disabled={!isSignUpEnabled}
+              disabled={!isSignUpEnabled || loading}
             >
               <LinearGradient
-                colors={isSignUpEnabled ? ['#c89494', '#ccc79e'] : ['#e5e3e3', '#e8e7e2']}
+                colors={
+                  isSignUpEnabled && !loading ? ['#c89494', '#ccc79e'] : ['#e5e3e3', '#e8e7e2']
+                }
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
                 style={styles.registerBtnGradient}
@@ -223,6 +288,8 @@ export default function RegisterScreen() {
           </View>
         </View>
       </Modal>
+
+      {renderBottomTab()}
     </SafeAreaView>
   );
 }
@@ -248,6 +315,36 @@ const styles = StyleSheet.create({
   },
   logoSub: { fontSize: 13, color: '#B49191', letterSpacing: 0.5 },
   form: { gap: 16 },
+  roleTabContainer: {
+    flexDirection: 'row',
+    backgroundColor: '#F5F0F0',
+    borderRadius: 12,
+    padding: 4,
+    marginBottom: 8,
+  },
+  roleTab: {
+    flex: 1,
+    paddingVertical: 10,
+    alignItems: 'center',
+    borderRadius: 9,
+  },
+  activeRoleTab: {
+    backgroundColor: '#fff',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  roleTabText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#8a7870',
+  },
+  activeRoleTabText: {
+    color: '#917878',
+    fontWeight: '700',
+  },
   emailContainer: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   emailInputWrap: { flex: 1 },
   inputWrap: {
@@ -272,18 +369,12 @@ const styles = StyleSheet.create({
     borderColor: '#c8c0bd',
     borderWidth: 1,
   },
-  verifyBtnDisabled: {
-    backgroundColor: '#e8e0dc',
-  },
-  verifyBtnText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#fff',
-  },
-  verifyBtnTextDisabled: {
-    color: '#8a7870',
-  },
-
+  verifyBtnDisabled: { backgroundColor: '#e8e0dc' },
+  verifyBtnText: { fontSize: 14, fontWeight: '600', color: '#fff' },
+  verifyBtnTextDisabled: { color: '#8a7870' },
+  pwContainer: { gap: 8 },
+  eyeBtn: { padding: 4 },
+  hintText: { fontSize: 12, color: '#8a7870', marginLeft: 4 },
   registerBtnWrapper: {
     width: '100%',
     height: 50,
@@ -296,24 +387,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderRadius: 10,
   },
-
-  pwContainer: { gap: 8 },
-  eyeBtn: { padding: 4 },
-  hintText: {
-    fontSize: 12,
-    color: '#8a7870',
-    marginLeft: 4,
-  },
-  registerBtn: {
-    backgroundColor: '#c9a98e',
-    borderRadius: 14,
-    paddingVertical: 16,
-    alignItems: 'center',
-    marginTop: 16,
-  },
-  registerBtnDisabled: {
-    backgroundColor: '#e8e0dc',
-  },
+  registerBtnDisabled: { opacity: 0.6 },
   registerBtnText: { fontSize: 15, fontWeight: '600', color: '#fff', letterSpacing: 0.5 },
   loginRow: {
     flexDirection: 'row',
@@ -324,8 +398,6 @@ const styles = StyleSheet.create({
   },
   loginText: { fontSize: 13, color: '#8a7870' },
   loginLink: { fontSize: 13, color: '#B49191', fontWeight: '600' },
-
-  // 모달
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.35)',
@@ -375,5 +447,30 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#fff',
     letterSpacing: 0.5,
+  },
+});
+
+const tabStyles = StyleSheet.create({
+  container: {
+    flexDirection: 'row',
+    backgroundColor: '#fff',
+    borderTopColor: '#f0e8e4',
+    borderTopWidth: 1,
+    height: Platform.OS === 'android' ? 65 : 60,
+    paddingBottom: Platform.OS === 'ios' ? 15 : 10,
+    paddingTop: 10,
+    justifyContent: 'space-around',
+    alignItems: 'center',
+  },
+  tabItem: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    flex: 1,
+  },
+  tabText: {
+    fontSize: 11,
+    color: '#8a7870',
+    marginTop: 4,
+    fontWeight: '500',
   },
 });

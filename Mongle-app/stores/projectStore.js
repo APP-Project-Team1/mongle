@@ -43,19 +43,22 @@ export const useProjectStore = create((set, get) => ({
     set({ loading: true, error: null })
     try {
       const { data: { user } } = await supabase.auth.getUser()
-      if (!user) throw new Error('User not authenticated')
-
+      
       // 사용자의 couple 찾기 (없어도 진행)
-      const { data: couples } = await supabase
-        .from('couples')
-        .select('id')
-        .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`)
-        .maybeSingle()
+      let couples = null;
+      if (user) {
+        const { data } = await supabase
+          .from('couples')
+          .select('id')
+          .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`)
+          .maybeSingle()
+        couples = data;
+      }
 
       const projectWithIds = {
         ...projectData,
         couple_id: couples?.id || null,
-        owner_id: user.id,
+        owner_id: user?.id || null,
         status: 'active'
       }
 

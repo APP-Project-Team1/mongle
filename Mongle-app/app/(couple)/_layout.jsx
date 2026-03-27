@@ -28,20 +28,29 @@ export default function CoupleLayout() {
       }}
     >
       <Tabs.Screen
-        name="index"
-        options={{
-          title: '홈',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="home-outline" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
         name="timeline"
         options={{
           title: '일정',
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="calendar-outline" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="budget"
+        options={{
+          title: '비용',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="wallet-outline" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="index"
+        options={{
+          title: '홈',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="home-outline" size={size} color={color} />
           ),
         }}
       />
@@ -54,9 +63,11 @@ export default function CoupleLayout() {
           ),
         }}
       />
-      <Tabs.Screen name="budget" options={{ href: null }} />
       <Tabs.Screen name="docs" options={{ href: null }} />
       <Tabs.Screen name="vendors" options={{ href: null }} />
+      <Tabs.Screen name="budget-dashboard/index" options={{ href: null }} />
+      <Tabs.Screen name="estimate-comparison/index" options={{ href: null }} />
+      <Tabs.Screen name="pdf-history/index" options={{ href: null }} />
       <Tabs.Screen
         name="mypage"
         options={{

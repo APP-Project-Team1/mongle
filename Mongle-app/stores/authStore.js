@@ -47,11 +47,14 @@ export const useAuthStore = create((set, get) => ({
   },
 
   // 회원가입
-  signUp: async (email, password) => {
+  signUp: async (email, password, role = 'couple') => {
     try {
       const { data, error } = await supabase.auth.signUp({
         email,
-        password
+        password,
+        options: {
+          data: { role }
+        }
       })
       if (error) throw error
       return { data, error: null }

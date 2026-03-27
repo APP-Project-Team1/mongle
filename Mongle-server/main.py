@@ -6,11 +6,26 @@ from ai.intent_parser import parse_intent
 from ai.responder import generate_recommendation
 from ai.dummy_vendors import get_vendors_by_filter
 from ai.api.rag_chat import router as rag_router
+from ai.api.budget_api import router as budget_router
+from app.api.routes import timelines, projects, budget, chat, vendors, messages
 
 app = FastAPI()
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 
+# Standard Routers
+app.include_router(projects.router, prefix="/projects", tags=["projects"])
+app.include_router(timelines.router, prefix="/timelines", tags=["timelines"])
+app.include_router(budget.router, prefix="/budgets", tags=["budgets"])
+app.include_router(vendors.router, prefix="/vendors", tags=["vendors"])
+app.include_router(chat.router, prefix="/chats", tags=["chats"])
+app.include_router(messages.router, prefix="/messages", tags=["messages"])
+
+# Compatibility for flat structure
+app.include_router(budget.router, prefix="/budget-items", tags=["budgets"])
+
+# AI Routers
 app.include_router(rag_router, prefix="/api/v2", tags=["chat"])
+app.include_router(budget_router, prefix="/api/v2", tags=["budget"])
 
 class ChatRequest(BaseModel):
     message: str

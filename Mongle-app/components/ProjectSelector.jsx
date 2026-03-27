@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Modal, FlatList, ActivityIndicator, TextInput, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useProjectStore } from '../../stores/projectStore';
-import { useInvitePartner } from '../../hooks/useApi';
+import { useProjectStore } from '../stores/projectStore';
+import { useInvitePartner } from '../hooks/useApi';
 
 const ProjectSelector = () => {
   const {

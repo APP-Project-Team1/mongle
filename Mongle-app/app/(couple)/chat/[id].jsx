@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import {
   View,
   Text,
@@ -10,48 +10,55 @@ import {
   Platform,
   StatusBar,
 } from 'react-native';
-import { useLocalSearchParams, router } from 'expo-router';
+import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { useChatMessages, useSendMessage, useCurrentUser } from '../../../hooks';
-import LoadingSpinner from '../../../components/common/LoadingSpinner';
-import ErrorView from '../../../components/common/ErrorView';
+
+const CURRENT_USER_ID = 'me';
 
 export default function ChatRoomScreen() {
-  const { id } = useLocalSearchParams();
-  const [messageText, setMessageText] = useState('');
-  
-  const { data: currentUser } = useCurrentUser();
-  const currentUserId = currentUser?.id || 'me';
+  const [message, setMessage] = useState('');
 
-  const { data: messages = [], isLoading, error, refetch } = useChatMessages(id);
-  const sendMessageMutation = useSendMessage();
-
-  const handleSend = async () => {
-    if (!messageText.trim()) return;
-
-    try {
-      await sendMessageMutation.mutateAsync({
-        chat_id: id,
-        sender: currentUserId,
-        content: messageText.trim()
-      });
-      setMessageText('');
-    } catch (err) {
-      console.error('메시지 전송 실패:', err);
+  // Dummy messages for demonstration
+  const [messages, setMessages] = useState([
+    {
+      id: '1',
+      text: '안녕하세요! 채팅방 구조를 잡았습니다.',
+      sender: 'partner',
+      timestamp: new Date().toISOString(),
+    },
+    {
+      id: '2',
+      text: '채팅방 생성이 완료되었습니다.',
+      sender: 'system',
+      timestamp: new Date().toISOString(),
     }
+  ]);
+
+  const handleSend = () => {
+    if (!message.trim()) return;
+
+    const newMessage = {
+      id: Date.now().toString(),
+      text: message.trim(),
+      sender: CURRENT_USER_ID,
+      timestamp: new Date().toISOString(),
+    };
+
+    setMessages(prev => [newMessage, ...prev]);
+    setMessage('');
   };
 
   const renderMessage = ({ item }) => {
     if (item.sender === 'system') {
       return (
         <View style={styles.systemMessageContainer}>
-          <Text style={styles.systemMessageText}>{item.content}</Text>
+          <Text style={styles.systemMessageText}>{item.text}</Text>
         </View>
       );
     }
 
-    const isMe = item.sender === currentUserId;
+    const isMe = item.sender === CURRENT_USER_ID;
 
     return (
       <View style={[styles.messageRow, isMe ? styles.messageRowMe : styles.messageRowOther]}>
@@ -62,33 +69,17 @@ export default function ChatRoomScreen() {
         )}
         <View style={[styles.bubble, isMe ? styles.bubbleMe : styles.bubbleOther]}>
           <Text style={[styles.messageText, isMe ? styles.messageTextMe : styles.messageTextOther]}>
-            {item.content}
+            {item.text}
           </Text>
         </View>
       </View>
     );
   };
 
-  if (isLoading) {
-    return (
-      <SafeAreaView style={styles.safeArea}>
-        <LoadingSpinner message="메시지를 불러오는 중입니다..." />
-      </SafeAreaView>
-    );
-  }
-
-  if (error) {
-    return (
-      <SafeAreaView style={styles.safeArea}>
-        <ErrorView message="대화 기록을 불러올 수 없습니다" subMessage={error.message} onRetry={refetch} />
-      </SafeAreaView>
-    );
-  }
-
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top']}>
+    <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
       <StatusBar barStyle="dark-content" backgroundColor="#fff" />
-      
+
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
@@ -101,52 +92,42 @@ export default function ChatRoomScreen() {
       </View>
 
       {/* Messages */}
-      <KeyboardAvoidingView 
+      <KeyboardAvoidingView
         style={styles.keyboardAvoiding}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         <FlatList
-          // flatlist를 inverted로 사용하려면 최신 데이터가 인덱스 0에 오도록 배열을 뒤집어야 합니다.
-          data={[...messages].reverse()}
-          keyExtractor={item => item.id?.toString()}
+          data={messages}
+          keyExtractor={item => item.id}
           renderItem={renderMessage}
           contentContainerStyle={styles.messageList}
           inverted
         />
 
         {/* Input Area */}
-        <View style={styles.inputWrapper}>
-          <TouchableOpacity
-            style={styles.aiFloatingBtn}
-            onPress={() => router.push('/(couple)/chat/ai')}
-          >
-            <Ionicons name="sparkles" size={13} color="#c9a98e" />
+        <View style={styles.inputContainer}>
+          <TouchableOpacity style={styles.attachBtn}>
+            <Ionicons name="add" size={24} color="#8a7870" />
           </TouchableOpacity>
-
-          <View style={styles.inputContainer}>
-            <TouchableOpacity style={styles.attachBtn}>
-              <Ionicons name="add" size={24} color="#8a7870" />
-            </TouchableOpacity>
-            <TextInput
-              style={styles.input}
-              placeholder="메시지 입력..."
-              placeholderTextColor="#8a7870"
-              value={messageText}
-              onChangeText={setMessageText}
-              multiline
+          <TextInput
+            style={styles.input}
+            placeholder="메시지 입력..."
+            placeholderTextColor="#8a7870"
+            value={message}
+            onChangeText={setMessage}
+            multiline
+          />
+          <TouchableOpacity
+            style={[styles.sendBtn, message.trim() ? styles.sendBtnActive : {}]}
+            onPress={handleSend}
+            disabled={!message.trim()}
+          >
+            <Ionicons
+              name="send"
+              size={18}
+              color={message.trim() ? "#fff" : "#c9a98e"}
             />
-            <TouchableOpacity
-              style={[styles.sendBtn, messageText.trim() ? styles.sendBtnActive : {}]}
-              onPress={handleSend}
-              disabled={!messageText.trim()}
-            >
-              <Ionicons
-                name="send"
-                size={18}
-                color={messageText.trim() ? "#fff" : "#c9a98e"}
-              />
-            </TouchableOpacity>
-          </View>
+          </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -237,27 +218,6 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     borderRadius: 12,
     overflow: 'hidden',
-  },
-  inputWrapper: {
-    position: 'relative',
-  },
-  aiFloatingBtn: {
-    position: 'absolute',
-    right: 12,
-    top: -38,
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    backgroundColor: '#fff',
-    borderWidth: 1,
-    borderColor: '#e8ddd7',
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.08,
-    shadowRadius: 3,
-    elevation: 2,
   },
   inputContainer: {
     flexDirection: 'row',

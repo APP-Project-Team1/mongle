@@ -68,20 +68,22 @@ function AuthGate() {
     const inAuthGroup = rootSegment === '(auth)';
     const inPlannerGroup = rootSegment === '(planner)';
     const inCoupleGroup = rootSegment === '(couple)';
+    const inVendorsGroup = rootSegment === 'vendors';
+    const inPlannersGroup = rootSegment === 'planners';
 
     // 비로그인 상태
     if (!session) {
-      if (!inCoupleGroup && !inAuthGroup) {
+      if (!inCoupleGroup && !inAuthGroup && !inVendorsGroup && !inPlannersGroup) {
         router.replace('/(couple)');
       }
     }
     // 로그인 상태
     else {
       if (role === 'planner') {
-        if (!inPlannerGroup) router.replace('/(couple)');
+        if (!inPlannerGroup && !inVendorsGroup && !inPlannersGroup) router.replace('/(couple)');
       } else {
         // 일반 유저 혹은 역할 로딩 대기 중일 때 (기본은 couple)
-        if (!inCoupleGroup && !inAuthGroup) router.replace('/(couple)');
+        if (!inCoupleGroup && !inAuthGroup && !inVendorsGroup && !inPlannersGroup) router.replace('/(couple)');
       }
     }
   }, [session, role, loading, segments]);

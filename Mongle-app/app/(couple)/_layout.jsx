@@ -64,7 +64,6 @@ export default function CoupleLayout() {
         }}
       />
       <Tabs.Screen name="docs" options={{ href: null }} />
-      <Tabs.Screen name="vendors" options={{ href: null }} />
       <Tabs.Screen name="budget-dashboard/index" options={{ href: null }} />
       <Tabs.Screen name="estimate-comparison/index" options={{ href: null }} />
       <Tabs.Screen name="pdf-history/index" options={{ href: null }} />

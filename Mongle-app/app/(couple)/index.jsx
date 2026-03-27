@@ -45,7 +45,9 @@ const mapPlanner = (p) => ({
   image: p.profile_image_url
 });
 const CATEGORY_TABS = ['스튜디오', '드레스', '메이크업', '패키지'];
+const CATEGORY_IDS = ['studio', 'dress', 'makeup', 'package'];
 const SUB_TABS = ['웨딩홀', '영상·스냅', '웨딩플래너'];
+const SUB_IDS = ['hall', 'video_snap'];
 
 const BANNER_DATA = [
   { id: '1', label: '봄 웨딩 특집', image: require('../../assets/images/banner_01.jpg') },
@@ -241,7 +243,7 @@ export default function HomeScreen() {
           {categoryHasMore && (
             <TouchableOpacity
               style={styles.moreCard}
-              onPress={() => router.push('/vendors')}
+              onPress={() => router.push(`/vendors?category=${CATEGORY_IDS[activeCategoryTab]}`)}
               activeOpacity={0.8}
             >
               <View style={styles.moreCardInner}>
@@ -294,7 +296,7 @@ export default function HomeScreen() {
                 if (subIdx === 2) {
                   router.push('/planners');
                 } else {
-                  router.push('/vendors');
+                  router.push(`/vendors?category=${SUB_IDS[activeSubTab]}`);
                 }
               }}
               activeOpacity={0.8}

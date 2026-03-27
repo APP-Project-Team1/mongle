@@ -290,7 +290,6 @@ function CostEditModal({ visible, items, budgetId, initialBudget, onClose }) {
       setDraft(items.map((i) => ({ ...i })));
       setBudgetVal(initialBudget);
       setActiveTab('cost');
-      setOpenIdx(null);
     }
   }, [visible, items, initialBudget]);
 
@@ -304,7 +303,6 @@ function CostEditModal({ visible, items, budgetId, initialBudget, onClose }) {
       await deleteItemMutation.mutateAsync(item.id);
     }
     setDraft((prev) => prev.filter((_, i) => i !== idx));
-    setOpenIdx(null);
   };
 
   const handleSave = async () => {
@@ -333,12 +331,20 @@ function CostEditModal({ visible, items, budgetId, initialBudget, onClose }) {
   };
 
   const addCostItem = () => {
-    setDraft((prev) => [...prev, {
+    setDraft((prev) => [{
       id: Date.now(),
       label: '', value: '', warn: false, hasBalance: false,
       balanceDue: '', balanceAmount: '', urgent: false
-    }]);
-    setOpenIdx(draft.length);
+    }, ...prev]);
+  };
+
+  const addPresetItem = (label) => {
+    const newItem = {
+      id: Date.now(),
+      label, value: '', warn: false, hasBalance: false,
+      balanceDue: '', balanceAmount: '', urgent: false
+    };
+    setDraft((prev) => [newItem, ...prev]);
   };
 
   const balanceItems = draft.filter((item) => item.hasBalance);
@@ -369,7 +375,7 @@ function CostEditModal({ visible, items, budgetId, initialBudget, onClose }) {
             ))}
           </View>
 
-          <ScrollView style={{ flex: 1 }}>
+          <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
             {activeTab === 'cost' ? (
               <>
                 <View style={costModalStyles.budgetRow}>
@@ -454,8 +460,55 @@ function CostEditModal({ visible, items, budgetId, initialBudget, onClose }) {
                   );
                 })}
                 <TouchableOpacity style={modalStyles.addBtn} onPress={addCostItem}>
-                  <Text style={modalStyles.addBtnText}>+ 항목 추가</Text>
+                  <Ionicons name="add-circle-outline" size={20} color="#C9716A" />
+                  <Text style={modalStyles.addBtnText}>기타 항목 추가하기</Text>
                 </TouchableOpacity>
+
+                <View style={{ height: 20 }} />
+
+                {draft.map((item, idx) => (
+                  <View key={item.id} style={modalStyles.itemBoxExpanded}>
+                    <View style={modalStyles.expandedHeader}>
+                      <TextInput
+                        style={modalStyles.labelInput}
+                        value={item.label}
+                        onChangeText={v => updateField(idx, 'label', v)}
+                        placeholder="항목명"
+                        placeholderTextColor="#B8A9A5"
+                      />
+                      <TouchableOpacity onPress={() => deleteItem(idx)} style={modalStyles.trashBtn}>
+                        <Ionicons name="trash-outline" size={18} color="#B8A9A5" />
+                      </TouchableOpacity>
+                    </View>
+                    
+                    <View style={modalStyles.amountInputRow}>
+                      <TextInput
+                        style={modalStyles.amountInput}
+                        value={item.value}
+                        onChangeText={v => updateField(idx, 'value', v.replace(/\D/g, ''))}
+                        placeholder="금액 입력"
+                        placeholderTextColor="#B8A9A5"
+                        keyboardType="number-pad"
+                      />
+                      <Text style={modalStyles.amountUnitLabel}>만원</Text>
+                    </View>
+
+                    <View style={modalStyles.expandedToggles}>
+                      <TouchableOpacity 
+                        style={[costModalStyles.toggleBtn, item.warn && costModalStyles.toggleBtnOn]}
+                        onPress={() => updateField(idx, 'warn', !item.warn)}
+                      >
+                        <Text style={[costModalStyles.toggleText, item.warn && { color: '#C9716A' }]}>주의</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity 
+                        style={[costModalStyles.toggleBtn, item.hasBalance && costModalStyles.toggleBtnOn]}
+                        onPress={() => updateField(idx, 'hasBalance', !item.hasBalance)}
+                      >
+                        <Text style={[costModalStyles.toggleText, item.hasBalance && { color: '#C9716A' }]}>잔금 설정함</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                ))}
               </>
             ) : (
               <View style={{ padding: 10 }}>
@@ -465,6 +518,11 @@ function CostEditModal({ visible, items, budgetId, initialBudget, onClose }) {
                     <Text style={costModalStyles.balanceCardAmount}>{item.balanceAmount}만원</Text>
                   </View>
                 ))}
+                {balanceItems.length === 0 && (
+                  <View style={styles.emptyBox}>
+                    <Text style={styles.emptyText}>등록된 잔금 일정이 없습니다</Text>
+                  </View>
+                )}
               </View>
             )}
           </ScrollView>
@@ -548,20 +606,26 @@ const styles = StyleSheet.create({
 const modalStyles = StyleSheet.create({
   overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
   backdrop: { ...StyleSheet.absoluteFillObject },
-  sheet: { backgroundColor: '#fff', borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 20, maxHeight: '90%' },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
+  sheet: { 
+    backgroundColor: '#fff', 
+    borderTopLeftRadius: 24, 
+    borderTopRightRadius: 24, 
+    padding: 20, 
+    maxHeight: '90%',
+    flex: 1 // Add this to allow children with flex: 1 (ScrollView) to expand
+  },
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15 },
   title: { fontSize: 18, fontWeight: '700', color: '#2C2420' },
-  itemBox: { borderWidth: 1, borderColor: '#F0E8E4', borderRadius: 12, marginBottom: 10, padding: 12 },
-  collapsedRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  collapsedLabel: { fontSize: 14, fontWeight: '500', color: '#2C2420' },
-  editArea: { gap: 10 },
-  input: { backgroundColor: '#F9F7F6', borderRadius: 8, padding: 12, fontSize: 14 },
-  editFooter: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 10 },
-  deleteText: { fontSize: 13, color: '#B8A9A5' },
-  confirmBtn: { backgroundColor: '#C9716A', paddingHorizontal: 16, paddingVertical: 8, borderRadius: 8 },
-  confirmBtnText: { color: '#fff', fontWeight: '600', fontSize: 13 },
-  addBtn: { alignItems: 'center', paddingVertical: 12, marginTop: 10 },
-  addBtnText: { color: '#C9716A', fontWeight: '600' },
+  itemBoxExpanded: { backgroundColor: '#F9F7F6', borderRadius: 16, padding: 16, marginBottom: 16, borderWidth: 1, borderColor: '#F0E8E4' },
+  expandedHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
+  labelInput: { flex: 1, fontSize: 16, fontWeight: '700', color: '#2C2420', padding: 0 },
+  trashBtn: { padding: 4 },
+  amountInputRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', borderRadius: 10, paddingHorizontal: 12, paddingVertical: 10, marginBottom: 12, borderWidth: 1, borderColor: '#EAE2DF' },
+  amountInput: { flex: 1, fontSize: 15, fontWeight: '600', color: '#2C2420' },
+  amountUnitLabel: { fontSize: 13, color: '#8A7870', fontWeight: '500' },
+  expandedToggles: { flexDirection: 'row', gap: 8 },
+  addBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 14, marginTop: 10, borderStyle: 'solid', borderWidth: 1, borderColor: '#C9716A', backgroundColor: '#FDF0EF', borderRadius: 12, gap: 6 },
+  addBtnText: { color: '#C9716A', fontWeight: '700', fontSize: 14 },
   footer: { flexDirection: 'row', gap: 12, marginTop: 20, paddingBottom: Platform.OS === 'ios' ? 20 : 0 },
   cancelBtn: { flex: 1, paddingVertical: 14, alignItems: 'center', borderRadius: 12, backgroundColor: '#F5F1EE' },
   cancelBtnText: { color: '#8A7870', fontWeight: '600' },
@@ -580,10 +644,13 @@ const costModalStyles = StyleSheet.create({
   budgetInputWrap: { flexDirection: 'row', alignItems: 'center', gap: 5 },
   budgetInput: { borderBottomWidth: 1, borderColor: '#C9716A', fontSize: 16, fontWeight: '700', color: '#C9716A', minWidth: 50, textAlign: 'right' },
   budgetUnit: { fontSize: 14, color: '#C9716A' },
-  toggleBtn: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 6, borderWidth: 1, borderColor: '#F0E8E4' },
+  toggleBtn: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 6, borderWidth: 1, borderColor: '#F0E8E4', backgroundColor: '#fff' },
   toggleBtnOn: { borderColor: '#C9716A', backgroundColor: '#FDF0EF' },
   toggleText: { fontSize: 12, color: '#8A7870' },
   balanceCard: { flexDirection: 'row', justifyContent: 'space-between', padding: 12, borderBottomWidth: 1, borderBottomColor: '#F5F1EE' },
   balanceCardLabel: { fontSize: 14, color: '#2C2420' },
   balanceCardAmount: { fontSize: 14, fontWeight: '700', color: '#C9716A' },
+  presetRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 5, marginBottom: 5, paddingHorizontal: 4 },
+  presetChip: { backgroundColor: '#FDF0EF', paddingHorizontal: 12, paddingVertical: 8, borderRadius: 20, borderWidth: 1, borderColor: '#FADEDC' },
+  presetChipText: { fontSize: 12, color: '#C9716A', fontWeight: '600' },
 });

@@ -106,7 +106,6 @@ function TimelineEditModal({ visible, items, onClose, onSave }) {
       date_month: '',
       date_day: '',
       status: 'future',
-      color: 'rose',
     };
     setDraft((prev) => {
       const next = [...prev, newItem];
@@ -125,6 +124,7 @@ function TimelineEditModal({ visible, items, onClose, onSave }) {
       <View style={modalStyles.overlay}>
         <TouchableOpacity style={modalStyles.backdrop} activeOpacity={1} onPress={onClose} />
         <View style={modalStyles.sheet}>
+          {/* 헤더 */}
           <View style={modalStyles.header}>
             <Text style={modalStyles.title}>타임라인 수정</Text>
             <TouchableOpacity onPress={onClose}>
@@ -141,6 +141,7 @@ function TimelineEditModal({ visible, items, onClose, onSave }) {
                   style={[modalStyles.itemBox, isOpen && { borderColor: '#C9716A' }]}
                 >
                   {!isOpen ? (
+                    /* 접힌 행 */
                     <TouchableOpacity
                       style={modalStyles.collapsedRow}
                       onPress={() => setOpenIdx(idx)}
@@ -155,6 +156,7 @@ function TimelineEditModal({ visible, items, onClose, onSave }) {
                       <Ionicons name="create-outline" size={15} color="#C9716A" />
                     </TouchableOpacity>
                   ) : (
+                    /* 펼쳐진 편집 영역 */
                     <View style={modalStyles.editArea}>
                       <Text style={modalStyles.fieldLabel}>일정 이름</Text>
                       <TextInput
@@ -164,6 +166,8 @@ function TimelineEditModal({ visible, items, onClose, onSave }) {
                         placeholder="예: 드레스 시착"
                         placeholderTextColor="#C8BFBB"
                       />
+
+                      {/* 날짜 */}
                       <Text style={[modalStyles.fieldLabel, { marginTop: 12 }]}>날짜</Text>
                       <View style={modalStyles.dateRow}>
                         <TextInput
@@ -200,6 +204,43 @@ function TimelineEditModal({ visible, items, onClose, onSave }) {
                         />
                         <Text style={modalStyles.dateSep}>일</Text>
                       </View>
+
+                      {/* 색상 */}
+                      <Text style={[modalStyles.fieldLabel, { marginTop: 12, marginBottom: 8 }]}>
+                        색상
+                      </Text>
+                      <View style={scheduleModalStyles.swatchRow}>
+                        {COLOR_OPTIONS.map((opt) => {
+                          const isSelected = (item.color ?? 'rose') === opt.key;
+                          return (
+                            <TouchableOpacity
+                              key={opt.key}
+                              style={scheduleModalStyles.swatchWrap}
+                              onPress={() => updateField(idx, 'color', opt.key)}
+                              activeOpacity={0.8}
+                            >
+                              <View
+                                style={[
+                                  scheduleModalStyles.swatch,
+                                  { backgroundColor: opt.hex },
+                                  isSelected && scheduleModalStyles.swatchSelected,
+                                ]}
+                              >
+                                {isSelected && <Ionicons name="checkmark" size={16} color="#fff" />}
+                              </View>
+                              <Text
+                                style={[
+                                  scheduleModalStyles.swatchLabel,
+                                  isSelected && { color: opt.hex, fontWeight: '600' },
+                                ]}
+                              >
+                                {opt.label}
+                              </Text>
+                            </TouchableOpacity>
+                          );
+                        })}
+                      </View>
+
                       <View style={modalStyles.editFooter}>
                         <TouchableOpacity onPress={() => deleteItem(idx)}>
                           <Text style={modalStyles.deleteText}>삭제</Text>
@@ -216,11 +257,14 @@ function TimelineEditModal({ visible, items, onClose, onSave }) {
                 </View>
               );
             })}
+
+            {/* 새 일정 추가 */}
             <TouchableOpacity style={modalStyles.addBtn} onPress={addItem}>
               <Text style={modalStyles.addBtnText}>+ 새 일정 추가</Text>
             </TouchableOpacity>
           </ScrollView>
 
+          {/* 하단 저장/취소 */}
           <View style={modalStyles.footer}>
             <TouchableOpacity style={modalStyles.cancelBtn} onPress={onClose}>
               <Text style={modalStyles.cancelBtnText}>취소</Text>
@@ -234,6 +278,7 @@ function TimelineEditModal({ visible, items, onClose, onSave }) {
     </Modal>
   );
 }
+// ────────────────────────────────────────────────────────
 
 function ScheduleAddModal({ visible, preselectedDate, onClose, onSave }) {
   const [step_name, setStepName] = useState('');
@@ -255,6 +300,11 @@ function ScheduleAddModal({ visible, preselectedDate, onClose, onSave }) {
       setColor('rose');
       setStatus('future');
     }
+    if (visible) {
+      setLabel('');
+      setColor('rose');
+      setStatus('future');
+    }
   }, [visible]);
 
   const handleSave = () => {
@@ -270,18 +320,25 @@ function ScheduleAddModal({ visible, preselectedDate, onClose, onSave }) {
     onClose();
   };
 
+  const isValid = label.trim() && dateYear.length === 4 && dateMonth && dateDay;
+  const selectedColorOpt = COLOR_OPTIONS.find((c) => c.key === color);
+
   return (
-    <Modal visible={visible} animationType="slide" transparent>
+    <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
       <View style={modalStyles.overlay}>
-        <TouchableOpacity style={modalStyles.backdrop} onPress={onClose} />
-        <View style={modalStyles.sheet}>
+        <TouchableOpacity style={modalStyles.backdrop} activeOpacity={1} onPress={onClose} />
+        <View style={[modalStyles.sheet, { maxHeight: '80%' }]}>
+          {/* 헤더 */}
           <View style={modalStyles.header}>
             <Text style={modalStyles.title}>일정 추가</Text>
             <TouchableOpacity onPress={onClose}>
-              <Ionicons name="close" size={24} color="#B8A9A5" />
+              <Ionicons name="close" size={20} color="#B8A9A5" />
             </TouchableOpacity>
           </View>
-          <ScrollView>
+
+          <ScrollView showsVerticalScrollIndicator={false}>
+            {/* 일정 이름 */}
+            <Text style={modalStyles.fieldLabel}>일정 이름</Text>
             <TextInput
               style={[modalStyles.input, { marginBottom: 16 }]}
               value={step_name}
@@ -320,8 +377,17 @@ function ScheduleAddModal({ visible, preselectedDate, onClose, onSave }) {
               <Text style={modalStyles.dateSep}>일</Text>
             </View>
           </ScrollView>
-          <View style={modalStyles.footer}>
-            <TouchableOpacity style={modalStyles.saveBtn} onPress={handleSave}>
+
+          {/* 하단 버튼 */}
+          <View style={[modalStyles.footer, { marginTop: 16 }]}>
+            <TouchableOpacity style={modalStyles.cancelBtn} onPress={onClose}>
+              <Text style={modalStyles.cancelBtnText}>취소</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[modalStyles.saveBtn, !isValid && { backgroundColor: '#E8C5C2' }]}
+              onPress={handleSave}
+              disabled={!isValid}
+            >
               <Text style={modalStyles.saveBtnText}>추가</Text>
             </TouchableOpacity>
           </View>
@@ -330,6 +396,55 @@ function ScheduleAddModal({ visible, preselectedDate, onClose, onSave }) {
     </Modal>
   );
 }
+
+const scheduleModalStyles = StyleSheet.create({
+  swatchRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 14,
+    paddingHorizontal: 4,
+  },
+  swatchWrap: {
+    alignItems: 'center',
+    gap: 5,
+  },
+  swatch: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  swatchSelected: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 4,
+    transform: [{ scale: 1.12 }],
+  },
+  swatchLabel: {
+    fontSize: 10,
+    color: '#B8A9A5',
+    fontWeight: '400',
+  },
+  preview: {
+    borderLeftWidth: 3,
+    borderRadius: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 9,
+    marginBottom: 4,
+  },
+  previewText: {
+    fontSize: 12,
+    fontWeight: '500',
+  },
+});
+// ────────────────────────────────────────────────────────
+
+// ────────────────────────────────────────────────────────
+
+// ────────────────────────────────────────────────────────
 
 export default function TimelineScreen() {
   const active_id = useProjectStore((state) => state.active_id);
@@ -397,10 +512,34 @@ export default function TimelineScreen() {
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.container}>
+        {/* ── ① 플래너 정보 배너 ── */}
         <View style={styles.bannerCard}>
            <Text style={styles.cardTitle}>결혼 준비 진행도</Text>
         </View>
 
+        <View style={styles.bannerCard}>
+          <View style={styles.bottomRow}>
+            <View style={styles.plannerRow}>
+              <View style={styles.avatar}>
+                <Text style={styles.avatarText}>박</Text>
+              </View>
+              <View>
+                <Text style={styles.plannerLabel}>담당 플래너</Text>
+                <Text style={styles.plannerName}>박지현 플래너</Text>
+                <Text style={styles.onlineText}>● 온라인</Text>
+              </View>
+            </View>
+            <TouchableOpacity
+              style={styles.chatBtn}
+              onPress={() => router.push('/(couple)/chat/1')}
+            >
+              <Ionicons name="chatbubble-ellipses" size={18} color="#fff" />
+              <Text style={styles.chatBtnText}>문의하기</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* ── ② 결혼 준비 타임라인 ── */}
         <View style={styles.card}>
           <View style={styles.cardTitleRow}>
             <Text style={styles.cardTitle}>결혼 준비 타임라인</Text>
@@ -408,6 +547,7 @@ export default function TimelineScreen() {
               <Text style={styles.editBtnText}>수정</Text>
             </TouchableOpacity>
           </View>
+
           <View style={styles.timelineWrap}>
             {mappedTimelineItems.map((item) => (
               <View key={item.id} style={styles.tlItem}>
@@ -416,22 +556,73 @@ export default function TimelineScreen() {
                   <Text style={styles.tlLabel}>{item.step_name}</Text>
                   <Text style={styles.tlDate}>{formatDate(item)}</Text>
                 </View>
-              </View>
-            ))}
+              );
+            })}
           </View>
         </View>
 
+        {/* ── ③ 일정 관리 달력 ── */}
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>일정 관리</Text>
+          <View style={styles.cardTitleRow}>
+            <Text style={styles.cardTitle}>일정 관리</Text>
+            <TouchableOpacity
+              style={styles.editBtn}
+              onPress={() => setScheduleAddModalVisible(true)}
+            >
+              <Text style={styles.editBtnText}>+ 일정 추가</Text>
+            </TouchableOpacity>
+          </View>
           <Calendar
             current={selectedDate}
             onDayPress={(day) => setSelectedDate(day.dateString)}
+            onMonthChange={(month) =>
+              setVisibleMonth(`${month.year}-${String(month.month).padStart(2, '0')}`)
+            }
             markedDates={markedDates}
-            theme={{ selectedDayBackgroundColor: '#C9716A' }}
+            theme={{
+              selectedDayBackgroundColor: '#C9716A',
+              todayTextColor: '#C9716A',
+              arrowColor: '#C9716A',
+              dotColor: '#7A9E8E',
+              textDayFontSize: 13,
+              textMonthFontSize: 14,
+              textDayHeaderFontSize: 11,
+              calendarBackground: '#fff',
+            }}
+            style={{ borderRadius: 10 }}
           />
+          <View style={{ marginTop: 12, gap: 6 }}>
+            {visibleEvents.length > 0 ? (
+              visibleEvents.map((item) => {
+                const colorOpt = COLOR_OPTIONS.find((c) => c.key === (item.color ?? 'rose'));
+                const bgColor = colorOpt ? colorOpt.bg : '#F5EAE9';
+                const borderColor = colorOpt ? colorOpt.hex : '#C9716A';
+                const textColor = colorOpt ? colorOpt.text : '#C9716A';
+                const pad = (v) => String(parseInt(v)).padStart(2, '0');
+                const displayLabel = `${parseInt(item.dateMonth)}월 ${parseInt(item.dateDay)}일 — ${item.label}`;
+                return (
+                  <View
+                    key={item.id}
+                    style={[
+                      styles.eventBadge,
+                      { backgroundColor: bgColor, borderLeftColor: borderColor },
+                    ]}
+                  >
+                    <Text style={[styles.eventText, { color: textColor }]}>{displayLabel}</Text>
+                  </View>
+                );
+              })
+            ) : (
+              <View style={styles.emptyEvents}>
+                <Text style={styles.emptyEventsText}>{monthLabel}에 등록된 일정이 없습니다</Text>
+              </View>
+            )}
+          </View>
         </View>
+
       </ScrollView>
 
+      {/* 타임라인 수정 모달 */}
       <TimelineEditModal
         visible={editModalVisible}
         items={mappedTimelineItems}
@@ -439,12 +630,14 @@ export default function TimelineScreen() {
         onSave={handleSaveTimeline}
       />
 
+      {/* 일정 추가 모달 */}
       <ScheduleAddModal
         visible={scheduleAddModalVisible}
         preselectedDate={selectedDate}
         onClose={() => setScheduleAddModalVisible(false)}
         onSave={handleAddSchedule}
       />
+
     </SafeAreaView>
   );
 }

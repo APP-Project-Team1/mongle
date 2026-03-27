@@ -186,13 +186,17 @@ export default function VendorDetailScreen() {
 
   const renderBottomTab = () => (
     <View style={tabStyles.container}>
-      <TouchableOpacity style={tabStyles.tabItem} onPress={() => router.replace('/(couple)')}>
-        <Ionicons name="home-outline" size={24} color="#c9a98e" />
-        <Text style={[tabStyles.tabText, { color: '#c9a98e' }]}>홈</Text>
-      </TouchableOpacity>
       <TouchableOpacity style={tabStyles.tabItem} onPress={() => router.replace('/(couple)/timeline')}>
         <Ionicons name="calendar-outline" size={24} color="#8a7870" />
         <Text style={tabStyles.tabText}>일정</Text>
+      </TouchableOpacity>
+      <TouchableOpacity style={tabStyles.tabItem} onPress={() => router.replace('/(couple)/budget')}>
+        <Ionicons name="wallet-outline" size={24} color="#8a7870" />
+        <Text style={tabStyles.tabText}>비용</Text>
+      </TouchableOpacity>
+      <TouchableOpacity style={tabStyles.tabItem} onPress={() => router.replace('/(couple)')}>
+        <Ionicons name="home-outline" size={24} color="#c9a98e" />
+        <Text style={[tabStyles.tabText, { color: '#c9a98e' }]}>홈</Text>
       </TouchableOpacity>
       <TouchableOpacity style={tabStyles.tabItem} onPress={() => router.replace('/(couple)/chat')}>
         <Ionicons name="chatbubble-outline" size={24} color="#8a7870" />

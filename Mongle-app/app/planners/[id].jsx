@@ -16,11 +16,13 @@ import { useEffect, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import plannersData from './planners.json';
+import { supabase } from '../../lib/supabase';
+import { ActivityIndicator } from 'react-native';
 
 export default function PlannerDetailScreen() {
   const { id } = useLocalSearchParams();
-  const selectedPlanner = plannersData.find((p) => p.name === id);
+  const [selectedPlanner, setSelectedPlanner] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [modalVisible, setModalVisible] = useState(false);
   const [consultYear, setConsultYear] = useState('');
   const [consultMonth, setConsultMonth] = useState('');
@@ -73,6 +75,23 @@ export default function PlannerDetailScreen() {
     }
   };
 
+  // useEffect 1 - Supabase fetch
+  useEffect(() => {
+    async function fetchPlanner() {
+      const { data, error } = await supabase
+        .from('wedding_planners')
+        .select('*')
+        .eq('name', id)
+        .not('brand_name', 'is', null)
+        .single();
+
+      if (!error && data) setSelectedPlanner(data);
+      setLoading(false);
+    }
+    fetchPlanner();
+  }, [id]);
+
+  // useEffect 2 - BackHandler (기존 코드 그대로)
   useEffect(() => {
     const handleBackPress = () => {
       if (router.canGoBack()) {
@@ -87,6 +106,13 @@ export default function PlannerDetailScreen() {
 
     return () => subscription.remove();
   }, []);
+
+  if (loading)
+    return (
+      <View style={styles.errorContainer}>
+        <ActivityIndicator color="#c9a98e" />
+      </View>
+    );
 
   if (!selectedPlanner) {
     return (
@@ -168,7 +194,7 @@ export default function PlannerDetailScreen() {
           <View style={styles.statDivider} />
           <View style={styles.statBox}>
             <Text style={styles.statLabel}>전문 지역</Text>
-            <Text style={styles.statValue}>{selectedPlanner.activity_regions.join(', ')}</Text>
+            <Text style={styles.statValue}>{selectedPlanner.activity_regions?.join(', ')}</Text>
           </View>
           <View style={styles.statDivider} />
           <View style={styles.statBox}>
@@ -179,12 +205,12 @@ export default function PlannerDetailScreen() {
 
         {/* Tags */}
         <View style={styles.tagsContainer}>
-          {selectedPlanner.specialties.map((s) => (
+          {selectedPlanner.specialties?.map((s) => (
             <View key={s} style={styles.tagBadge}>
               <Text style={styles.tagText}>#{s}</Text>
             </View>
           ))}
-          {selectedPlanner.style_keywords.map((k) => (
+          {selectedPlanner.style_keywords?.map((k) => (
             <View key={k} style={[styles.tagBadge, styles.tagBadgeStyle]}>
               <Text style={[styles.tagText, styles.tagTextStyle]}>#{k}</Text>
             </View>
@@ -197,7 +223,7 @@ export default function PlannerDetailScreen() {
         <Text style={styles.sectionTitle}>플래닝 예상 견적</Text>
         <View style={styles.priceWrap}>
           <Text style={styles.priceLabel}>스타터 패키지 기준</Text>
-          <Text style={styles.priceText}>{selectedPlanner.base_price_krw.toLocaleString()}원</Text>
+          <Text style={styles.priceText}>{selectedPlanner.base_price_krw?.toLocaleString()}원</Text>
         </View>
 
         <View style={styles.divider} />
@@ -205,7 +231,7 @@ export default function PlannerDetailScreen() {
         {/* Service Core */}
         <Text style={styles.sectionTitle}>제공 서비스</Text>
         <View style={styles.servicesGrid}>
-          {selectedPlanner.service_scope.included.map((item, i) => (
+          {selectedPlanner.service_scope?.included?.map((item, i) => (
             <View key={i} style={styles.serviceItem}>
               <Ionicons name="checkmark-circle" size={16} color="#c9a98e" />
               <Text style={styles.serviceItemText}>{item}</Text>
@@ -216,7 +242,7 @@ export default function PlannerDetailScreen() {
         <View style={styles.divider} />
 
         <Text style={styles.sectionTitle}>주요 경력 & 특징</Text>
-        {selectedPlanner.major_experiences.map((exp, i) => (
+        {selectedPlanner.major_experiences?.map((exp, i) => (
           <Text key={`exp-${i}`} style={styles.bulletText}>
             • {exp}
           </Text>
@@ -235,7 +261,7 @@ export default function PlannerDetailScreen() {
           showsHorizontalScrollIndicator={false}
           style={styles.portfolioScroll}
         >
-          {selectedPlanner.portfolio_images.map((img, i) => (
+          {selectedPlanner.portfolio_images?.map((img, i) => (
             <Image key={i} source={{ uri: img }} style={styles.portfolioImage} />
           ))}
         </ScrollView>

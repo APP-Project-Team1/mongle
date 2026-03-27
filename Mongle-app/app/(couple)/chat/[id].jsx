@@ -77,7 +77,7 @@ export default function ChatRoomScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
+    <SafeAreaView style={styles.safeArea} edges={['top']}>
       <StatusBar barStyle="dark-content" backgroundColor="#fff" />
 
       {/* Header */}
@@ -103,7 +103,6 @@ export default function ChatRoomScreen() {
           contentContainerStyle={styles.messageList}
           inverted
         />
-
         {/* Input Area */}
         <View style={styles.inputContainer}>
           <TouchableOpacity style={styles.attachBtn}>
@@ -117,6 +116,16 @@ export default function ChatRoomScreen() {
             onChangeText={setMessage}
             multiline
           />
+          
+          {/* AI Button */}
+          <TouchableOpacity 
+            style={styles.aiBtn}
+            onPress={() => router.push('/(couple)/chat/ai')}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="sparkles" size={20} color="#c9a98e" />
+          </TouchableOpacity>
+
           <TouchableOpacity
             style={[styles.sendBtn, message.trim() ? styles.sendBtnActive : {}]}
             onPress={handleSend}
@@ -254,5 +263,12 @@ const styles = StyleSheet.create({
   },
   sendBtnActive: {
     backgroundColor: '#c9a98e',
+  },
+  aiBtn: {
+    width: 36,
+    height: 36,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: 4,
   },
 });

@@ -8,7 +8,6 @@ import {
   StatusBar,
   KeyboardAvoidingView,
   Platform,
-  Alert,
   ScrollView,
   Modal,
 } from 'react-native';
@@ -16,6 +15,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { signUpPlanner, signUpCouple } from '../../lib/auth'; // ← Supabase Auth 함수
 
 export default function RegisterScreen() {
   const [email, setEmail] = useState('');
@@ -23,6 +23,7 @@ export default function RegisterScreen() {
   const [isPlanner, setIsPlanner] = useState(false);
   const [showPw, setShowPw] = useState(false);
   const [isEmailVerified, setIsEmailVerified] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [modalConfig, setModalConfig] = useState({ title: '', message: '', onConfirm: null });
 
@@ -32,7 +33,10 @@ export default function RegisterScreen() {
         <Ionicons name="home-outline" size={24} color="#8a7870" />
         <Text style={tabStyles.tabText}>홈</Text>
       </TouchableOpacity>
-      <TouchableOpacity style={tabStyles.tabItem} onPress={() => router.replace('/(couple)/timeline')}>
+      <TouchableOpacity
+        style={tabStyles.tabItem}
+        onPress={() => router.replace('/(couple)/timeline')}
+      >
         <Ionicons name="calendar-outline" size={24} color="#8a7870" />
         <Text style={tabStyles.tabText}>일정</Text>
       </TouchableOpacity>
@@ -52,19 +56,19 @@ export default function RegisterScreen() {
     setModalVisible(true);
   };
 
-  // 이메일 정규식 검사
+  // 이메일 형식 검사
   const handleVerifyEmail = () => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       showModal('알림', '유효한 이메일 형식을 입력해주세요.');
       return;
     }
-    showModal('알림', '이메일 인증이 완료되었습니다.', () => {
+    showModal('알림', '이메일 확인이 완료되었습니다.', () => {
       setIsEmailVerified(true);
     });
   };
 
-  // 비밀번호 정규식: 영문 대/소문자, 숫자, 특수문자 포함 8~16자
+  // 비밀번호 유효성: 영문 대/소문자, 숫자, 특수문자 포함 8~16자
   const isValidPassword = (pw) => {
     const pwRegex = /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,16}$/;
     return pwRegex.test(pw);
@@ -72,12 +76,67 @@ export default function RegisterScreen() {
 
   const isSignUpEnabled = isEmailVerified && isValidPassword(password);
 
-  const handleRegister = () => {
-    if (isSignUpEnabled) {
+  // ── 회원가입 처리 ─────────────────────────────────────────
+  // const handleRegister = async () => {
+  //   if (!isSignUpEnabled) return;
+
+  //   try {
+  //     setLoading(true);
+
+  // role에 따라 Supabase 가입 함수 호출
+  // → 트리거가 자동으로 wedding_planners 또는 couples 행 생성
+  //   if (isPlanner) {
+  //     await signUpPlanner(email, password);
+  //   } else {
+  //     await signUpCouple(email, password);
+  //   }
+
+  //   const roleText = isPlanner ? '웨딩 플래너' : '예비 신혼';
+  //   showModal(
+  //     '환영합니다!',
+  //     `${roleText}로 가입이 완료되었습니다.\n이메일 인증 후 로그인해주세요.`,
+  //     () => router.replace('/(auth)/login'),
+  //   );
+  // } catch (e) {
+  // 이미 가입된 이메일인 경우 등 오류 처리
+  //     if (e.message?.includes('already registered')) {
+  //       showModal('알림', '이미 가입된 이메일입니다.');
+  //     } else {
+  //       showModal('알림', e.message || '회원가입 중 오류가 발생했습니다.');
+  //     }
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
+  const handleRegister = async () => {
+    if (!isSignUpEnabled) return;
+
+    try {
+      setLoading(true);
+
+      if (isPlanner) {
+        await signUpPlanner(email, password);
+      } else {
+        await signUpCouple(email, password);
+      }
+
       const roleText = isPlanner ? '웨딩 플래너' : '예비 신혼';
-      showModal('환영합니다!', `${roleText}로 회원가입이 완료되었습니다.`, () => {
-        router.replace('/(auth)/login');
-      });
+
+      // 수정된 안내 문구: "이메일 인증" 관련 내용을 삭제했습니다.
+      showModal(
+        '환영합니다!',
+        `${roleText} 가입이 완료되었습니다.`,
+        () => router.replace('/(auth)/login'), // 바로 로그인을 유도하거나 메인으로 보냅니다.
+      );
+    } catch (e) {
+      if (e.message?.includes('already registered')) {
+        showModal('알림', '이미 가입된 이메일입니다.');
+      } else {
+        showModal('알림', e.message || '회원가입 중 오류가 발생했습니다.');
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -104,25 +163,29 @@ export default function RegisterScreen() {
           </View>
 
           <View style={styles.form}>
-            {/* 가입 유형 선택 (탭) */}
+            {/* 가입 유형 선택 탭 */}
             <View style={styles.roleTabContainer}>
               <TouchableOpacity
                 style={[styles.roleTab, !isPlanner && styles.activeRoleTab]}
                 onPress={() => setIsPlanner(false)}
                 activeOpacity={0.8}
               >
-                <Text style={[styles.roleTabText, !isPlanner && styles.activeRoleTabText]}>예비 신혼</Text>
+                <Text style={[styles.roleTabText, !isPlanner && styles.activeRoleTabText]}>
+                  예비 신혼
+                </Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.roleTab, isPlanner && styles.activeRoleTab]}
                 onPress={() => setIsPlanner(true)}
                 activeOpacity={0.8}
               >
-                <Text style={[styles.roleTabText, isPlanner && styles.activeRoleTabText]}>웨딩 플래너</Text>
+                <Text style={[styles.roleTabText, isPlanner && styles.activeRoleTabText]}>
+                  웨딩 플래너
+                </Text>
               </TouchableOpacity>
             </View>
 
-            {/* 이메일(아이디) 입력 & 인증 */}
+            {/* 이메일 입력 & 형식 확인 */}
             <View style={styles.emailContainer}>
               <View style={[styles.inputWrap, styles.emailInputWrap]}>
                 <Ionicons name="mail-outline" size={16} color="#8a7870" style={styles.inputIcon} />
@@ -133,7 +196,7 @@ export default function RegisterScreen() {
                   value={email}
                   onChangeText={(text) => {
                     setEmail(text);
-                    setIsEmailVerified(false); // 이메일 변경 시 인증 초기화
+                    setIsEmailVerified(false);
                   }}
                   keyboardType="email-address"
                   autoCapitalize="none"
@@ -149,7 +212,7 @@ export default function RegisterScreen() {
                 <Text
                   style={[styles.verifyBtnText, isEmailVerified && styles.verifyBtnTextDisabled]}
                 >
-                  {isEmailVerified ? '인증완료' : '인증'}
+                  {isEmailVerified ? '확인완료' : '확인'}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -195,18 +258,23 @@ export default function RegisterScreen() {
 
             {/* 가입하기 버튼 */}
             <TouchableOpacity
-              style={[styles.registerBtnWrapper, !isSignUpEnabled && styles.registerBtnDisabled]}
+              style={[
+                styles.registerBtnWrapper,
+                (!isSignUpEnabled || loading) && styles.registerBtnDisabled,
+              ]}
               activeOpacity={0.85}
               onPress={handleRegister}
-              disabled={!isSignUpEnabled}
+              disabled={!isSignUpEnabled || loading}
             >
               <LinearGradient
-                colors={isSignUpEnabled ? ['#c89494', '#ccc79e'] : ['#e5e3e3', '#e8e7e2']}
+                colors={
+                  isSignUpEnabled && !loading ? ['#c89494', '#ccc79e'] : ['#e5e3e3', '#e8e7e2']
+                }
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
                 style={styles.registerBtnGradient}
               >
-                <Text style={styles.registerBtnText}>가입하기</Text>
+                <Text style={styles.registerBtnText}>{loading ? '가입 중...' : '가입하기'}</Text>
               </LinearGradient>
             </TouchableOpacity>
           </View>
@@ -251,6 +319,7 @@ export default function RegisterScreen() {
           </View>
         </View>
       </Modal>
+
       {renderBottomTab()}
     </SafeAreaView>
   );
@@ -331,18 +400,12 @@ const styles = StyleSheet.create({
     borderColor: '#c8c0bd',
     borderWidth: 1,
   },
-  verifyBtnDisabled: {
-    backgroundColor: '#e8e0dc',
-  },
-  verifyBtnText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#fff',
-  },
-  verifyBtnTextDisabled: {
-    color: '#8a7870',
-  },
-
+  verifyBtnDisabled: { backgroundColor: '#e8e0dc' },
+  verifyBtnText: { fontSize: 14, fontWeight: '600', color: '#fff' },
+  verifyBtnTextDisabled: { color: '#8a7870' },
+  pwContainer: { gap: 8 },
+  eyeBtn: { padding: 4 },
+  hintText: { fontSize: 12, color: '#8a7870', marginLeft: 4 },
   registerBtnWrapper: {
     width: '100%',
     height: 50,
@@ -355,24 +418,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderRadius: 10,
   },
-
-  pwContainer: { gap: 8 },
-  eyeBtn: { padding: 4 },
-  hintText: {
-    fontSize: 12,
-    color: '#8a7870',
-    marginLeft: 4,
-  },
-  registerBtn: {
-    backgroundColor: '#c9a98e',
-    borderRadius: 14,
-    paddingVertical: 16,
-    alignItems: 'center',
-    marginTop: 16,
-  },
-  registerBtnDisabled: {
-    backgroundColor: '#e8e0dc',
-  },
+  registerBtnDisabled: { opacity: 0.6 },
   registerBtnText: { fontSize: 15, fontWeight: '600', color: '#fff', letterSpacing: 0.5 },
   loginRow: {
     flexDirection: 'row',
@@ -383,8 +429,6 @@ const styles = StyleSheet.create({
   },
   loginText: { fontSize: 13, color: '#8a7870' },
   loginLink: { fontSize: 13, color: '#B49191', fontWeight: '600' },
-
-  // 모달
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.35)',

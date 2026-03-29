@@ -1,12 +1,4 @@
-import { View, Text } from 'react-native';
-import React from 'react';
-
-const docs = () => {
-  return (
-    <View>
-      <Text>docs</Text>
-    </View>
-  );
-};
-
-export default docs;
+import { Redirect } from 'expo-router';
+export default function DocsRedirect() {
+  return <Redirect href="/(couple)/(tabs)/docs" />;
+}

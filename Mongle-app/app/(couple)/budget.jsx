@@ -28,14 +28,25 @@ const PRESET_CATEGORIES = ['웨딩홀', '스튜디오', '드레스', '메이크�
 const INITIAL_COST_ITEMS = [];
 
 const formatBalanceSub = (dueDateStr) => {
-  if (!dueDateStr) return '';
+  if (!dueDateStr || isNaN(Date.parse(dueDateStr))) return '기한 미지정';
   const due = new Date(dueDateStr);
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  const diff = Math.round((due - today) / (1000 * 60 * 60 * 24));
+  const diff = Math.ceil((due - today) / (1000 * 60 * 60 * 24));
   const m = due.getMonth() + 1;
   const d = due.getDate();
+  if (diff === 0) return `${m}월 ${d}일 마감 · D-Day`;
+  if (diff < 0) return `${m}월 ${d}일 마감 · 기한 경과`;
   return `${m}월 ${d}일 마감 · D-${diff}`;
+};
+
+const checkUrgent = (dueDateStr) => {
+  if (!dueDateStr || isNaN(Date.parse(dueDateStr))) return false;
+  const due = new Date(dueDateStr);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const diff = Math.ceil((due - today) / (1000 * 60 * 60 * 24));
+  return diff >= 0 && diff <= 10; // Within 10 days
 };
 
 const sumValues = (items) => items.reduce((acc, item) => acc + (parseInt(item.spent || item.value) || 0), 0);
@@ -195,7 +206,12 @@ export default function BudgetHubScreen() {
           <View style={styles.listCard}>
             {costItems
               .filter((item) => item.hasBalance)
-              .sort((a, b) => (a.balanceDue > b.balanceDue ? 1 : -1))
+              .map(item => ({...item, isUrgent: checkUrgent(item.balanceDue)}))
+              .sort((a, b) => {
+                if (!a.balanceDue) return 1;
+                if (!b.balanceDue) return -1;
+                return a.balanceDue > b.balanceDue ? 1 : -1;
+              })
               .map((item, idx, arr) => (
                 <View 
                   key={item.id} 
@@ -204,12 +220,15 @@ export default function BudgetHubScreen() {
                     idx === arr.length - 1 && { borderBottomWidth: 0 }
                   ]}
                 >
-                  <View style={[styles.balanceDot, item.urgent && { backgroundColor: '#C9716A' }]} />
+                  <View style={[styles.balanceDot, item.isUrgent && { backgroundColor: '#C9716A' }]} />
                   <View style={{ flex: 1 }}>
                     <Text style={styles.balanceLabel}>{item.label} 잔금</Text>
-                    <Text style={styles.balanceSub}>{formatBalanceSub(item.balanceDue)}</Text>
+                    <Text style={styles.balanceSub}>
+                      {item.vendorName ? `${item.vendorName} · ` : ''}
+                      {formatBalanceSub(item.balanceDue)}
+                    </Text>
                   </View>
-                  <Text style={[styles.balanceAmount, item.urgent && { color: '#C9716A' }]}>
+                  <Text style={[styles.balanceAmount, item.isUrgent && { color: '#C9716A' }]}>
                     {item.balanceAmount ? `${formatNumber(item.balanceAmount)}만원` : '미정'}
                   </Text>
                 </View>
@@ -486,16 +505,46 @@ function CostEditModal({ visible, items, budget, onClose, onSave }) {
                 ))}
               </>
             ) : (
-              <View style={{ padding: 10 }}>
-                {balanceItems.map(item => (
-                  <View key={item.id} style={costModalStyles.balanceCard}>
-                    <Text style={costModalStyles.balanceCardLabel}>{item.label} 잔금</Text>
-                    <Text style={costModalStyles.balanceCardAmount}>{item.balanceAmount}만원</Text>
-                  </View>
-                ))}
-                {balanceItems.length === 0 && (
+              <View style={{ paddingBottom: 20 }}>
+                {balanceItems.length > 0 ? (
+                  balanceItems.map((item) => {
+                    // Find actual draft index for updating
+                    const draftIdx = draft.findIndex(d => d.id === item.id);
+                    return (
+                      <View key={item.id} style={costModalStyles.balanceEditCard}>
+                        <View style={costModalStyles.balanceEditHeader}>
+                          <Text style={costModalStyles.balanceEditTitle}>{item.label}</Text>
+                          <Text style={costModalStyles.dDayBadge}>{formatBalanceSub(item.balanceDue)}</Text>
+                        </View>
+                        
+                        <View style={costModalStyles.balanceInputRow}>
+                          <View style={{ flex: 1 }}>
+                            <Text style={costModalStyles.inputSubLabel}>잔금액 (만원)</Text>
+                            <TextInput
+                              style={costModalStyles.balanceSubInput}
+                              value={item.balanceAmount}
+                              onChangeText={v => updateField(draftIdx, 'balanceAmount', v.replace(/\D/g, ''))}
+                              placeholder="금액"
+                              keyboardType="number-pad"
+                            />
+                          </View>
+                          <View style={{ flex: 1.5 }}>
+                            <Text style={costModalStyles.inputSubLabel}>예정일 (YYYY-MM-DD)</Text>
+                            <TextInput
+                              style={costModalStyles.balanceSubInput}
+                              value={item.balanceDue}
+                              onChangeText={v => updateField(draftIdx, 'balanceDue', v)}
+                              placeholder="2026-06-25"
+                            />
+                          </View>
+                        </View>
+                      </View>
+                    );
+                  })
+                ) : (
                   <View style={styles.emptyBox}>
-                    <Text style={styles.emptyText}>등록된 잔금 일정이 없습니다</Text>
+                    <Ionicons name="notifications-off-outline" size={32} color="#F0E8E4" style={{ marginBottom: 10 }} />
+                    <Text style={styles.emptyText}>비용 탭에서 '잔금 설정' 박스를{'\n'}체크한 항목들이 여기에 표시됩니다.</Text>
                   </View>
                 )}
               </View>
@@ -734,6 +783,15 @@ const costModalStyles = StyleSheet.create({
   balanceCard: { flexDirection: 'row', justifyContent: 'space-between', padding: 12, borderBottomWidth: 1, borderBottomColor: '#F5F1EE' },
   balanceCardLabel: { fontSize: 14, color: '#2C2420' },
   balanceCardAmount: { fontSize: 14, fontWeight: '700', color: '#C9716A' },
+  
+  balanceEditCard: { backgroundColor: '#fff', borderRadius: 16, padding: 16, marginBottom: 12, borderWidth: 1, borderColor: '#F5F1EE' },
+  balanceEditHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15 },
+  balanceEditTitle: { fontSize: 15, fontWeight: '700', color: '#2C2420' },
+  dDayBadge: { fontSize: 11, color: '#C9716A', backgroundColor: '#FDF0EF', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6, fontWeight: '600' },
+  balanceInputRow: { flexDirection: 'row', gap: 12 },
+  inputSubLabel: { fontSize: 11, color: '#A8928A', marginBottom: 6 },
+  balanceSubInput: { backgroundColor: '#F9F7F6', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 10, fontSize: 14, color: '#2C2420', borderWidth: 1, borderColor: '#F0E8E4' },
+
   presetRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 5, marginBottom: 5, paddingHorizontal: 4 },
   presetChip: { backgroundColor: '#FDF0EF', paddingHorizontal: 12, paddingVertical: 8, borderRadius: 20, borderWidth: 1, borderColor: '#FADEDC' },
   presetChipText: { fontSize: 12, color: '#C9716A', fontWeight: '600' },

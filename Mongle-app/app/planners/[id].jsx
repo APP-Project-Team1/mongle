@@ -32,44 +32,63 @@ export default function PlannerDetailScreen() {
   const [consultBudget, setConsultBudget] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
-  const sendNotificationToPlanner = async ({ plannerName, date, time, budget }) => {
-    // TODO: 실제 API로 교체
-    // await fetch('https://your-api.com/notify', {
-    //   method: 'POST',
-    //   headers: { 'Content-Type': 'application/json' },
-    //   body: JSON.stringify({ plannerName, date, time, budget }),
-    // });
-    return new Promise((resolve) => setTimeout(resolve, 800));
+  const sendNotificationToPlanner = async ({ plannerId, plannerName, date, time, budget }) => {
+
+    const { data: { session } } = await supabase.auth.getSession();
+    const myId = session?.user?.id;
+
+    const { error } = await supabase
+      .from('notifications')
+      .insert([
+        {
+          user_id: plannerId, // 알림을 받을 플래너의 UUID
+          sender_id: myId,
+          type: 'info_consultation',       // notification_types 테이블에 정의된 ID
+          title: '🗓️ 새 상담 신청 도착',
+          body: `${plannerName} 플래너님, ${date} ${time} 상담 신청이 있습니다. (예산: ${budget})`,
+          ref_type: 'consultation',
+          is_read: false,
+
+        }
+      ]);
+
+    if (error) {
+      console.error('알림 생성 실패:', error);
+      throw error;
+    }
   };
 
   const handleConsultSubmit = async () => {
-    if (!consultYear || !consultMonth || !consultDay || !consultHour || !consultBudget) {
-      Alert.alert('입력 오류', '날짜, 시간, 예산을 모두 입력해주세요.');
-      return;
-    }
 
     setSubmitting(true);
     try {
-      const fullDate = `${consultYear}-${consultMonth.padStart(2, '0')}-${consultDay.padStart(2, '0')}`;
-      const fullTime = `${consultAmPm} ${consultHour}시`;
+      // 1. 발신자 ID 확보
+      const { data: authData } = await supabase.auth.getUser();
+      const myId = authData?.user?.id;
 
+      // 2. 수신자 ID 확보 (Join 결과물)
+      const plannerUserId = selectedPlanner?.user_profiles?.[0]?.id;
+
+      if (!myId || !plannerUserId) {
+        throw new Error("사용자 정보를 식별할 수 없습니다.");
+      }
+
+      // 3. 알림 전송
       await sendNotificationToPlanner({
+        plannerId: plannerUserId,
+        senderId: myId, // 🌟 sender_id 컬럼에 들어갈 값
         plannerName: selectedPlanner.name,
-        date: fullDate,
-        time: fullTime,
+        date: `${consultYear}-${consultMonth}-${consultDay}`,
+        time: `${consultAmPm} ${consultHour}시`,
         budget: consultBudget,
       });
 
-      Alert.alert('신청 완료', `${selectedPlanner.name} 플래너에게 상담 신청이 전송되었습니다.`);
+      Alert.alert('신청 완료', '상담 신청이 전송되었습니다.');
       setModalVisible(false);
-      setConsultYear('');
-      setConsultMonth('');
-      setConsultDay('');
-      setConsultAmPm('오전');
-      setConsultHour('');
-      setConsultBudget('');
+
     } catch (e) {
-      Alert.alert('오류', '상담 신청 중 문제가 발생했습니다. 다시 시도해주세요.');
+      console.error('상담 신청 실패:', e.message);
+      Alert.alert('오류', e.message || '전송 중 에러가 발생했습니다.');
     } finally {
       setSubmitting(false);
     }
@@ -80,12 +99,20 @@ export default function PlannerDetailScreen() {
     async function fetchPlanner() {
       const { data, error } = await supabase
         .from('wedding_planners')
-        .select('*')
+        .select(`
+        *,
+        user_profiles!planner_id (
+          id
+        )
+      `)
         .eq('name', id)
-        .not('brand_name', 'is', null)
         .single();
 
-      if (!error && data) setSelectedPlanner(data);
+      if (error) {
+        console.error('조회 에러:', error);
+      } else {
+        setSelectedPlanner(data);
+      }
       setLoading(false);
     }
     fetchPlanner();
@@ -107,6 +134,7 @@ export default function PlannerDetailScreen() {
     return () => subscription.remove();
   }, []);
 
+
   if (loading)
     return (
       <View style={styles.errorContainer}>
@@ -124,6 +152,8 @@ export default function PlannerDetailScreen() {
       </View>
     );
   }
+
+
 
   const renderBottomTab = () => (
     <View style={tabStyles.container}>

@@ -9,28 +9,25 @@ import {
   Linking,
   Platform,
   BackHandler,
+  ActivityIndicator,
 } from 'react-native';
 import { useState, useEffect } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
-// Import New Vendor Data
-import hallData from './data/hall.json';
-import studioData from './data/studio.json';
-import dressData from './data/dress.json';
-import makeupData from './data/makeup.json';
-import videoSnapData from './data/video_snap.json';
-import packageData from './data/package.json';
+// Supabase 클라이언트 임포트
+import { supabase } from '../../lib/supabase';
 
-const ALL_VENDORS = [
-  ...hallData,
-  ...studioData,
-  ...dressData,
-  ...makeupData,
-  ...videoSnapData,
-  ...packageData,
-];
+// 카테고리 ID와 Supabase 테이블 이름을 매칭하는 지도
+const TABLE_MAP = {
+  hall: 'hall_vendors',
+  studio: 'studio_vendors',
+  dress: 'dress_vendors',
+  makeup: 'makeup_vendors',
+  video_snap: 'video_snap_vendors',
+  package: 'package_vendors',
+};
 
 const CATEGORIES = [
   { id: 'hall', label: '웨딩홀' },
@@ -42,10 +39,16 @@ const CATEGORIES = [
 ];
 
 export default function VendorDetailScreen() {
-  const { id } = useLocalSearchParams();
-  const selectedVendor = ALL_VENDORS.find(v => v.basic_info.vendor_id === id);
+  // 2. URL에서 id와 category를 받아옵니다.
+  const { id, category } = useLocalSearchParams();
+
+  // 3. 데이터를 저장할 상태(state) 선언
+  const [selectedVendor, setSelectedVendor] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    fetchVendorDetail();
+
     const handleBackPress = () => {
       if (router.canGoBack()) {
         router.back();
@@ -55,13 +58,40 @@ export default function VendorDetailScreen() {
       return true;
     };
 
-    const subscription = BackHandler.addEventListener(
-      'hardwareBackPress',
-      handleBackPress
-    );
-
+    const subscription = BackHandler.addEventListener('hardwareBackPress', handleBackPress);
     return () => subscription.remove();
-  }, []);
+  }, [id, category]); // id나 category가 바뀔 때마다 실행
+
+  // 4. Supabase에서 데이터를 가져오는 함수
+  const fetchVendorDetail = async () => {
+    try {
+      setLoading(true);
+
+      // 전달받은 category가 있으면 해당 테이블을 먼저 찾고, 없으면 hall부터 순서대로 찾습니다.
+      let foundData = null;
+      const tablesToSearch = category ? [TABLE_MAP[category]] : Object.values(TABLE_MAP);
+
+      for (const tableName of tablesToSearch) {
+        if (!tableName) continue;
+        const { data } = await supabase
+          .from(tableName)
+          .select('*')
+          .eq('vendor_id', id)
+          .maybeSingle();
+
+        if (data) {
+          foundData = data;
+          break;
+        }
+      }
+
+      setSelectedVendor(foundData);
+    } catch (error) {
+      console.error('데이터 로드 실패:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const renderPrice = (item) => {
     const category = item.basic_info?.category;
@@ -173,6 +203,16 @@ export default function VendorDetailScreen() {
     }
   };
 
+  if (loading) {
+    return (
+      <View style={[styles.errorContainer, { justifyContent: 'center' }]}>
+        <ActivityIndicator size="large" color="#c9a98e" />
+        <Text style={{ marginTop: 10, color: '#8a7870' }}>데이터를 불러오는 중입니다...</Text>
+      </View>
+    );
+  }
+
+  // 2. 데이터가 없을 때 표시
   if (!selectedVendor) {
     return (
       <View style={styles.errorContainer}>
@@ -212,8 +252,8 @@ export default function VendorDetailScreen() {
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.header}>
-        <TouchableOpacity 
-          onPress={() => router.canGoBack() ? router.back() : router.replace('/(couple)')} 
+        <TouchableOpacity
+          onPress={() => router.canGoBack() ? router.back() : router.replace('/(couple)')}
           style={styles.backBtnWrapper}
         >
           <Ionicons name="chevron-back" size={26} color="#3a2e2a" />
@@ -223,11 +263,11 @@ export default function VendorDetailScreen() {
       </View>
 
       <ScrollView style={styles.detailContent} showsVerticalScrollIndicator={false}>
-        <Image 
-          source={{ uri: selectedVendor.content?.thumbnail_url?.startsWith('//') ? `https:${selectedVendor.content.thumbnail_url}` : (selectedVendor.content?.thumbnail_url || `https://picsum.photos/seed/${selectedVendor.basic_info.vendor_id}/800/500`) }} 
-          style={styles.detailMainImage} 
+        <Image
+          source={{ uri: selectedVendor.content?.thumbnail_url?.startsWith('//') ? `https:${selectedVendor.content.thumbnail_url}` : (selectedVendor.content?.thumbnail_url || `https://picsum.photos/seed/${selectedVendor.basic_info.vendor_id}/800/500`) }}
+          style={styles.detailMainImage}
         />
-        
+
         <View style={styles.detailBody}>
           <View style={styles.detailTitleRow}>
             <View style={{ flex: 1 }}>
@@ -271,46 +311,46 @@ export default function VendorDetailScreen() {
             )}
           </View>
 
-            <View style={styles.priceSection}>
-              <Text style={styles.sectionTitle}>예상 가격대</Text>
-              {renderPrice(selectedVendor)}
-              <Text style={styles.priceSubText}>* {selectedVendor.pricing?.price_note || '실제 견적은 상담 내용에 따라 다를 수 있습니다.'}</Text>
-            </View>
+          <View style={styles.priceSection}>
+            <Text style={styles.sectionTitle}>예상 가격대</Text>
+            {renderPrice(selectedVendor)}
+            <Text style={styles.priceSubText}>* {selectedVendor.pricing?.price_note || '실제 견적은 상담 내용에 따라 다를 수 있습니다.'}</Text>
+          </View>
 
-            {/* Detailed Info */}
-            <View style={styles.divider} />
-            <View style={styles.detailInfoSection}>
-              <Text style={styles.sectionTitle}>상세 정보</Text>
-              {renderDetailRow('홀 종류', selectedVendor.details?.hall_type)}
-              {renderDetailRow('홀 개수', selectedVendor.details?.hall_count ? `${selectedVendor.details.hall_count}개` : null)}
-              {renderDetailRow('예식 시간', selectedVendor.details?.ceremony_time_minutes ? `${selectedVendor.details.ceremony_time_minutes}분` : null)}
-              {renderDetailRow('식사 형태', selectedVendor.details?.meal_type)}
-              {renderDetailRow('식사 메모', selectedVendor.details?.meal_note)}
-              {renderDetailRow('촬영 톤', selectedVendor.details?.shoot_tones)}
-              {renderDetailRow('실내 촬영', selectedVendor.details?.indoor_shoot ? '가능' : null)}
-              {renderDetailRow('실외 촬영', selectedVendor.details?.outdoor_shoot ? '가능' : null)}
-              {renderDetailRow('드레스 스타일', selectedVendor.details?.dress_style)}
-              {renderDetailRow('피팅 가능', selectedVendor.details?.fittings_available ? '가능' : null)}
-            </View>
+          {/* Detailed Info */}
+          <View style={styles.divider} />
+          <View style={styles.detailInfoSection}>
+            <Text style={styles.sectionTitle}>상세 정보</Text>
+            {renderDetailRow('홀 종류', selectedVendor.details?.hall_type)}
+            {renderDetailRow('홀 개수', selectedVendor.details?.hall_count ? `${selectedVendor.details.hall_count}개` : null)}
+            {renderDetailRow('예식 시간', selectedVendor.details?.ceremony_time_minutes ? `${selectedVendor.details.ceremony_time_minutes}분` : null)}
+            {renderDetailRow('식사 형태', selectedVendor.details?.meal_type)}
+            {renderDetailRow('식사 메모', selectedVendor.details?.meal_note)}
+            {renderDetailRow('촬영 톤', selectedVendor.details?.shoot_tones)}
+            {renderDetailRow('실내 촬영', selectedVendor.details?.indoor_shoot ? '가능' : null)}
+            {renderDetailRow('실외 촬영', selectedVendor.details?.outdoor_shoot ? '가능' : null)}
+            {renderDetailRow('드레스 스타일', selectedVendor.details?.dress_style)}
+            {renderDetailRow('피팅 가능', selectedVendor.details?.fittings_available ? '가능' : null)}
+          </View>
 
-            {/* Specialties & Recommendations */}
-            {renderBulletList('업체 특징', selectedVendor.details?.specialties, '#c9a98e')}
-            {renderBulletList('추천 대상', selectedVendor.details?.recommended_for, '#8a7870')}
+          {/* Specialties & Recommendations */}
+          {renderBulletList('업체 특징', selectedVendor.details?.specialties, '#c9a98e')}
+          {renderBulletList('추천 대상', selectedVendor.details?.recommended_for, '#8a7870')}
 
-            {/* Review Summary */}
-            <View style={styles.divider} />
-            {renderBulletList('긍정적인 포인트', selectedVendor.content?.review_summary_positive, '#4CAF50')}
-            {renderBulletList('주의할 포인트', selectedVendor.content?.review_summary_negative, '#F44336')}
+          {/* Review Summary */}
+          <View style={styles.divider} />
+          {renderBulletList('긍정적인 포인트', selectedVendor.content?.review_summary_positive, '#4CAF50')}
+          {renderBulletList('주의할 포인트', selectedVendor.content?.review_summary_negative, '#F44336')}
         </View>
-        
+
         <View style={{ height: 40 }} />
       </ScrollView>
 
-        <View style={styles.ctaBottom}>
-          <TouchableOpacity style={styles.ctaButton} onPress={handleCall}>
-            <Text style={styles.ctaButtonText}>상담 예약하기</Text>
-          </TouchableOpacity>
-        </View>
+      <View style={styles.ctaBottom}>
+        <TouchableOpacity style={styles.ctaButton} onPress={handleCall}>
+          <Text style={styles.ctaButtonText}>상담 예약하기</Text>
+        </TouchableOpacity>
+      </View>
 
       {renderBottomTab()}
     </SafeAreaView>

@@ -12,26 +12,22 @@ import {
   ScrollView,
   BackHandler,
   Linking,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
-// Import New Vendor Data
-import hallData from './data/hall.json';
-import studioData from './data/studio.json';
-import dressData from './data/dress.json';
-import makeupData from './data/makeup.json';
-import videoSnapData from './data/video_snap.json';
-import packageData from './data/package.json';
+// 1. Supabase 클라이언트 임포트 (기존 JSON import 삭제)
+import { supabase } from '../../lib/supabase';
 
-const VENDOR_DATA_MAP = {
-  hall: hallData,
-  studio: studioData,
-  dress: dressData,
-  makeup: makeupData,
-  video_snap: videoSnapData,
-  package: packageData,
+const TABLE_MAP = {
+  hall: 'hall_vendors',
+  studio: 'studio_vendors',
+  dress: 'dress_vendors',
+  makeup: 'makeup_vendors',
+  video_snap: 'video_snap_vendors',
+  package: 'package_vendors',
 };
 
 const CATEGORIES = [
@@ -58,14 +54,15 @@ const PRICE_RANGES = [
 
 export default function VendorsScreen() {
   const { category } = useLocalSearchParams();
+
+  // 2. 상태 관리
+  const [vendors, setVendors] = useState([]); // 서버에서 가져온 전체 데이터
+  const [loading, setLoading] = useState(true);
   const [searchText, setSearchText] = useState('');
-  const [activeCategory, setActiveCategory] = useState(
-    category && VENDOR_DATA_MAP[category] ? category : 'hall'
-  );
+  const [activeCategory, setActiveCategory] = useState(category || 'hall');
   const [showScrollTop, setShowScrollTop] = useState(false);
   const flatListRef = useRef(null);
 
-  // Filter States
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [activeFilterKey, setActiveFilterKey] = useState('district');
   const [selectedFilters, setSelectedFilters] = useState({
@@ -74,94 +71,119 @@ export default function VendorsScreen() {
     price: [],
   });
 
-  useEffect(() => {
-    const handleBackPress = () => {
-      router.replace('/(couple)');
-      return true;
-    };
+  // 로딩 전용 함수
+  const LoadingExample = () => (
+    <View style={styles.container}>
+      {/* 기본형 */}
+      <ActivityIndicator />
 
-    const subscription = BackHandler.addEventListener(
-      'hardwareBackPress',
-      handleBackPress
+      {/* 색상과 크기 지정 */}
+      <ActivityIndicator size="large" color="#c9a98e" />
+    </View>
+  );
+
+  const renderEmpty = () => {
+    if (loading) {
+      // 1. 데이터를 불러오는 중일 때 (스피너 + 메시지)
+      return (
+        <View style={styles.emptyContainer}>
+          <ActivityIndicator size="large" color="#c9a98e" />
+          <Text style={{ marginTop: 10, color: '#8a7870' }}>
+            업체 리스트를 불러오고 있습니다...
+          </Text>
+        </View>
+      );
+    }
+
+    // 2. 로딩이 끝났는데 데이터가 진짜 없을 때
+    return (
+      <View style={styles.emptyContainer}>
+        <Text style={styles.emptyText}>해당하는 업체가 없습니다.</Text>
+      </View>
     );
+  };
 
-    return () => subscription.remove();
-  }, []);
+  // 3. 데이터 패칭 함수
+  const fetchVendors = async () => {
+    try {
+      setLoading(true);
+      const tableName = TABLE_MAP[activeCategory] || 'hall_vendors';
 
-  const filterOptions = useMemo(() => {
+      const { data, error } = await supabase
+        .from(tableName)
+        .select('*');
+
+      if (error) throw error;
+      setVendors(data || []);
+    } catch (error) {
+      console.error('Fetch error:', error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchVendors();
+  }, [activeCategory]); // 카테고리 탭 바뀔 때마다 실행
+
+  // 4. 필터 옵션 추출 (가져온 데이터 내에서 동적으로 생성)
+  const filterOptions = React.useMemo(() => {
     const districts = new Set();
     const styles = new Set();
-    const currentData = VENDOR_DATA_MAP[activeCategory] || [];
-
-    currentData.forEach((v) => {
-      if (v.basic_info.district) districts.add(v.basic_info.district);
+    vendors.forEach((v) => {
+      if (v.basic_info?.district) districts.add(v.basic_info.district);
       const styleList = v.search_filters?.style_concepts || v.content?.tags || [];
       styleList.forEach((s) => styles.add(s));
     });
-
     return {
       district: Array.from(districts).sort(),
       style: Array.from(styles).sort(),
       price: PRICE_RANGES.map((r) => r.label),
     };
-  }, [activeCategory]);
+  }, [vendors]);
 
-  const toggleFilter = (category, value) => {
-    setSelectedFilters((prev) => {
-      const currentList = prev[category];
-      if (currentList.includes(value)) {
-        return { ...prev, [category]: currentList.filter((v) => v !== value) };
-      } else {
-        return { ...prev, [category]: [...currentList, value] };
-      }
-    });
-  };
-
-  const resetFilters = () => {
-    setSelectedFilters({
-      district: [],
-      style: [],
-      price: [],
-    });
-  };
-
-  const filteredVendors = useMemo(() => {
-    const currentData = VENDOR_DATA_MAP[activeCategory] || [];
-    return currentData.filter((vendor) => {
-      // 1. Search match
-      const name = vendor.basic_info.name || '';
+  // 5. 검색 및 필터링 로직 (클라이언트 사이드 필터링)
+  const filteredVendors = React.useMemo(() => {
+    return vendors.filter((vendor) => {
+      // 검색어 필터
+      const name = vendor.basic_info?.name || '';
       const desc = vendor.content?.short_description || '';
-      const matchSearch =
-        name.toLowerCase().includes(searchText.toLowerCase()) ||
-        desc.toLowerCase().includes(searchText.toLowerCase());
-      if (!matchSearch) return false;
+      if (!name.includes(searchText) && !desc.includes(searchText)) return false;
 
-      // 2. District match
+      // 지역 필터
       if (selectedFilters.district.length > 0) {
-        if (!selectedFilters.district.includes(vendor.basic_info.district)) return false;
+        if (!selectedFilters.district.includes(vendor.basic_info?.district)) return false;
       }
 
-      // 3. Style match
+      // 스타일 필터
       if (selectedFilters.style.length > 0) {
         const vendorStyles = vendor.search_filters?.style_concepts || vendor.content?.tags || [];
         if (!selectedFilters.style.some((s) => vendorStyles.includes(s))) return false;
       }
 
-      // 4. Price match
+      // 가격 필터
       if (selectedFilters.price.length > 0) {
-        const vendorMin = vendor.pricing?.price_min || 0;
-        const vendorMax = vendor.pricing?.price_max || 999999999;
+        const vMin = vendor.pricing?.price_min || 0;
+        const vMax = vendor.pricing?.price_max || 999999999;
         const matchPrice = selectedFilters.price.some((label) => {
           const range = PRICE_RANGES.find((r) => r.label === label);
-          if (!range) return false;
-          return vendorMin < range.max && vendorMax >= range.min;
+          return range ? (vMin < range.max && vMax >= range.min) : false;
         });
         if (!matchPrice) return false;
       }
 
       return true;
     });
-  }, [searchText, activeCategory, selectedFilters]);
+  }, [vendors, searchText, selectedFilters]);
+
+  const toggleFilter = (cat, val) => {
+    setSelectedFilters(prev => ({
+      ...prev,
+      [cat]: prev[cat].includes(val) ? prev[cat].filter(v => v !== val) : [...prev[cat], val]
+    }));
+  };
+
+  const resetFilters = () => setSelectedFilters({ district: [], style: [], price: [] });
 
   const renderPrice = (item, isDetail = false) => {
     const category = item.basic_info?.category;
@@ -409,7 +431,7 @@ export default function VendorsScreen() {
         renderItem={({ item }) => (
           <TouchableOpacity
             style={styles.vendorCard}
-            onPress={() => router.push(`/vendors/${item.basic_info.vendor_id}`)}
+            onPress={() => router.push(`/vendors/${item.basic_info.vendor_id}?category=${activeCategory}`)}
             activeOpacity={0.8}
           >
             <Image
@@ -434,11 +456,7 @@ export default function VendorsScreen() {
             </View>
           </TouchableOpacity>
         )}
-        ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>해당하는 업체가 없습니다.</Text>
-          </View>
-        }
+        ListEmptyComponent={renderEmpty}
       />
 
       {showScrollTop && (
@@ -972,5 +990,12 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 3,
+  },
+
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 50,
   },
 });

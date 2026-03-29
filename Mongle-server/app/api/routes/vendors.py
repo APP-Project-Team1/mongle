@@ -1,7 +1,8 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional, List, Dict, Any
 from app.db.supabase import supabase
+from ai.budget_analyzer import load_sample_data
 
 router = APIRouter()
 
@@ -19,11 +20,33 @@ class VendorUpdate(BaseModel):
     rating: Optional[float] = None
     contact_info: Optional[dict] = None
 
+# Load local vendor data as fallback/primary for demo
+LOCAL_VENDORS = load_sample_data()
+
 @router.get('/')
-def get_vendors():
-    query = supabase.table('vendors').select('*')
-    result = query.execute()
-    return result.data
+def get_vendors(category: Optional[str] = None, query: Optional[str] = None):
+    # Try Supabase first, if fails or table missing, use local data
+    try:
+        supabase_query = supabase.table('vendors').select('*')
+        if category:
+            supabase_query = supabase_query.eq('category', category)
+        if query:
+            supabase_query = supabase_query.ilike('name', f'%{query}%')
+        
+        result = supabase_query.execute()
+        if result.data:
+            return result.data
+    except Exception as e:
+        print(f"Supabase vendors query failed, falling back to local: {e}")
+
+    # Fallback to local JSON data
+    results = LOCAL_VENDORS
+    if category:
+        results = [v for v in results if v.get('category') == category]
+    if query:
+        results = [v for v in results if query.lower() in v.get('name', '').lower()]
+    
+    return results
 
 @router.get('/{vendor_id}')
 def get_vendor(vendor_id: str):

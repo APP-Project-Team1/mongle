@@ -9,72 +9,23 @@ import {
   Modal,
   Dimensions,
   Platform,
+  Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { formatNumber, CATEGORY_MAP, CATEGORY_LABEL } from '../../lib/utils';
+import { vendorsApi } from '../../lib/api';
 import BudgetOptimizationModal from '../../components/budget/BudgetOptimizationModal';
 import { PDFService } from '../../lib/services/pdf/PDFService';
-import { Alert } from 'react-native';
 
 const { width } = Dimensions.get('window');
 
 // ── 데이터 (timeline.jsx에서 이관) ────────────────────────
 const PRESET_CATEGORIES = ['웨딩홀', '스튜디오', '드레스', '메이크업', '헤어 (추가 옵션)'];
 
-const INITIAL_COST_ITEMS = [
-  {
-    id: 1,
-    label: '웨딩홀',
-    value: '380',
-    warn: false,
-    hasBalance: true,
-    balanceDue: '2026-06-25',
-    balanceAmount: '190',
-    urgent: false,
-  },
-  {
-    id: 2,
-    label: '스튜디오',
-    value: '160',
-    warn: false,
-    hasBalance: true,
-    balanceDue: '2026-03-10',
-    balanceAmount: '80',
-    urgent: false,
-  },
-  {
-    id: 3,
-    label: '드레스',
-    value: '95',
-    warn: false,
-    hasBalance: true,
-    balanceDue: '2026-02-01',
-    balanceAmount: '72',
-    urgent: true,
-  },
-  {
-    id: 4,
-    label: '메이크업',
-    value: '28',
-    warn: false,
-    hasBalance: false,
-    balanceDue: '',
-    balanceAmount: '',
-    urgent: false,
-  },
-  {
-    id: 5,
-    label: '헤어 (추가 옵션)',
-    value: '8',
-    warn: true,
-    hasBalance: false,
-    balanceDue: '',
-    balanceAmount: '',
-    urgent: false,
-  },
-];
+const INITIAL_COST_ITEMS = [];
 
 const formatBalanceSub = (dueDateStr) => {
   if (!dueDateStr) return '';
@@ -87,12 +38,12 @@ const formatBalanceSub = (dueDateStr) => {
   return `${m}월 ${d}일 마감 · D-${diff}`;
 };
 
-const sumValues = (items) => items.reduce((acc, item) => acc + (parseInt(item.value) || 0), 0);
+const sumValues = (items) => items.reduce((acc, item) => acc + (parseInt(item.spent || item.value) || 0), 0);
 // ────────────────────────────────────────────────────────
 
 export default function BudgetHubScreen() {
   const [costItems, setCostItems] = useState(INITIAL_COST_ITEMS);
-  const [budget, setBudget] = useState('1000');
+  const [budget, setBudget] = useState('0');
   const [costEditModalVisible, setCostEditModalVisible] = useState(false);
   const [optimizationModalVisible, setOptimizationModalVisible] = useState(false);
 
@@ -202,23 +153,35 @@ export default function BudgetHubScreen() {
           
           <View style={styles.listCard}>
             {costItems.map((item, idx) => (
-              <View 
-                key={item.id} 
+              <View
+                key={item.id}
                 style={[
-                    styles.costRow, 
-                    idx === costItems.length - 1 && { borderBottomWidth: 0 }
+                  styles.costRow,
+                  item.warn && { backgroundColor: '#FDF0EF' },
                 ]}
               >
-                <Text style={styles.costLabel}>{item.label}</Text>
-                <Text
-                  style={[
-                    styles.costValue,
-                    item.warn && { color: '#C9716A' },
-                  ]}
-                >
-                  {item.warn ? '⚠ ' : ''}
-                  {item.value ? `${formatNumber(item.value)}만원` : '미정'}
-                </Text>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.costLabel}>{item.label}</Text>
+                  {item.vendorName && (
+                    <Text style={styles.vendorLinkedText}>{item.vendorName}</Text>
+                  )}
+                </View>
+                <View style={{ alignItems: 'flex-end' }}>
+                  <Text
+                    style={[
+                      styles.costValue,
+                      item.warn && { color: '#C9716A' },
+                    ]}
+                  >
+                    {item.warn ? '⚠ ' : ''}
+                    {item.value ? `${formatNumber(item.value)}만원` : '미정'}
+                  </Text>
+                  {item.spent && item.spent !== item.value && (
+                    <Text style={styles.aiRecommendedValue}>
+                      ✨ {formatNumber(item.spent)}만원
+                    </Text>
+                  )}
+                </View>
               </View>
             ))}
           </View>
@@ -283,13 +246,11 @@ export default function BudgetHubScreen() {
         costItems={costItems}
         onApplyPlan={(plan) => {
             const updated = costItems.map(item => {
-              // Normalize for comparison
               const itemLabel = (item.label || '').normalize('NFC').trim();
               const itemKey = (CATEGORY_MAP[itemLabel] || itemLabel).toLowerCase();
               
               const change = plan.changes.find(c => {
                 const changeCat = (c.category || '').normalize('NFC').trim().toLowerCase();
-                // Map back to label then to key just in case
                 const mappedLabel = (CATEGORY_LABEL[changeCat] || changeCat).normalize('NFC').trim();
                 const mappedKey = (CATEGORY_MAP[mappedLabel] || mappedLabel).toLowerCase();
                 
@@ -297,17 +258,15 @@ export default function BudgetHubScreen() {
               });
               
               if (change) {
-                return { ...item, value: change.to.price_min.toString() };
+                // Update only 'spent' field to separate target budget and actual spending
+                return { ...item, spent: change.to.price_min.toString() };
               }
               return item;
             });
 
             setCostItems(updated);
-            if (plan.finalTotal) {
-              setBudget(plan.finalTotal.toString());
-            }
             setOptimizationModalVisible(false);
-            Alert.alert('알림', 'AI 추천 플랜이 성공적으로 적용되었습니다.');
+            Alert.alert('알림', 'AI 추천 플랜이 지출 내역에 반영되었습니다.');
         }}
       />
     </SafeAreaView>
@@ -336,11 +295,18 @@ function CostEditModal({ visible, items, budget, onClose, onSave }) {
     setDraft((prev) => prev.filter((_, i) => i !== idx));
   };
 
+  const [vendorSearchVisible, setVendorSearchVisible] = useState(false);
+  const [vendorSearchResults, setVendorSearchResults] = useState([]);
+  const [vendorSearchQuery, setVendorSearchQuery] = useState('');
+  const [currentSearchIdx, setCurrentSearchIdx] = useState(null);
+  const [searchLoading, setSearchLoading] = useState(false);
+
   const addCostItem = () => {
     setDraft((prev) => [{
       id: Date.now(),
       label: '', value: '', warn: false, hasBalance: false,
-      balanceDue: '', balanceAmount: '', urgent: false
+      balanceDue: '', balanceAmount: '', urgent: false,
+      vendorId: null, vendorName: null
     }, ...prev]);
   };
 
@@ -354,8 +320,39 @@ function CostEditModal({ visible, items, budget, onClose, onSave }) {
   };
 
   const balanceItems = draft.filter((item) => item.hasBalance);
+  
+  const handleVendorSearch = async (query, cat) => {
+    setSearchLoading(true);
+    try {
+      const dbCat = CATEGORY_MAP[cat] || cat;
+      const results = await vendorsApi.getVendors({ 
+        category: dbCat,
+        query: query 
+      });
+      setVendorSearchResults(results || []);
+    } catch (err) {
+      console.error('Vendor search failed:', err);
+    } finally {
+      setSearchLoading(false);
+    }
+  };
+
+  const selectVendor = (vendor) => {
+    if (currentSearchIdx !== null) {
+      const updated = [...draft];
+      updated[currentSearchIdx] = {
+        ...updated[currentSearchIdx],
+        vendorId: vendor.id,
+        vendorName: vendor.name
+      };
+      setDraft(updated);
+    }
+    setVendorSearchVisible(false);
+    setVendorSearchResults([]);
+  };
 
   return (
+    <>
     <Modal visible={visible} animationType="slide" transparent>
       <View style={modalStyles.overlay}>
         <TouchableOpacity style={modalStyles.backdrop} onPress={onClose} />
@@ -419,17 +416,45 @@ function CostEditModal({ visible, items, budget, onClose, onSave }) {
                 {draft.map((item, idx) => (
                   <View key={item.id} style={modalStyles.itemBoxExpanded}>
                     <View style={modalStyles.expandedHeader}>
-                      <TextInput
-                        style={modalStyles.labelInput}
-                        value={item.label}
-                        onChangeText={v => updateField(idx, 'label', v)}
-                        placeholder="항목명"
-                        placeholderTextColor="#B8A9A5"
-                      />
+                      <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                        <TextInput
+                          style={[modalStyles.labelInput, { flex: 1 }]}
+                          value={item.label}
+                          onChangeText={v => updateField(idx, 'label', v)}
+                          placeholder="항목명"
+                          placeholderTextColor="#B8A9A5"
+                        />
+                        <TouchableOpacity 
+                          style={modalStyles.searchBtn} 
+                          onPress={() => {
+                            setCurrentSearchIdx(idx);
+                            setVendorSearchQuery(item.label);
+                            setVendorSearchVisible(true);
+                            // Initial search if category matches
+                            const cat = CATEGORY_MAP[item.label];
+                            handleVendorSearch(item.label, cat);
+                          }}
+                        >
+                          <Ionicons name="search" size={16} color="#C9716A" />
+                        </TouchableOpacity>
+                      </View>
                       <TouchableOpacity onPress={() => deleteItem(idx)} style={modalStyles.trashBtn}>
                         <Ionicons name="trash-outline" size={18} color="#B8A9A5" />
                       </TouchableOpacity>
                     </View>
+                    
+                    {item.vendorName && (
+                      <View style={modalStyles.linkedVendorBanner}>
+                        <Ionicons name="business-outline" size={14} color="#8A7870" />
+                        <Text style={modalStyles.linkedVendorName}>{item.vendorName}</Text>
+                        <TouchableOpacity onPress={() => {
+                          updateField(idx, 'vendorId', null);
+                          updateField(idx, 'vendorName', null);
+                        }}>
+                          <Ionicons name="close-circle" size={14} color="#B8A9A5" />
+                        </TouchableOpacity>
+                      </View>
+                    )}
                     
                     <View style={modalStyles.amountInputRow}>
                       <TextInput
@@ -488,6 +513,80 @@ function CostEditModal({ visible, items, budget, onClose, onSave }) {
         </View>
       </View>
     </Modal>
+    
+    <VendorSearchModal
+      visible={vendorSearchVisible}
+      onClose={() => setVendorSearchVisible(false)}
+      query={vendorSearchQuery}
+      setQuery={setVendorSearchQuery}
+      onSearch={handleVendorSearch}
+      results={vendorSearchResults}
+      loading={searchLoading}
+      onSelect={selectVendor}
+      category={CATEGORY_MAP[draft[currentSearchIdx]?.label]}
+    />
+    </>
+  );
+}
+
+// ── 보조 컴포넌트 (VendorSearchModal) ────────────────────────
+function VendorSearchModal({ visible, onClose, query, setQuery, onSearch, results, loading, onSelect, category }) {
+  return (
+    <Modal visible={visible} animationType="fade" transparent>
+      <View style={modalStyles.overlay}>
+        <TouchableOpacity style={modalStyles.backdrop} onPress={onClose} />
+        <View style={[modalStyles.sheet, { height: '70%', marginTop: 'auto' }]}>
+          <View style={modalStyles.header}>
+            <Text style={modalStyles.title}>업체 검색</Text>
+            <TouchableOpacity onPress={onClose}>
+              <Ionicons name="close" size={24} color="#B8A9A5" />
+            </TouchableOpacity>
+          </View>
+          
+          <View style={searchModalStyles.searchBar}>
+            <View style={searchModalStyles.searchInputWrap}>
+              <Ionicons name="search" size={18} color="#B8A9A5" />
+              <TextInput
+                style={searchModalStyles.searchInput}
+                value={query}
+                onChangeText={v => {
+                  setQuery(v);
+                  onSearch(v, category);
+                }}
+                placeholder="업체명을 입력하세요"
+                autoFocus
+                placeholderTextColor="#B8A9A5"
+              />
+            </View>
+          </View>
+
+          <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
+            {loading ? (
+              <ActivityIndicator style={{ marginTop: 40 }} color="#C9716A" />
+            ) : results.length > 0 ? (
+              results.map(v => (
+                <TouchableOpacity 
+                  key={v.id} 
+                  style={searchModalStyles.vendorResultItem}
+                  onPress={() => onSelect(v)}
+                >
+                  <View style={{ flex: 1 }}>
+                    <Text style={searchModalStyles.vendorResultName}>{v.name}</Text>
+                    <Text style={searchModalStyles.vendorResultLoc}>{v.location || '지역 정보 없음'}</Text>
+                  </View>
+                  <Ionicons name="chevron-forward" size={18} color="#D4C9C5" />
+                </TouchableOpacity>
+              ))
+            ) : (
+              <View style={{ padding: 40, alignItems: 'center' }}>
+                <Ionicons name="search-outline" size={40} color="#F0E8E4" style={{ marginBottom: 10 }} />
+                <Text style={{ color: '#B8A9A5', fontSize: 14 }}>검색 결과가 없습니다.</Text>
+              </View>
+            )}
+          </ScrollView>
+        </View>
+      </View>
+    </Modal>
   );
 }
 
@@ -541,8 +640,10 @@ const styles = StyleSheet.create({
 
   aiBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#C9716A', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8, gap: 4 },
   aiBtnText: { fontSize: 11, fontWeight: '600', color: '#fff' },
+  aiRecommendedValue: { fontSize: 11, color: '#C9716A', fontWeight: '500', marginTop: 2 },
   editBtn: { paddingHorizontal: 8, paddingVertical: 4 },
   editBtnText: { fontSize: 12, color: '#B8A9A5' },
+  vendorLinkedText: { fontSize: 12, color: '#8A7870', marginTop: 3, fontWeight: '500' },
   emptyBox: { paddingVertical: 30, alignItems: 'center' },
   emptyText: { fontSize: 13, color: '#B8A9A5' },
 });
@@ -575,6 +676,45 @@ const modalStyles = StyleSheet.create({
   cancelBtnText: { color: '#8A7870', fontWeight: '600' },
   saveBtn: { flex: 1, paddingVertical: 14, alignItems: 'center', borderRadius: 12, backgroundColor: '#C9716A' },
   saveBtnText: { color: '#fff', fontWeight: '700' },
+  
+  searchBtn: { padding: 6, backgroundColor: '#FDF0EF', borderRadius: 8 },
+  linkedVendorBanner: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    backgroundColor: '#F7F2F0', 
+    paddingHorizontal: 10, 
+    paddingVertical: 8, 
+    borderRadius: 8, 
+    gap: 6, 
+    marginTop: 10, 
+    marginBottom: 4,
+    borderWidth: 1,
+    borderColor: '#EDE5E2'
+  },
+  linkedVendorName: { flex: 1, fontSize: 12, color: '#6B5B55', fontWeight: '600' },
+});
+
+const searchModalStyles = StyleSheet.create({
+  searchBar: { paddingHorizontal: 4, marginBottom: 15 },
+  searchInputWrap: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    backgroundColor: '#F5F0EE', 
+    paddingHorizontal: 14, 
+    borderRadius: 12, 
+    gap: 10 
+  },
+  searchInput: { flex: 1, paddingVertical: 12, fontSize: 14, color: '#2C2420' },
+  vendorResultItem: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    justifyContent: 'space-between', 
+    paddingVertical: 16, 
+    borderBottomWidth: 1, 
+    borderBottomColor: '#F5F0EE' 
+  },
+  vendorResultName: { fontSize: 15, fontWeight: '600', color: '#2C2420' },
+  vendorResultLoc: { fontSize: 13, color: '#A8928A', marginTop: 2 },
 });
 
 const costModalStyles = StyleSheet.create({

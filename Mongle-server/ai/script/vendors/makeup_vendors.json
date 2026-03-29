@@ -1,6 +1,25 @@
 [
   {
     "basic_info": {
+      "vendor_id": "budget_makeup_1",
+      "name": "꾸미myong (베이직)",
+      "category": "makeup",
+      "region": "서울",
+      "district": "강남구",
+      "status": "active"
+    },
+    "search_filters": {
+      "makeup_styles": ["내추럴"],
+      "bride_hair_makeup_price": 150000,
+      "price_level": "budget"
+    },
+    "pricing": {
+      "bride_hair_makeup_price": 150000
+    },
+    "content": { "tags": ["가성비", "가로수길"] }
+  },
+  {
+    "basic_info": {
       "vendor_id": "makeup_506591326",
       "source": "kakao",
       "source_id": "506591326",

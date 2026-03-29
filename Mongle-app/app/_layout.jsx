@@ -9,6 +9,9 @@ import { supabase } from '../lib/supabase';
 import { fetchUserRole } from '../lib/auth';
 import { View, ActivityIndicator, StyleSheet } from 'react-native';
 import { AuthContext } from '../context/AuthContext';
+import { useNotifications } from '../context/NotificationContext';
+
+
 
 // QueryClient 인스턴스 생성
 const queryClient = new QueryClient({
@@ -26,6 +29,7 @@ function AuthGate() {
   const [session, setSession] = useState(null);
   const [role, setRole] = useState(null);
   const [loading, setLoading] = useState(true);
+  const { setUserId, addRealtimeNotification } = useNotifications();
 
   // 1. 역할 로드 로직 (기존 동일)
   const loadRole = async (userId) => {
@@ -61,6 +65,31 @@ function AuthGate() {
     return () => subscription.unsubscribe();
   }, []);
 
+  // 3. 실시간 알림 구독 전용 useEffect
+  useEffect(() => {
+    let channel;
+    if (session?.user?.id) {
+      channel = supabase
+        .channel('schema-db-changes')
+        .on('postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'notifications',
+            filter: `user_id=eq.${session.user.id}`
+          },
+          (payload) => {
+            console.log('새 알림 수신:', payload.new);
+            addRealtimeNotification(payload.new);
+          }
+        ).subscribe();
+    }
+
+    return () => {
+      if (channel) supabase.removeChannel(channel);
+    };
+  }, [session?.user?.id]); // session.user.id가 바뀔 때만 재구독
+
   // 3. 경로 리다이렉트 로직 (최적화)
   useEffect(() => {
     if (loading) return;
@@ -90,7 +119,8 @@ function AuthGate() {
     }
   }, [session, role, loading, segments]);
 
-  // 🌟 [핵심] 로딩 중일 때 보여줄 화면
+
+  // 로딩 중일 때 보여줄 화면
   if (loading) {
     return (
       <View style={styles.loadingContainer}>

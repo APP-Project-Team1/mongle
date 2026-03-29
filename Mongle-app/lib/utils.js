@@ -33,3 +33,19 @@ export const CATEGORY_MAP = {
 export const CATEGORY_LABEL = Object.fromEntries(
   Object.entries(CATEGORY_MAP).map(([k, v]) => [v, k])
 );
+
+export const formatTimeAgo = (dateString) => {
+  const now = new Date();
+  const past = new Date(dateString);
+  const diffInMs = now - past;
+  const diffInMins = Math.floor(diffInMs / (1000 * 60));
+
+  if (diffInMins < 1) return '방금 전';
+  if (diffInMins < 60) return `${diffInMins}분 전`;
+
+  const diffInHours = Math.floor(diffInMins / 60);
+  if (diffInHours < 24) return `${diffInHours}시간 전`;
+
+  const diffInDays = Math.floor(diffInHours / 24);
+  return `${diffInDays}일 전`;
+};

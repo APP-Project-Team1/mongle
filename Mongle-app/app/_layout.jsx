@@ -28,104 +28,82 @@ function AuthGate() {
   const segments = useSegments();
   const [session, setSession] = useState(null);
   const [role, setRole] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const { setUserId, addRealtimeNotification } = useNotifications();
+  const [isReady, setIsReady] = useState(false);
+  const { setUserId } = useNotifications();
 
-  // 1. 역할 로드 로직 (기존 동일)
-  const loadRole = async (userId) => {
-    try {
-      const profile = await fetchUserRole(userId);
-      setRole(profile.role);
-    } catch (e) {
-      setRole(null);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // 2. 세션 감지 (기존 동일)
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      if (session) loadRole(session.user.id);
-      else setLoading(false);
-    });
+    const initialize = async () => {
+      try {
+        // 1. 세션 가져오기
+        const { data: { session } } = await supabase.auth.getSession();
+        setSession(session);
 
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      if (session) loadRole(session.user.id);
-      else {
-        setRole(null);
-        setLoading(false);
+        if (session) {
+          // 2. 로그인된 경우 역할 확인
+          const profile = await fetchUserRole(session.user.id);
+          setRole(profile?.role || 'couple');
+          setUserId(session.user.id);
+        }
+      } catch (e) {
+        console.error("초기화 에러:", e);
+      } finally {
+        setIsReady(true);
       }
+    };
+
+    initialize();
+
+    // 인증 상태 변경 감시
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      setSession(session);
+      if (session) {
+        const profile = await fetchUserRole(session.user.id);
+        setRole(profile?.role || 'couple');
+        setUserId(session.user.id);
+      } else {
+        setRole(null);
+        setUserId(null);
+      }
+      setIsReady(true);
     });
 
     return () => subscription.unsubscribe();
   }, []);
 
-  // 3. 실시간 알림 구독 전용 useEffect
   useEffect(() => {
-    let channel;
-    if (session?.user?.id) {
-      channel = supabase
-        .channel('schema-db-changes')
-        .on('postgres_changes',
-          {
-            event: 'INSERT',
-            schema: 'public',
-            table: 'notifications',
-            filter: `user_id=eq.${session.user.id}`
-          },
-          (payload) => {
-            console.log('새 알림 수신:', payload.new);
-            addRealtimeNotification(payload.new);
-          }
-        ).subscribe();
-    }
-
-    return () => {
-      if (channel) supabase.removeChannel(channel);
-    };
-  }, [session?.user?.id]); // session.user.id가 바뀔 때만 재구독
-
-  // 3. 경로 리다이렉트 로직 (최적화)
-  useEffect(() => {
-    if (loading) return;
+    if (!isReady) return;
 
     const rootSegment = segments[0] || '';
     const inAuthGroup = rootSegment === '(auth)';
     const inPlannerGroup = rootSegment === '(planner)';
     const inCoupleGroup = rootSegment === '(couple)';
-    const inVendorsGroup = rootSegment === 'vendors';
-    const inPlannersGroup = rootSegment === 'planners';
 
-    // 비로그인 상태
+    // A. 비로그인 상태
     if (!session) {
-      if (!inCoupleGroup && !inAuthGroup && !inVendorsGroup && !inPlannersGroup) {
+      if (!inAuthGroup && !inCoupleGroup) {
         router.replace('/(couple)');
       }
     }
-    // 로그인 상태
+    // B. 로그인 상태
     else {
       if (role === 'planner') {
-        if (!inPlannerGroup && !inCoupleGroup && !inVendorsGroup && !inPlannersGroup)
-          router.replace('/(couple)');
+        // 플래너인데 플래너 그룹에 없으면 대시보드로!
+        if (!inPlannerGroup) {
+          router.replace('/(planner)/dashboard');
+        }
       } else {
-        // 일반 유저 혹은 역할 로딩 대기 중일 때 (기본은 couple)
-        if (!inCoupleGroup && !inVendorsGroup && !inPlannersGroup) router.replace('/(couple)');
+        // 커플인데 커플 그룹에 없으면 커플 메인으로!
+        if (!inCoupleGroup) {
+          router.replace('/(couple)');
+        }
       }
     }
-  }, [session, role, loading, segments]);
+  }, [session, role, isReady, segments]);
 
-
-  // 로딩 중일 때 보여줄 화면
-  if (loading) {
+  if (!isReady) {
     return (
-      <View style={styles.loadingContainer}>
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
         <ActivityIndicator size="large" color="#FF6B6B" />
-        {/* 서비스 메인 컬러에 맞게 색상을 조절하세요 */}
       </View>
     );
   }

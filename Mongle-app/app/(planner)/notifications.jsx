@@ -15,6 +15,25 @@ import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useNotifications } from '../../context/NotificationContext';
 
+// ── DB 필드 접근 헬퍼 ─────────────────────────────────────
+const ICON_BY_TYPE = {
+  info_consultation: 'calendar-outline',
+  info_wedding: 'heart-outline',
+  info_message: 'chatbubble-outline',
+  info_payment: 'card-outline',
+};
+
+function getIcon(n) { return n.icon || ICON_BY_TYPE[n.type] || 'notifications-outline'; }
+function getIconColor(n) { return n.icon_color ?? '#c97b6e'; }
+function getIconBg(n) { return n.icon_bg ?? '#fdf4f3'; }
+function getIsRead(n) { return n.is_read; }
+function getTime(n) {
+  if (!n.created_at) return '';
+  return new Date(n.created_at).toLocaleString('ko-KR', {
+    month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit',
+  });
+}
+
 export default function NotificationsScreen() {
   const { notifications, unreadCount, markAsRead, markAllRead, deleteNotif } = useNotifications();
   const [selectedNotif, setSelectedNotif] = useState(null);
@@ -74,11 +93,11 @@ export default function NotificationsScreen() {
       ) : (
         <ScrollView showsVerticalScrollIndicator={false} style={styles.list}>
           {/* 읽지 않은 알림 */}
-          {notifications.some((n) => !n.isRead) && (
+          {notifications.some((n) => !getIsRead(n)) && (
             <>
               <Text style={styles.sectionLabel}>읽지 않은 알림</Text>
               {notifications
-                .filter((n) => !n.isRead)
+                .filter((n) => !getIsRead(n))
                 .map((n, idx, arr) => (
                   <NotifItem
                     key={n.id}
@@ -91,11 +110,11 @@ export default function NotificationsScreen() {
           )}
 
           {/* 읽은 알림 */}
-          {notifications.some((n) => n.isRead) && (
+          {notifications.some((n) => getIsRead(n)) && (
             <>
               <Text style={styles.sectionLabel}>읽은 알림</Text>
               {notifications
-                .filter((n) => n.isRead)
+                .filter((n) => getIsRead(n))
                 .map((n, idx, arr) => (
                   <NotifItem
                     key={n.id}
@@ -122,7 +141,7 @@ export default function NotificationsScreen() {
           <Animated.View
             style={[styles.detailSheet, { transform: [{ translateY: detailSlideAnim }] }]}
           >
-            <Pressable onPress={() => {}}>
+            <Pressable onPress={() => { }}>
               {/* 핸들 바 */}
               <View style={styles.sheetHandle} />
 
@@ -147,19 +166,19 @@ export default function NotificationsScreen() {
                   {/* 아이콘 + 제목 */}
                   <View style={styles.detailTitleRow}>
                     <View
-                      style={[styles.detailIconWrap, { backgroundColor: selectedNotif.iconBg }]}
+                      style={[styles.detailIconWrap, { backgroundColor: getIconBg(selectedNotif) }]}
                     >
                       <Ionicons
-                        name={selectedNotif.icon}
+                        name={getIcon(selectedNotif)}
                         size={22}
-                        color={selectedNotif.iconColor}
+                        color={getIconColor(selectedNotif)}
                       />
                     </View>
                     <Text style={styles.detailTitle}>{selectedNotif.title}</Text>
                   </View>
 
                   {/* 시간 */}
-                  <Text style={styles.detailTime}>{selectedNotif.time}</Text>
+                  <Text style={styles.detailTime}>{getTime(selectedNotif)}</Text>
 
                   {/* 구분선 */}
                   <View style={styles.detailDivider} />
@@ -194,23 +213,23 @@ function NotifItem({ item, isLast, onPress }) {
       activeOpacity={0.75}
       onPress={onPress}
     >
-      <View style={[styles.notifIconWrap, { backgroundColor: item.iconBg }]}>
-        <Ionicons name={item.icon} size={18} color={item.iconColor} />
+      <View style={[styles.notifIconWrap, { backgroundColor: getIconBg(item) }]}>
+        <Ionicons name={getIcon(item)} size={18} color={getIconColor(item)} />
       </View>
       <View style={styles.notifBody}>
         <View style={styles.notifTitleRow}>
           <Text
-            style={[styles.notifItemTitle, !item.isRead && styles.notifItemTitleBold]}
+            style={[styles.notifItemTitle, !getIsRead(item) && styles.notifItemTitleBold]}
             numberOfLines={1}
           >
             {item.title}
           </Text>
-          {!item.isRead && <View style={styles.unreadDot} />}
+          {!getIsRead(item) && <View style={styles.unreadDot} />}
         </View>
         <Text style={styles.notifBodyText} numberOfLines={2}>
           {item.body}
         </Text>
-        <Text style={styles.notifTime}>{item.time}</Text>
+        <Text style={styles.notifTime}>{getTime(item)}</Text>
       </View>
       <Ionicons name="chevron-forward" size={14} color="#c8beba" style={{ marginTop: 2 }} />
     </TouchableOpacity>

@@ -115,14 +115,7 @@ export default function HomeScreen() {
 
       {/* ── 헤더 ── */}
       <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.plannerBtn}
-          activeOpacity={0.7}
-          onPress={() => router.push('/(planner)/dashboard')}
-        >
-          <Ionicons name="briefcase-outline" size={16} color="#917878" />
-          <Text style={styles.plannerBtnText}>플래너</Text>
-        </TouchableOpacity>
+
         <Text style={styles.logo}>Mongle</Text>
         <TouchableOpacity style={styles.notifBtn} activeOpacity={0.7}>
           <Ionicons name="notifications-outline" size={20} color="#3a2e2a" />
@@ -332,6 +325,7 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
     color: '#917878',
     letterSpacing: 1,
+    marginLeft: 40,
   },
   notifBtn: {
     width: 40,

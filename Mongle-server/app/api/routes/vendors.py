@@ -23,25 +23,39 @@ class VendorUpdate(BaseModel):
 # Load local vendor data as fallback/primary for demo
 LOCAL_VENDORS = load_sample_data()
 
+# Mapping from app category codes to Supabase table names
+TABLE_MAP = {
+    'wedding_hall': 'hall_vendors',
+    'studio': 'studio_vendors',
+    'dress': 'dress_vendors',
+    'makeup': 'makeup_vendors',
+    'snapshot': 'video_snap_vendors',
+    'package': 'package_vendors',
+    'planner': 'planner_vendors',
+}
+
 @router.get('/')
 def get_vendors(category: Optional[str] = None, query: Optional[str] = None):
-    # Try Supabase first, if fails or table missing, use local data
-    try:
-        supabase_query = supabase.table('vendors').select('*')
-        if category:
-            supabase_query = supabase_query.eq('category', category)
-        if query:
-            supabase_query = supabase_query.ilike('name', f'%{query}%')
-        
-        result = supabase_query.execute()
-        if result.data:
-            return result.data
-    except Exception as e:
-        print(f"Supabase vendors query failed, falling back to local: {e}")
+    # Determine the correct Supabase table
+    table_name = TABLE_MAP.get(category)
+    
+    if table_name:
+        try:
+            supabase_query = supabase.table(table_name).select('*')
+            if query:
+                # Use ilike for case-insensitive partial match on name
+                supabase_query = supabase_query.ilike('name', f'%{query}%')
+            
+            result = supabase_query.execute()
+            if result.data:
+                return result.data
+        except Exception as e:
+            print(f"Supabase query for table {table_name} failed: {e}")
 
-    # Fallback to local JSON data
+    # Fallback to local JSON data if table search yields nothing or fails
     results = LOCAL_VENDORS
     if category:
+        # Match against our internal categories
         results = [v for v in results if v.get('category') == category]
     if query:
         results = [v for v in results if query.lower() in v.get('name', '').lower()]

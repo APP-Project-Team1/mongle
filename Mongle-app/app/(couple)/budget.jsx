@@ -64,8 +64,8 @@ export default function BudgetHubScreen() {
         totalBudget: parseInt(budget) * 10000,
         spent: sumValues(costItems) * 10000,
         items: costItems.map(item => ({
-             category: item.label,
-             amount: parseInt(item.value) * 10000 || 0
+          category: item.label,
+          amount: parseInt(item.value) * 10000 || 0
         }))
       };
       await PDFService.saveBudgetSummary(budgetData);
@@ -93,24 +93,24 @@ export default function BudgetHubScreen() {
               <Text style={styles.summaryValue}>{formatNumber(usedAmount)}만원</Text>
             </View>
             <View style={{ flexDirection: 'row', gap: 8 }}>
-              <TouchableOpacity 
-                  style={[styles.detailBtn, { backgroundColor: '#EBF2EE' }]}
-                  onPress={handleExportPDF}
+              <TouchableOpacity
+                style={[styles.detailBtn, { backgroundColor: '#EBF2EE' }]}
+                onPress={handleExportPDF}
               >
                 <Ionicons name="download-outline" size={14} color="#7A9E8E" />
                 <Text style={[styles.detailBtnText, { color: '#7A9E8E', marginLeft: 4 }]}>PDF 저장</Text>
               </TouchableOpacity>
 
-              <TouchableOpacity 
-                  style={styles.detailBtn}
-                  onPress={() => router.push('/(couple)/budget-dashboard')}
+              <TouchableOpacity
+                style={styles.detailBtn}
+                onPress={() => router.push('/(couple)/budget-dashboard')}
               >
                 <Text style={styles.detailBtnText}>대시보드</Text>
                 <Ionicons name="chevron-forward" size={14} color="#C9716A" />
               </TouchableOpacity>
             </View>
           </View>
-          
+
           <View style={styles.progressBar}>
             <View style={[styles.progressFill, { width: `${progress}%` }]} />
           </View>
@@ -121,7 +121,7 @@ export default function BudgetHubScreen() {
 
         {/* ── ② 주요 메뉴 ── */}
         <View style={styles.menuGrid}>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.menuCard}
             onPress={() => router.push('/(couple)/estimate-comparison')}
           >
@@ -132,7 +132,7 @@ export default function BudgetHubScreen() {
             <Text style={styles.menuDesc}>업체별 견적서 합리적 비교</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.menuCard}
             onPress={() => router.push('/(couple)/pdf-history')}
           >
@@ -161,40 +161,54 @@ export default function BudgetHubScreen() {
               </TouchableOpacity>
             </View>
           </View>
-          
+
           <View style={styles.listCard}>
-            {costItems.map((item, idx) => (
-              <View
-                key={item.id}
-                style={[
-                  styles.costRow,
-                  item.warn && { backgroundColor: '#FDF0EF' },
-                ]}
-              >
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.costLabel}>{item.label}</Text>
-                  {item.vendorName && (
-                    <Text style={styles.vendorLinkedText}>{item.vendorName}</Text>
-                  )}
-                </View>
-                <View style={{ alignItems: 'flex-end' }}>
-                  <Text
-                    style={[
-                      styles.costValue,
-                      item.warn && { color: '#C9716A' },
-                    ]}
-                  >
-                    {item.warn ? '⚠ ' : ''}
-                    {item.value ? `${formatNumber(item.value)}만원` : '미정'}
-                  </Text>
-                  {item.spent && item.spent !== item.value && (
-                    <Text style={styles.aiRecommendedValue}>
-                      ✨ {formatNumber(item.spent)}만원
+            {costItems.length > 0 ? (
+              costItems.map((item, idx) => (
+                <View
+                  key={item.id}
+                  style={[
+                    styles.costRow,
+                    item.warn && { backgroundColor: '#FDF0EF' },
+                  ]}
+                >
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.costLabel}>{item.label}</Text>
+                    {item.vendorName && (
+                      <Text style={styles.vendorLinkedText}>{item.vendorName}</Text>
+                    )}
+                  </View>
+                  <View style={{ alignItems: 'flex-end' }}>
+                    <Text
+                      style={[
+                        styles.costValue,
+                        item.warn && { color: '#C9716A' },
+                      ]}
+                    >
+                      {item.warn ? '⚠ ' : ''}
+                      {item.value ? `${formatNumber(item.value)}만원` : '미정'}
                     </Text>
-                  )}
+                    {item.spent && item.spent !== item.value && (
+                      <Text style={styles.aiRecommendedValue}>
+                        ✨ {formatNumber(item.spent)}만원
+                      </Text>
+                    )}
+                  </View>
                 </View>
+              ))
+            ) : (
+              <View style={styles.emptyBox}>
+                <Ionicons name="document-text-outline" size={40} color="#F0E8E4" style={{ marginBottom: 12 }} />
+                <Text style={styles.emptyText}>등록된 지출 내역이 없습니다.</Text>
+                <TouchableOpacity
+                  style={styles.emptyAddBtn}
+                  onPress={() => setCostEditModalVisible(true)}
+                >
+                  <Ionicons name="add" size={16} color="#C9716A" />
+                  <Text style={styles.emptyAddBtnText}>상세 지출 항목 추가</Text>
+                </TouchableOpacity>
               </View>
-            ))}
+            )}
           </View>
         </View>
 
@@ -206,15 +220,15 @@ export default function BudgetHubScreen() {
           <View style={styles.listCard}>
             {costItems
               .filter((item) => item.hasBalance)
-              .map(item => ({...item, isUrgent: checkUrgent(item.balanceDue)}))
+              .map(item => ({ ...item, isUrgent: checkUrgent(item.balanceDue) }))
               .sort((a, b) => {
                 if (!a.balanceDue) return 1;
                 if (!b.balanceDue) return -1;
                 return a.balanceDue > b.balanceDue ? 1 : -1;
               })
               .map((item, idx, arr) => (
-                <View 
-                  key={item.id} 
+                <View
+                  key={item.id}
                   style={[
                     styles.balanceRow,
                     idx === arr.length - 1 && { borderBottomWidth: 0 }
@@ -233,11 +247,11 @@ export default function BudgetHubScreen() {
                   </Text>
                 </View>
               ))}
-              {costItems.filter(i => i.hasBalance).length === 0 && (
-                <View style={styles.emptyBox}>
-                   <Text style={styles.emptyText}>등록된 잔금 일정이 없습니다</Text>
-                </View>
-              )}
+            {costItems.filter(i => i.hasBalance).length === 0 && (
+              <View style={styles.emptyBox}>
+                <Text style={styles.emptyText}>등록된 잔금 일정이 없습니다</Text>
+              </View>
+            )}
           </View>
         </View>
 
@@ -264,28 +278,28 @@ export default function BudgetHubScreen() {
         totalBudget={budget}
         costItems={costItems}
         onApplyPlan={(plan) => {
-            const updated = costItems.map(item => {
-              const itemLabel = (item.label || '').normalize('NFC').trim();
-              const itemKey = (CATEGORY_MAP[itemLabel] || itemLabel).toLowerCase();
-              
-              const change = plan.changes.find(c => {
-                const changeCat = (c.category || '').normalize('NFC').trim().toLowerCase();
-                const mappedLabel = (CATEGORY_LABEL[changeCat] || changeCat).normalize('NFC').trim();
-                const mappedKey = (CATEGORY_MAP[mappedLabel] || mappedLabel).toLowerCase();
-                
-                return changeCat === itemKey || mappedKey === itemKey;
-              });
-              
-              if (change) {
-                // Update only 'spent' field to separate target budget and actual spending
-                return { ...item, spent: change.to.price_min.toString() };
-              }
-              return item;
+          const updated = costItems.map(item => {
+            const itemLabel = (item.label || '').normalize('NFC').trim();
+            const itemKey = (CATEGORY_MAP[itemLabel] || itemLabel).toLowerCase();
+
+            const change = plan.changes.find(c => {
+              const changeCat = (c.category || '').normalize('NFC').trim().toLowerCase();
+              const mappedLabel = (CATEGORY_LABEL[changeCat] || changeCat).normalize('NFC').trim();
+              const mappedKey = (CATEGORY_MAP[mappedLabel] || mappedLabel).toLowerCase();
+
+              return changeCat === itemKey || mappedKey === itemKey;
             });
 
-            setCostItems(updated);
-            setOptimizationModalVisible(false);
-            Alert.alert('알림', 'AI 추천 플랜이 지출 내역에 반영되었습니다.');
+            if (change) {
+              // Update only 'spent' field to separate target budget and actual spending
+              return { ...item, spent: change.to.price_min.toString() };
+            }
+            return item;
+          });
+
+          setCostItems(updated);
+          setOptimizationModalVisible(false);
+          Alert.alert('알림', 'AI 추천 플랜이 지출 내역에 반영되었습니다.');
         }}
       />
     </SafeAreaView>
@@ -339,14 +353,14 @@ function CostEditModal({ visible, items, budget, onClose, onSave }) {
   };
 
   const balanceItems = draft.filter((item) => item.hasBalance);
-  
+
   const handleVendorSearch = async (query, cat) => {
     setSearchLoading(true);
     try {
       const dbCat = CATEGORY_MAP[cat] || cat;
-      const results = await vendorsApi.getVendors({ 
+      const results = await vendorsApi.getVendors({
         category: dbCat,
-        query: query 
+        query: query
       });
       setVendorSearchResults(results || []);
     } catch (err) {
@@ -372,264 +386,295 @@ function CostEditModal({ visible, items, budget, onClose, onSave }) {
 
   return (
     <>
-    <Modal visible={visible} animationType="slide" transparent>
-      <View style={modalStyles.overlay}>
-        <TouchableOpacity style={modalStyles.backdrop} onPress={onClose} />
-        <View style={modalStyles.sheet}>
-          <View style={modalStyles.header}>
-            <Text style={modalStyles.title}>비용 · 잔금 관리</Text>
-            <TouchableOpacity onPress={onClose}>
-              <Ionicons name="close" size={24} color="#B8A9A5" />
-            </TouchableOpacity>
-          </View>
-
-          <View style={costModalStyles.tabRow}>
-            {['cost', 'balance'].map(t => (
-              <TouchableOpacity 
-                key={t}
-                style={[costModalStyles.tab, activeTab === t && costModalStyles.tabActive]}
-                onPress={() => setActiveTab(t)}
-              >
-                <Text style={[costModalStyles.tabText, activeTab === t && costModalStyles.tabTextActive]}>
-                  {t === 'cost' ? '비용 항목' : '잔금 일정'}
-                </Text>
+      <Modal visible={visible} animationType="slide" transparent>
+        <View style={modalStyles.overlay}>
+          <TouchableOpacity style={modalStyles.backdrop} onPress={onClose} />
+          <View style={modalStyles.sheet}>
+            <View style={modalStyles.header}>
+              <Text style={modalStyles.title}>비용 · 잔금 관리</Text>
+              <TouchableOpacity onPress={onClose}>
+                <Ionicons name="close" size={24} color="#B8A9A5" />
               </TouchableOpacity>
-            ))}
-          </View>
+            </View>
 
-          <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
-            {activeTab === 'cost' ? (
-              <>
-                <View style={costModalStyles.budgetRow}>
-                  <Text style={costModalStyles.budgetLabel}>전체 예산</Text>
-                  <View style={costModalStyles.budgetInputWrap}>
-                    <TextInput
-                      style={costModalStyles.budgetInput}
-                      value={budgetVal}
-                      onChangeText={setBudgetVal}
-                      keyboardType="number-pad"
-                    />
-                    <Text style={costModalStyles.budgetUnit}>만원</Text>
-                  </View>
-                </View>
-
-                <View style={costModalStyles.presetRow}>
-                  {PRESET_CATEGORIES.map(cat => (
-                    <TouchableOpacity 
-                      key={cat} 
-                      style={costModalStyles.presetChip}
-                      onPress={() => addPresetItem(cat)}
-                    >
-                      <Text style={costModalStyles.presetChipText}>+ {cat}</Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-
-                <TouchableOpacity style={modalStyles.addBtn} onPress={addCostItem}>
-                  <Ionicons name="add-circle-outline" size={20} color="#C9716A" />
-                  <Text style={modalStyles.addBtnText}>기타 항목 추가하기</Text>
+            <View style={costModalStyles.tabRow}>
+              {['cost', 'balance'].map(t => (
+                <TouchableOpacity
+                  key={t}
+                  style={[costModalStyles.tab, activeTab === t && costModalStyles.tabActive]}
+                  onPress={() => setActiveTab(t)}
+                >
+                  <Text style={[costModalStyles.tabText, activeTab === t && costModalStyles.tabTextActive]}>
+                    {t === 'cost' ? '비용 항목' : '잔금 일정'}
+                  </Text>
                 </TouchableOpacity>
+              ))}
+            </View>
 
-                <View style={{ height: 20 }} />
-
-                {draft.map((item, idx) => (
-                  <View key={item.id} style={modalStyles.itemBoxExpanded}>
-                    <View style={modalStyles.expandedHeader}>
-                      <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                        <TextInput
-                          style={[modalStyles.labelInput, { flex: 1 }]}
-                          value={item.label}
-                          onChangeText={v => updateField(idx, 'label', v)}
-                          placeholder="항목명"
-                          placeholderTextColor="#B8A9A5"
-                        />
-                        <TouchableOpacity 
-                          style={modalStyles.searchBtn} 
-                          onPress={() => {
-                            setCurrentSearchIdx(idx);
-                            setVendorSearchQuery(item.label);
-                            setVendorSearchVisible(true);
-                            // Initial search if category matches
-                            const cat = CATEGORY_MAP[item.label];
-                            handleVendorSearch(item.label, cat);
-                          }}
-                        >
-                          <Ionicons name="search" size={16} color="#C9716A" />
-                        </TouchableOpacity>
-                      </View>
-                      <TouchableOpacity onPress={() => deleteItem(idx)} style={modalStyles.trashBtn}>
-                        <Ionicons name="trash-outline" size={18} color="#B8A9A5" />
-                      </TouchableOpacity>
-                    </View>
-                    
-                    {item.vendorName && (
-                      <View style={modalStyles.linkedVendorBanner}>
-                        <Ionicons name="business-outline" size={14} color="#8A7870" />
-                        <Text style={modalStyles.linkedVendorName}>{item.vendorName}</Text>
-                        <TouchableOpacity onPress={() => {
-                          updateField(idx, 'vendorId', null);
-                          updateField(idx, 'vendorName', null);
-                        }}>
-                          <Ionicons name="close-circle" size={14} color="#B8A9A5" />
-                        </TouchableOpacity>
-                      </View>
-                    )}
-                    
-                    <View style={modalStyles.amountInputRow}>
+            <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
+              {activeTab === 'cost' ? (
+                <>
+                  <View style={costModalStyles.budgetRow}>
+                    <Text style={costModalStyles.budgetLabel}>전체 예산</Text>
+                    <View style={costModalStyles.budgetInputWrap}>
                       <TextInput
-                        style={modalStyles.amountInput}
-                        value={item.value}
-                        onChangeText={v => updateField(idx, 'value', v.replace(/\D/g, ''))}
-                        placeholder="금액 입력"
-                        placeholderTextColor="#B8A9A5"
+                        style={costModalStyles.budgetInput}
+                        value={budgetVal}
+                        onChangeText={setBudgetVal}
                         keyboardType="number-pad"
                       />
-                      <Text style={modalStyles.amountUnitLabel}>만원</Text>
-                    </View>
-
-                    <View style={modalStyles.expandedToggles}>
-                      <TouchableOpacity 
-                        style={[costModalStyles.toggleBtn, item.warn && costModalStyles.toggleBtnOn]}
-                        onPress={() => updateField(idx, 'warn', !item.warn)}
-                      >
-                        <Text style={[costModalStyles.toggleText, item.warn && { color: '#C9716A' }]}>주의</Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity 
-                        style={[costModalStyles.toggleBtn, item.hasBalance && costModalStyles.toggleBtnOn]}
-                        onPress={() => updateField(idx, 'hasBalance', !item.hasBalance)}
-                      >
-                        <Text style={[costModalStyles.toggleText, item.hasBalance && { color: '#C9716A' }]}>잔금 설정함</Text>
-                      </TouchableOpacity>
+                      <Text style={costModalStyles.budgetUnit}>만원</Text>
                     </View>
                   </View>
-                ))}
-              </>
-            ) : (
-              <View style={{ paddingBottom: 20 }}>
-                {balanceItems.length > 0 ? (
-                  balanceItems.map((item) => {
-                    // Find actual draft index for updating
-                    const draftIdx = draft.findIndex(d => d.id === item.id);
-                    return (
-                      <View key={item.id} style={costModalStyles.balanceEditCard}>
-                        <View style={costModalStyles.balanceEditHeader}>
-                          <Text style={costModalStyles.balanceEditTitle}>{item.label}</Text>
-                          <Text style={costModalStyles.dDayBadge}>{formatBalanceSub(item.balanceDue)}</Text>
+
+                  <View style={costModalStyles.presetRow}>
+                    {PRESET_CATEGORIES.map(cat => (
+                      <TouchableOpacity
+                        key={cat}
+                        style={costModalStyles.presetChip}
+                        onPress={() => addPresetItem(cat)}
+                      >
+                        <Text style={costModalStyles.presetChipText}>+ {cat}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+
+                  <TouchableOpacity style={modalStyles.addBtn} onPress={addCostItem}>
+                    <Ionicons name="add-circle-outline" size={20} color="#C9716A" />
+                    <Text style={modalStyles.addBtnText}>기타 항목 추가하기</Text>
+                  </TouchableOpacity>
+
+                  <View style={{ height: 20 }} />
+
+                  {draft.map((item, idx) => (
+                    <View key={item.id} style={modalStyles.itemBoxExpanded}>
+                      <View style={modalStyles.expandedHeader}>
+                        <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                          <TextInput
+                            style={[modalStyles.labelInput, { flex: 1 }]}
+                            value={item.label}
+                            onChangeText={v => updateField(idx, 'label', v)}
+                            placeholder="항목명"
+                            placeholderTextColor="#B8A9A5"
+                          />
+                          <TouchableOpacity
+                            style={modalStyles.searchBtn}
+                            onPress={() => {
+                              setCurrentSearchIdx(idx);
+                              setVendorSearchQuery(''); // Clear default label for new search
+                              setVendorSearchVisible(true);
+                              // Initial search if category matches
+                              const cat = CATEGORY_MAP[item.label];
+                              if (item.label && cat) handleVendorSearch(item.label, cat);
+                            }}
+                          >
+                            <Ionicons name="search" size={16} color="#C9716A" />
+                          </TouchableOpacity>
                         </View>
-                        
-                        <View style={costModalStyles.balanceInputRow}>
-                          <View style={{ flex: 1 }}>
-                            <Text style={costModalStyles.inputSubLabel}>잔금액 (만원)</Text>
-                            <TextInput
-                              style={costModalStyles.balanceSubInput}
-                              value={item.balanceAmount}
-                              onChangeText={v => updateField(draftIdx, 'balanceAmount', v.replace(/\D/g, ''))}
-                              placeholder="금액"
-                              keyboardType="number-pad"
-                            />
-                          </View>
-                          <View style={{ flex: 1.5 }}>
-                            <Text style={costModalStyles.inputSubLabel}>예정일 (YYYY-MM-DD)</Text>
-                            <TextInput
-                              style={costModalStyles.balanceSubInput}
-                              value={item.balanceDue}
-                              onChangeText={v => updateField(draftIdx, 'balanceDue', v)}
-                              placeholder="2026-06-25"
-                            />
-                          </View>
-                        </View>
+                        <TouchableOpacity onPress={() => deleteItem(idx)} style={modalStyles.trashBtn}>
+                          <Ionicons name="trash-outline" size={18} color="#B8A9A5" />
+                        </TouchableOpacity>
                       </View>
-                    );
-                  })
-                ) : (
-                  <View style={styles.emptyBox}>
-                    <Ionicons name="notifications-off-outline" size={32} color="#F0E8E4" style={{ marginBottom: 10 }} />
-                    <Text style={styles.emptyText}>비용 탭에서 '잔금 설정' 박스를{'\n'}체크한 항목들이 여기에 표시됩니다.</Text>
-                  </View>
-                )}
-              </View>
-            )}
-          </ScrollView>
 
-          <View style={modalStyles.footer}>
-            <TouchableOpacity style={modalStyles.cancelBtn} onPress={onClose}>
-              <Text style={modalStyles.cancelBtnText}>취소</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={modalStyles.saveBtn} onPress={() => onSave(draft, budgetVal)}>
-              <Text style={modalStyles.saveBtnText}>저장</Text>
-            </TouchableOpacity>
+                      {item.vendorName && (
+                        <View style={modalStyles.linkedVendorBanner}>
+                          <Ionicons name="business-outline" size={14} color="#8A7870" />
+                          <Text style={modalStyles.linkedVendorName}>{item.vendorName}</Text>
+                          <TouchableOpacity onPress={() => {
+                            updateField(idx, 'vendorId', null);
+                            updateField(idx, 'vendorName', null);
+                          }}>
+                            <Ionicons name="close-circle" size={14} color="#B8A9A5" />
+                          </TouchableOpacity>
+                        </View>
+                      )}
+
+                      <View style={modalStyles.amountInputRow}>
+                        <TextInput
+                          style={modalStyles.amountInput}
+                          value={item.value}
+                          onChangeText={v => updateField(idx, 'value', v.replace(/\D/g, ''))}
+                          placeholder="금액 입력"
+                          placeholderTextColor="#B8A9A5"
+                          keyboardType="number-pad"
+                        />
+                        <Text style={modalStyles.amountUnitLabel}>만원</Text>
+                      </View>
+
+                      <View style={modalStyles.expandedToggles}>
+                        <TouchableOpacity
+                          style={[costModalStyles.toggleBtn, item.warn && costModalStyles.toggleBtnOn]}
+                          onPress={() => updateField(idx, 'warn', !item.warn)}
+                        >
+                          <Text style={[costModalStyles.toggleText, item.warn && { color: '#C9716A' }]}>주의</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          style={[costModalStyles.toggleBtn, item.hasBalance && costModalStyles.toggleBtnOn]}
+                          onPress={() => updateField(idx, 'hasBalance', !item.hasBalance)}
+                        >
+                          <Text style={[costModalStyles.toggleText, item.hasBalance && { color: '#C9716A' }]}>잔금 설정함</Text>
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+                  ))}
+                </>
+              ) : (
+                <View style={{ paddingBottom: 20 }}>
+                  {balanceItems.length > 0 ? (
+                    balanceItems.map((item) => {
+                      // Find actual draft index for updating
+                      const draftIdx = draft.findIndex(d => d.id === item.id);
+                      return (
+                        <View key={item.id} style={costModalStyles.balanceEditCard}>
+                          <View style={costModalStyles.balanceEditHeader}>
+                            <Text style={costModalStyles.balanceEditTitle}>{item.label}</Text>
+                            <Text style={costModalStyles.dDayBadge}>{formatBalanceSub(item.balanceDue)}</Text>
+                          </View>
+
+                          <View style={costModalStyles.balanceInputRow}>
+                            <View style={{ flex: 1 }}>
+                              <Text style={costModalStyles.inputSubLabel}>잔금액 (만원)</Text>
+                              <TextInput
+                                style={costModalStyles.balanceSubInput}
+                                value={item.balanceAmount}
+                                onChangeText={v => updateField(draftIdx, 'balanceAmount', v.replace(/\D/g, ''))}
+                                placeholder="금액"
+                                keyboardType="number-pad"
+                              />
+                            </View>
+                            <View style={{ flex: 1.5 }}>
+                              <Text style={costModalStyles.inputSubLabel}>예정일 (YYYY-MM-DD)</Text>
+                              <TextInput
+                                style={costModalStyles.balanceSubInput}
+                                value={item.balanceDue}
+                                onChangeText={v => updateField(draftIdx, 'balanceDue', v)}
+                                placeholder="2026-06-25"
+                              />
+                            </View>
+                          </View>
+                        </View>
+                      );
+                    })
+                  ) : (
+                    <View style={styles.emptyBox}>
+                      <Ionicons name="notifications-off-outline" size={32} color="#F0E8E4" style={{ marginBottom: 10 }} />
+                      <Text style={styles.emptyText}>비용 탭에서 '잔금 설정' 박스를{'\n'}체크한 항목들이 여기에 표시됩니다.</Text>
+                    </View>
+                  )}
+                </View>
+              )}
+            </ScrollView>
+
+            <View style={modalStyles.footer}>
+              <TouchableOpacity style={modalStyles.cancelBtn} onPress={onClose}>
+                <Text style={modalStyles.cancelBtnText}>취소</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={modalStyles.saveBtn} onPress={() => onSave(draft, budgetVal)}>
+                <Text style={modalStyles.saveBtnText}>저장</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
-      </View>
-    </Modal>
-    
-    <VendorSearchModal
-      visible={vendorSearchVisible}
-      onClose={() => setVendorSearchVisible(false)}
-      query={vendorSearchQuery}
-      setQuery={setVendorSearchQuery}
-      onSearch={handleVendorSearch}
-      results={vendorSearchResults}
-      loading={searchLoading}
-      onSelect={selectVendor}
-      category={CATEGORY_MAP[draft[currentSearchIdx]?.label]}
-    />
+      </Modal>
+
+      <VendorSearchModal
+        visible={vendorSearchVisible}
+        onClose={() => setVendorSearchVisible(false)}
+        query={vendorSearchQuery}
+        setQuery={setVendorSearchQuery}
+        onSearch={handleVendorSearch}
+        results={vendorSearchResults}
+        loading={searchLoading}
+        onSelect={selectVendor}
+        category={CATEGORY_MAP[draft[currentSearchIdx]?.label]}
+      />
     </>
   );
 }
 
 // ── 보조 컴포넌트 (VendorSearchModal) ────────────────────────
 function VendorSearchModal({ visible, onClose, query, setQuery, onSearch, results, loading, onSelect, category }) {
+  const inputRef = React.useRef(null);
+
   return (
     <Modal visible={visible} animationType="fade" transparent>
       <View style={modalStyles.overlay}>
         <TouchableOpacity style={modalStyles.backdrop} onPress={onClose} />
-        <View style={[modalStyles.sheet, { height: '70%', marginTop: 'auto' }]}>
+        <View style={[modalStyles.sheet, { height: '80%', marginTop: 'auto' }]}>
           <View style={modalStyles.header}>
             <Text style={modalStyles.title}>업체 검색</Text>
-            <TouchableOpacity onPress={onClose}>
+            <TouchableOpacity onPress={onClose} style={{ padding: 4 }}>
               <Ionicons name="close" size={24} color="#B8A9A5" />
             </TouchableOpacity>
           </View>
-          
+
           <View style={searchModalStyles.searchBar}>
             <View style={searchModalStyles.searchInputWrap}>
-              <Ionicons name="search" size={18} color="#B8A9A5" />
+              <Ionicons name="search" size={20} color="#C9716A" />
               <TextInput
+                ref={inputRef}
                 style={searchModalStyles.searchInput}
                 value={query}
-                onChangeText={v => {
-                  setQuery(v);
-                  onSearch(v, category);
-                }}
-                placeholder="업체명을 입력하세요"
-                autoFocus
+                onChangeText={setQuery}
+                placeholder="업체명을 입력하세요 (예: 조선 팰리스)"
                 placeholderTextColor="#B8A9A5"
+                returnKeyType="search"
+                onSubmitEditing={() => onSearch(query, category)}
+                autoFocus
               />
+              {query.length > 0 && (
+                <TouchableOpacity onPress={() => setQuery('')} style={{ padding: 4 }}>
+                  <Ionicons name="close-circle" size={18} color="#D4C9C5" />
+                </TouchableOpacity>
+              )}
             </View>
+            <TouchableOpacity
+              style={searchModalStyles.searchSubmitBtn}
+              onPress={() => onSearch(query, category)}
+            >
+              <Text style={searchModalStyles.searchSubmitBtnText}>검색</Text>
+            </TouchableOpacity>
           </View>
 
-          <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
+          <View style={searchModalStyles.infoBanner}>
+            <Ionicons name="information-circle-outline" size={14} color="#8A7870" />
+            <Text style={searchModalStyles.infoText}>상세 항목명에 맞는 업체들을 검색합니다.</Text>
+          </View>
+
+          <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
             {loading ? (
-              <ActivityIndicator style={{ marginTop: 40 }} color="#C9716A" />
+              <View style={{ marginTop: 60, alignItems: 'center' }}>
+                <ActivityIndicator color="#C9716A" size="large" />
+                <Text style={{ marginTop: 15, color: '#A8928A', fontSize: 13 }}>DB에서 업체를 찾는 중입니다...</Text>
+              </View>
             ) : results.length > 0 ? (
               results.map(v => (
-                <TouchableOpacity 
-                  key={v.id} 
+                <TouchableOpacity
+                  key={v.id}
                   style={searchModalStyles.vendorResultItem}
                   onPress={() => onSelect(v)}
                 >
                   <View style={{ flex: 1 }}>
                     <Text style={searchModalStyles.vendorResultName}>{v.name}</Text>
-                    <Text style={searchModalStyles.vendorResultLoc}>{v.location || '지역 정보 없음'}</Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4, gap: 4 }}>
+                      <Ionicons name="location-outline" size={12} color="#A8928A" />
+                      <Text style={searchModalStyles.vendorResultLoc}>{v.location || '지역 정보 없음'}</Text>
+                    </View>
                   </View>
-                  <Ionicons name="chevron-forward" size={18} color="#D4C9C5" />
+                  <View style={searchModalStyles.selectBadge}>
+                    <Text style={searchModalStyles.selectBadgeText}>선택</Text>
+                  </View>
                 </TouchableOpacity>
               ))
             ) : (
-              <View style={{ padding: 40, alignItems: 'center' }}>
-                <Ionicons name="search-outline" size={40} color="#F0E8E4" style={{ marginBottom: 10 }} />
-                <Text style={{ color: '#B8A9A5', fontSize: 14 }}>검색 결과가 없습니다.</Text>
+              <View style={{ paddingVertical: 80, alignItems: 'center' }}>
+                <View style={searchModalStyles.emptyIconCircle}>
+                  <Ionicons name="search-outline" size={40} color="#F0E8E4" />
+                </View>
+                <Text style={{ color: '#B8A9A5', fontSize: 16, fontWeight: '600', marginTop: 15 }}>검색 결과가 없습니다</Text>
+                <Text style={{ color: '#D4C9C5', fontSize: 13, marginTop: 6, textAlign: 'center' }}>
+                  업체명이 정확한지 확인하시거나{'\n'}다른 키워드로 검색해 보세요.
+                </Text>
               </View>
             )}
           </ScrollView>
@@ -693,18 +738,30 @@ const styles = StyleSheet.create({
   editBtn: { paddingHorizontal: 8, paddingVertical: 4 },
   editBtnText: { fontSize: 12, color: '#B8A9A5' },
   vendorLinkedText: { fontSize: 12, color: '#8A7870', marginTop: 3, fontWeight: '500' },
-  emptyBox: { paddingVertical: 30, alignItems: 'center' },
-  emptyText: { fontSize: 13, color: '#B8A9A5' },
+  emptyBox: { paddingVertical: 40, alignItems: 'center' },
+  emptyText: { fontSize: 13, color: '#B8A9A5', textAlign: 'center' },
+  emptyAddBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FDF0EF',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 20,
+    marginTop: 15,
+    borderWidth: 1,
+    borderColor: '#FADEDC'
+  },
+  emptyAddBtnText: { color: '#C9716A', fontSize: 12, fontWeight: '700', marginLeft: 4 },
 });
 
 const modalStyles = StyleSheet.create({
   overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
   backdrop: { ...StyleSheet.absoluteFillObject },
-  sheet: { 
-    backgroundColor: '#fff', 
-    borderTopLeftRadius: 24, 
-    borderTopRightRadius: 24, 
-    padding: 20, 
+  sheet: {
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    padding: 20,
     maxHeight: '90%',
     flex: 1 // Add this to allow children with flex: 1 (ScrollView) to expand
   },
@@ -725,17 +782,17 @@ const modalStyles = StyleSheet.create({
   cancelBtnText: { color: '#8A7870', fontWeight: '600' },
   saveBtn: { flex: 1, paddingVertical: 14, alignItems: 'center', borderRadius: 12, backgroundColor: '#C9716A' },
   saveBtnText: { color: '#fff', fontWeight: '700' },
-  
+
   searchBtn: { padding: 6, backgroundColor: '#FDF0EF', borderRadius: 8 },
-  linkedVendorBanner: { 
-    flexDirection: 'row', 
-    alignItems: 'center', 
-    backgroundColor: '#F7F2F0', 
-    paddingHorizontal: 10, 
-    paddingVertical: 8, 
-    borderRadius: 8, 
-    gap: 6, 
-    marginTop: 10, 
+  linkedVendorBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F7F2F0',
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    borderRadius: 8,
+    gap: 6,
+    marginTop: 10,
     marginBottom: 4,
     borderWidth: 1,
     borderColor: '#EDE5E2'
@@ -744,26 +801,36 @@ const modalStyles = StyleSheet.create({
 });
 
 const searchModalStyles = StyleSheet.create({
-  searchBar: { paddingHorizontal: 4, marginBottom: 15 },
-  searchInputWrap: { 
-    flexDirection: 'row', 
-    alignItems: 'center', 
-    backgroundColor: '#F5F0EE', 
-    paddingHorizontal: 14, 
-    borderRadius: 12, 
-    gap: 10 
+  searchBar: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 4, marginBottom: 10 },
+  searchInputWrap: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F9F7F6',
+    paddingHorizontal: 14,
+    borderRadius: 12,
+    gap: 10,
+    borderWidth: 1.5,
+    borderColor: '#EAE2DF'
   },
-  searchInput: { flex: 1, paddingVertical: 12, fontSize: 14, color: '#2C2420' },
-  vendorResultItem: { 
-    flexDirection: 'row', 
-    alignItems: 'center', 
-    justifyContent: 'space-between', 
-    paddingVertical: 16, 
-    borderBottomWidth: 1, 
-    borderBottomColor: '#F5F0EE' 
+  searchInput: { flex: 1, paddingVertical: 12, fontSize: 15, color: '#2C2420', fontWeight: '500' },
+  searchSubmitBtn: { backgroundColor: '#C9716A', paddingHorizontal: 16, paddingVertical: 12, borderRadius: 12 },
+  searchSubmitBtnText: { color: '#fff', fontSize: 14, fontWeight: '700' },
+  infoBanner: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 8, marginBottom: 20 },
+  infoText: { fontSize: 12, color: '#8A7870' },
+  vendorResultItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 18,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F5F1EE'
   },
-  vendorResultName: { fontSize: 15, fontWeight: '600', color: '#2C2420' },
-  vendorResultLoc: { fontSize: 13, color: '#A8928A', marginTop: 2 },
+  vendorResultName: { fontSize: 16, fontWeight: '700', color: '#2C2420' },
+  vendorResultLoc: { fontSize: 13, color: '#8A7870' },
+  selectBadge: { backgroundColor: '#EBF2EE', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 6 },
+  selectBadgeText: { fontSize: 11, color: '#7A9E8E', fontWeight: '700' },
+  emptyIconCircle: { width: 80, height: 80, borderRadius: 40, backgroundColor: '#FAF7F5', justifyContent: 'center', alignItems: 'center' },
 });
 
 const costModalStyles = StyleSheet.create({
@@ -783,7 +850,7 @@ const costModalStyles = StyleSheet.create({
   balanceCard: { flexDirection: 'row', justifyContent: 'space-between', padding: 12, borderBottomWidth: 1, borderBottomColor: '#F5F1EE' },
   balanceCardLabel: { fontSize: 14, color: '#2C2420' },
   balanceCardAmount: { fontSize: 14, fontWeight: '700', color: '#C9716A' },
-  
+
   balanceEditCard: { backgroundColor: '#fff', borderRadius: 16, padding: 16, marginBottom: 12, borderWidth: 1, borderColor: '#F5F1EE' },
   balanceEditHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15 },
   balanceEditTitle: { fontSize: 15, fontWeight: '700', color: '#2C2420' },

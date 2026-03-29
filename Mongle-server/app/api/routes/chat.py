@@ -65,10 +65,10 @@ def get_chats_by_project(project_id: str):
 # 채팅 채널 단일 조회
 @router.get('/{chat_id}')
 def get_chat(chat_id: str):
-    result = supabase.table('chats').select('*').eq('id', chat_id).single().execute()
-    if result.error or not result.data:
+    result = supabase.table('chats').select('*').eq('id', chat_id).execute()
+    if not result.data:
         raise HTTPException(status_code=404, detail='해당 채팅을 찾을 수 없습니다.')
-    return result.data
+    return result.data[0]
 
 
 @router.post('/')
@@ -86,12 +86,9 @@ def create_chat(data: ChatCreate):
     result = supabase.table('chats').insert({
         'project_id': data.project_id,
         'title': data.title
-    }).select().single().execute()
+    }).execute()
 
-    if result.error:
-        raise HTTPException(status_code=500, detail=str(result.error))
-
-    return result.data
+    return result.data[0] if result.data else None
 
 
 # 채팅 수정
@@ -105,10 +102,8 @@ def update_chat(chat_id: str, data: ChatUpdate):
     if not check.data:
         raise HTTPException(status_code=404, detail='해당 채팅을 찾을 수 없습니다.')
 
-    result = supabase.table('chats').update(update_data).eq('id', chat_id).select().single().execute()
-    if result.error:
-        raise HTTPException(status_code=500, detail=str(result.error))
-    return result.data
+    result = supabase.table('chats').update(update_data).eq('id', chat_id).execute()
+    return result.data[0] if result.data else None
 
 
 # 채팅 삭제
@@ -118,9 +113,7 @@ def delete_chat(chat_id: str):
     if not check.data:
         raise HTTPException(status_code=404, detail='해당 채팅을 찾을 수 없습니다.')
 
-    result = supabase.table('chats').delete().eq('id', chat_id).execute()
-    if result.error:
-        raise HTTPException(status_code=500, detail=str(result.error))
+    supabase.table('chats').delete().eq('id', chat_id).execute()
     return {'deleted': True}
 
 
@@ -149,8 +142,8 @@ def create_message(chat_id: str, data: ChatMessageCreate):
             'chat_id': data.chat_id,
             'sender_id': data.sender if '-' in data.sender else None,
             'content': data.content
-        }).select().single().execute()
+        }).execute()
 
-        return result.data
+        return result.data[0] if result.data else None
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

@@ -3,30 +3,62 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, Alert, Act
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
+import { useQuery } from '@tanstack/react-query';
 import { PDFService } from '../../../lib/services/pdf/PDFService';
+import { projectsApi, budgetsApi } from '../../../lib/api';
+import { formatNumber } from '../../../lib/utils';
 
 export default function BudgetDashboard() {
   const [saving, setSaving] = React.useState(false);
 
+  // 1. Fetch Current Project
+  const { data: projects = [], isLoading: projectsLoading } = useQuery({
+    queryKey: ['projects'],
+    queryFn: projectsApi.getProjects,
+  });
+
+  const activeProject = projects[0];
+
+  // 2. Fetch Budget for the Project
+  const { data: budgetResponse, isLoading: budgetLoading } = useQuery({
+    queryKey: ['budget', activeProject?.id],
+    queryFn: () => budgetsApi.getBudgets(activeProject.id),
+    enabled: !!activeProject?.id,
+  });
+
+  const budgetData = budgetResponse?.[0] || null;
+
+  // 3. Fetch Budget Items for PDF
+  const { data: costItems = [] } = useQuery({
+    queryKey: ['budgetItems', budgetData?.id],
+    queryFn: () => budgetsApi.getBudgetItems(budgetData.id),
+    enabled: !!budgetData?.id,
+  });
+
   const handleSaveBudgetPDF = async () => {
+    if (!budgetData) {
+      Alert.alert('알림', '등록된 예산 정보가 없습니다.');
+      return;
+    }
+
     setSaving(true);
-    // Mock data for current budget
-    const budgetData = {
-      projectName: "민지 & 하준의 결혼준비",
-      weddingDate: "2026-05-24",
-      totalBudget: 35000000,
-      spentAmount: 12450000,
-      remainingBudget: 22550000,
-      categories: [
-        { title: "웨딩홀", budget: 15000000, spent: 4500000 },
-        { title: "스드메", budget: 5000000, spent: 3200000 },
-        { title: "예물/예단", budget: 8000000, spent: 2000000 },
-        { title: "신혼여행", budget: 5000000, spent: 1500000 },
-        { title: "기타", budget: 2000000, spent: 1250000 }
-      ]
+    
+    const pdfData = {
+      projectName: activeProject.title || "민지 & 하준의 결혼준비",
+      weddingDate: "날짜 미정", // Could be from project/wedding table
+      totalBudget: (budgetData.total_amount || 0) * 10000,
+      spentAmount: (budgetData.spent || 0) * 10000,
+      remainingBudget: (budgetData.total_amount - budgetData.spent) * 10000,
+      categories: costItems
+        .filter(item => item.label || item.value)
+        .map(item => ({
+          title: item.label || '기타',
+          budget: (parseInt(item.value) || 0) * 10000,
+          spent: (parseInt(item.spent || item.value) || 0) * 10000
+        }))
     };
 
-    const result = await PDFService.saveBudgetSummary(budgetData);
+    const result = await PDFService.saveBudgetSummary(pdfData);
     setSaving(false);
 
     if (result.success) {
@@ -63,14 +95,27 @@ export default function BudgetDashboard() {
     }
   ];
 
+  const isLoading = projectsLoading || budgetLoading;
+
   if (saving) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <ActivityIndicator size="large" color="#FF6B6B" />
-        <Text style={{ marginTop: 20, fontWeight: 'bold' }}>명세서 생성 중...</Text>
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#fff' }}>
+        <ActivityIndicator size="large" color="#C9716A" />
+        <Text style={{ marginTop: 20, fontWeight: 'bold', color: '#2C2420' }}>명세서 생성 중...</Text>
       </View>
     );
   }
+
+  if (isLoading) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#fff' }}>
+        <ActivityIndicator size="large" color="#C9716A" />
+      </View>
+    );
+  }
+
+  const totalBudget = budgetData?.total_amount || 0;
+  const spentAmount = budgetData?.spent || 0;
 
   return (
     <SafeAreaView style={styles.container}>
@@ -84,14 +129,14 @@ export default function BudgetDashboard() {
 
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.summaryCard}>
-          <View>
+          <View style={{ alignItems: 'center' }}>
             <Text style={styles.summaryLabel}>나의 총 예산</Text>
-            <Text style={styles.summaryValue}>35,000,000원</Text>
+            <Text style={styles.summaryValue}>{formatNumber(totalBudget)}만원</Text>
           </View>
           <View style={styles.summaryDivider} />
-          <View>
+          <View style={{ alignItems: 'center' }}>
             <Text style={styles.summaryLabel}>사용 금액</Text>
-            <Text style={[styles.summaryValue, { color: '#e87070' }]}>12,450,000원</Text>
+            <Text style={[styles.summaryValue, { color: '#C9716A' }]}>{formatNumber(spentAmount)}만원</Text>
           </View>
         </View>
 
@@ -118,7 +163,7 @@ export default function BudgetDashboard() {
         <View style={styles.tipBox}>
           <Ionicons name="bulb-outline" size={20} color="#c9a98e" />
           <Text style={styles.tipText}>
-            PDF 견적서를 불러오면 AI가 자동으로 항목을 분석하여 비교표를 만들어드려요!
+            '비용 관리' 화면에서 입력하신 예산과 지출 내역이 실시간으로 여기에 반영됩니다.
           </Text>
         </View>
       </ScrollView>
@@ -164,7 +209,6 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     borderWidth: 1,
     borderColor: '#f0e8e4',
-    // Shadow for iOS/Android
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,

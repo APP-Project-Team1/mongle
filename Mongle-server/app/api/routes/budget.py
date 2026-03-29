@@ -28,10 +28,13 @@ def test_campaigns_db():
     return result.data
 
 
-# 전체 예산 조회
+# 전체 예산 조회 (프로젝트 필터링 지원)
 @router.get('/')
-def get_budgets():
-    result = supabase.table('budgets').select('*').execute()
+def get_budgets(project_id: Optional[str] = None):
+    query = supabase.table('budgets').select('*')
+    if project_id:
+        query = query.eq('project_id', project_id)
+    result = query.execute()
     return result.data
 
 
@@ -51,9 +54,7 @@ def get_budgets_by_project(project_id: str):
 # 예산 단일 조회
 @router.get('/{budget_id}')
 def get_budget(budget_id: str):
-    result = supabase.table('budgets').select('*').eq('id', budget_id).single().execute()
-
-    if result.error:
+    if not result.data:
         raise HTTPException(status_code=404, detail='해당 예산을 찾을 수 없습니다.')
 
     return result.data
@@ -74,11 +75,8 @@ def create_budget(data: BudgetCreate):
         'notes': data.notes
     }
 
-    result = supabase.table('budgets').insert(insert_data).select().single().execute()
-    if result.error:
-        raise HTTPException(status_code=500, detail=str(result.error))
-
-    return result.data
+    result = supabase.table('budgets').insert(insert_data).execute()
+    return result.data[0] if result.data else None
 
 
 # 예산 수정
@@ -92,11 +90,8 @@ def update_budget(budget_id: str, data: BudgetUpdate):
     if not check.data:
         raise HTTPException(status_code=404, detail='해당 예산을 찾을 수 없습니다.')
 
-    result = supabase.table('budgets').update(update_data).eq('id', budget_id).select().single().execute()
-    if result.error:
-        raise HTTPException(status_code=500, detail=str(result.error))
-
-    return result.data
+    result = supabase.table('budgets').update(update_data).eq('id', budget_id).execute()
+    return result.data[0] if result.data else None
 
 
 # 예산 삭제
@@ -106,10 +101,7 @@ def delete_budget(budget_id: str):
     if not check.data:
         raise HTTPException(status_code=404, detail='해당 예산을 찾을 수 없습니다.')
 
-    result = supabase.table('budgets').delete().eq('id', budget_id).execute()
-    if result.error:
-        raise HTTPException(status_code=500, detail=str(result.error))
-
+    supabase.table('budgets').delete().eq('id', budget_id).execute()
     return {'deleted': True}
 
 
@@ -117,7 +109,6 @@ import uuid
 
 # 예산 항목 목록 조회 ( compatibility: GET /budget-items?budget_id=... )
 @router.get('/items')
-@router.get('/')
 def get_budget_items(budget_id: Optional[str] = None):
     try:
         query = supabase.table('budget_items').select('*')
@@ -136,10 +127,8 @@ def get_budget_items(budget_id: Optional[str] = None):
 # 예산 항목 생성
 @router.post('/items')
 def create_budget_item(data: dict):
-    result = supabase.table('budget_items').insert(data).select().single().execute()
-    if result.error:
-        raise HTTPException(status_code=500, detail=str(result.error))
-    return result.data
+    result = supabase.table('budget_items').insert(data).execute()
+    return result.data[0] if result.data else None
 
 
 # 예산 항목 수정
@@ -148,23 +137,19 @@ def update_budget_item(item_id: str, data: dict):
     update_data = {k: v for k, v in data.items() if v is not None}
     if not update_data:
         raise HTTPException(status_code=400, detail='수정할 값이 없습니다.')
-    existing = supabase.table('budget_items').select('*').eq('id', item_id).single().execute()
-    if existing.error or not existing.data:
+    existing = supabase.table('budget_items').select('*').eq('id', item_id).execute()
+    if not existing.data:
         raise HTTPException(status_code=404, detail='해당 예산 항목을 찾을 수 없습니다.')
-    result = supabase.table('budget_items').update(update_data).eq('id', item_id).select().single().execute()
-    if result.error:
-        raise HTTPException(status_code=500, detail=str(result.error))
-    return result.data
+    result = supabase.table('budget_items').update(update_data).eq('id', item_id).execute()
+    return result.data[0] if result.data else None
 
 
 # 예산 항목 삭제
 @router.delete('/items/{item_id}')
 def delete_budget_item(item_id: str):
-    existing = supabase.table('budget_items').select('*').eq('id', item_id).single().execute()
-    if existing.error or not existing.data:
+    existing = supabase.table('budget_items').select('*').eq('id', item_id).execute()
+    if not existing.data:
         raise HTTPException(status_code=404, detail='해당 예산 항목을 찾을 수 없습니다.')
-    result = supabase.table('budget_items').delete().eq('id', item_id).execute()
-    if result.error:
-        raise HTTPException(status_code=500, detail=str(result.error))
+    supabase.table('budget_items').delete().eq('id', item_id).execute()
     return {'deleted': True}
 

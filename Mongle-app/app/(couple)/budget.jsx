@@ -335,9 +335,27 @@ export default function BudgetHubScreen() {
         onClose={() => setOptimizationModalVisible(false)}
         totalBudget={budgetTotal}
         costItems={costItems}
-        onApplyPlan={(plan) => {
-          Alert.alert('알림', 'AI 추천 플랜이 수립되었습니다. 명세서에 수동으로 반영해 주세요.');
-          setOptimizationModalVisible(false);
+        onApplyPlan={async (plan) => {
+          try {
+            for (const change of plan.changes) {
+              // change.category는 영문 코드 (예: 'wedding_hall')
+              // costItem.label은 한글 (예: '웨딩홀')
+              const item = costItems.find(
+                (i) => (CATEGORY_MAP[i.label] || i.label) === change.category
+              );
+              if (item?.id) {
+                await budgetsApi.updateBudgetItem(item.id, {
+                  value: change.to.price_min,
+                });
+              }
+            }
+            queryClient.invalidateQueries({ queryKey: ['budgetItems'] });
+            queryClient.invalidateQueries({ queryKey: ['budget'] });
+            setOptimizationModalVisible(false);
+            Alert.alert('적용 완료', `${plan.title} 플랜이 적용되었습니다.`);
+          } catch (e) {
+            Alert.alert('오류', '플랜 적용 중 문제가 발생했습니다.');
+          }
         }}
       />
     </SafeAreaView>
@@ -366,17 +384,25 @@ function CostEditModal({ visible, projectId, budget, items, onClose }) {
       setDraftBudget((budget?.total_amount || 0).toString());
       setActiveTab('cost');
     }
-  }, [visible, items, budget]);
+  // items/budget 변경 시 재초기화 방지 (저장 중 쿼리 무효화로 인한 draft 리셋 방지)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [visible]);
 
   // Mutations
   const createBudgetItemMutation = useMutation({
-    mutationFn: budgetsApi.createBudgetItem,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['budgetItems'] }),
+    mutationFn: (data) => budgetsApi.createBudgetItem(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['budgetItems'] });
+      queryClient.invalidateQueries({ queryKey: ['budget'] });
+    },
   });
 
   const updateBudgetItemMutation = useMutation({
     mutationFn: ({ id, data }) => budgetsApi.updateBudgetItem(id, data),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['budgetItems'] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['budgetItems'] });
+      queryClient.invalidateQueries({ queryKey: ['budget'] });
+    },
   });
 
   const deleteBudgetItemMutation = useMutation({
@@ -405,7 +431,7 @@ function CostEditModal({ visible, projectId, budget, items, onClose }) {
           total_amount: parseInt(draftBudget) || 0,
           spent: draftItems.reduce((acc, i) => acc + (parseInt(i.spent || i.value) || 0), 0)
         });
-        currentBudgetId = resp[0]?.id;
+        currentBudgetId = resp?.id;
       } else {
         // Update Budget
         await updateBudgetMutation.mutateAsync({
@@ -439,7 +465,7 @@ function CostEditModal({ visible, projectId, budget, items, onClose }) {
           value: parseInt(item.value) || 0,
           spent: item.spent || 0,
           has_balance: item.has_balance,
-          balance_due: item.balance_due,
+          balance_due: item.balance_due || null,
           balance_amount: parseInt(item.balance_amount) || 0,
           vendor_id: item.vendor_id,
           vendor_name: item.vendor_name

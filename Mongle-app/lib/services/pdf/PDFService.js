@@ -1,5 +1,6 @@
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
+import * as FileSystem from 'expo-file-system/legacy';
 import { Platform } from 'react-native';
 import { PDFTemplates } from './PDFTemplates';
 import { HistoryService } from '../history/HistoryService';
@@ -16,21 +17,18 @@ export const PDFService = {
    */
   async generateAndShare(html, fileName) {
     try {
-      const { uri } = await Print.printToFileAsync({ 
+      const { uri } = await Print.printToFileAsync({
         html,
-        base64: false 
+        base64: false
       });
 
-      console.log('PDF generated at:', uri);
-
-      if (Platform.OS === 'ios') {
-        // Renaming on iOS might need extra steps if sharing doesn't pick up filename,
-        // but expo-sharing handles basic sharing.
-      }
+      // UUID 파일명을 읽기 좋은 이름으로 변경
+      const namedUri = FileSystem.cacheDirectory + fileName;
+      await FileSystem.copyAsync({ from: uri, to: namedUri });
 
       const canShare = await Sharing.isAvailableAsync();
       if (canShare) {
-        await Sharing.shareAsync(uri, {
+        await Sharing.shareAsync(namedUri, {
           mimeType: 'application/pdf',
           dialogTitle: fileName,
           UTI: 'com.adobe.pdf'
@@ -39,8 +37,8 @@ export const PDFService = {
         // Add to persistent history
         await HistoryService.addHistory({
           name: fileName,
-          type: fileName.includes('budget') ? '예산 명세서' : '견적 비교서',
-          uri: uri
+          type: fileName.includes('예산') ? '예산 명세서' : '견적 비교서',
+          uri: namedUri
         });
 
         return { success: true, uri };
@@ -70,8 +68,9 @@ export const PDFService = {
       })),
       generatedAt: new Date().toLocaleString()
     });
-    const dateStr = new Date().toISOString().split('T')[0];
-    const fileName = `wedding-budget-${dateStr}.pdf`;
+    const now = new Date();
+    const dateStr = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}`;
+    const fileName = `웨딩예산_${dateStr}.pdf`;
     return await this.generateAndShare(html, fileName);
   },
 
@@ -80,8 +79,9 @@ export const PDFService = {
    */
   async saveComparisonReport(analysisResult) {
     const html = PDFTemplates.getComparisonReportHTML(analysisResult);
-    const dateStr = new Date().toISOString().split('T')[0];
-    const fileName = `estimation-comparison-${dateStr}.pdf`;
+    const now = new Date();
+    const dateStr = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}`;
+    const fileName = `견적비교_${dateStr}.pdf`;
     return await this.generateAndShare(html, fileName);
   }
 };

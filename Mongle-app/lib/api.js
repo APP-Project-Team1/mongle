@@ -102,10 +102,10 @@ export const budgetsApi = {
   createBudget: (data) => api.post('/budgets/', data),
   updateBudget: (id, data) => api.put(`/budgets/${id}`, data),
   deleteBudget: (id) => api.del(`/budgets/${id}`),
-  getBudgetItems: (budgetId) => api.get('/budget-items/', { budget_id: budgetId }),
-  createBudgetItem: (data) => api.post('/budget-items/', data),
-  updateBudgetItem: (id, data) => api.put(`/budget-items/${id}`, data),
-  deleteBudgetItem: (id) => api.del(`/budget-items/${id}`),
+  getBudgetItems: (budgetId) => api.get('/budgets/items', { budget_id: budgetId }),
+  createBudgetItem: (data) => api.post('/budgets/items', data),
+  updateBudgetItem: (id, data) => api.put(`/budgets/items/${id}`, data),
+  deleteBudgetItem: (id) => api.del(`/budgets/items/${id}`),
 }
 
 // 커플 관련 API

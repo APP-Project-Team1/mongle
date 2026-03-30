@@ -22,6 +22,18 @@ export const ComparisonEngine = {
       const excludedItems = Array.isArray(item.excludedItems) ? item.excludedItems : [];
       const refundPolicy = item.refundPolicy || '정보 없음';
 
+      const guaranteedCapacity = Number(item.guaranteedCapacity) || 0;
+      const minCapacity = Number(item.minCapacity) || 0;
+      const capacity = Number(item.capacity) || 0;
+      const foodPricePerPerson = Number(item.foodPricePerPerson) || 0;
+      const totalFoodPrice = Number(item.totalFoodPrice) || 0;
+      const rentalFee = Number(item.rentalFee) || 0;
+      const decorationPrice = Number(item.decorationPrice) || 0;
+      const serviceChargePercent = Number(item.serviceChargePercent) || 0;
+      const vatPercent = Number(item.vatPercent) || 10;
+      const deposit = Number(item.deposit) || 0;
+      const balance = Number(item.balance) || 0;
+
       const safeItem = {
         ...item,
         totalPrice,
@@ -30,10 +42,22 @@ export const ComparisonEngine = {
         vatIncluded,
         includedItems,
         excludedItems,
-        refundPolicy
+        refundPolicy,
+        guaranteedCapacity,
+        minCapacity,
+        capacity,
+        foodPricePerPerson,
+        totalFoodPrice,
+        rentalFee,
+        decorationPrice,
+        serviceChargePercent,
+        vatPercent,
+        deposit,
+        balance,
       };
 
-      const realCost = totalPrice + optionsPrice - discountPrice + (vatIncluded ? 0 : totalPrice * 0.1);
+      const vatRate = vatPercent / 100;
+      const realCost = totalPrice + optionsPrice - discountPrice + (vatIncluded ? 0 : totalPrice * vatRate);
       
       return {
         ...safeItem,
@@ -82,50 +106,69 @@ export const ComparisonEngine = {
 
   calculateCompletenessScore(item) {
     let score = 0;
-    if (item.includedItems.length > 3) score += 40;
-    if (item.rawFilesIncluded) score += 20;
-    if (item.retouchedFilesIncluded) score += 20;
-    if (item.duration) score += 20;
-    return score;
+    // 포함 항목 수 (웨딩홀·스드메 공통)
+    if (item.includedItems.length >= 3) score += 20;
+    if (item.includedItems.length >= 6) score += 20;
+    if (item.includedItems.length >= 10) score += 10;
+    // 가격 투명성
+    if (item.vatIncluded) score += 15;
+    if (item.deposit > 0) score += 10;
+    if (item.discountPrice > 0) score += 10;
+    // 상세 정보 제공 여부
+    if (item.rentalFee > 0) score += 5;
+    if (item.foodPricePerPerson > 0) score += 5;
+    if (item.guaranteedCapacity > 0) score += 5;
+    return Math.min(score, 100);
   },
 
   calculateValueScore(item, realCost) {
-    // Basic value calculation: Completeness / Price relative to average
-    const completeness = this.calculateCompletenessScore(item);
-    return Math.round((completeness * 1000000) / realCost);
+    if (!realCost || realCost <= 0) return 0;
+    // 가성비 = 가격이 낮을수록 유리 (기본 점수)
+    // 포함 항목·VAT 포함·할인은 최대 8% 보너스로 제한 → 10% 이상 가격차는 극복 불가
+    const baseScore = (1 / realCost) * 1e12;
+    const includedBonus = Math.min(item.includedItems.length * 0.005, 0.04); // max 4%
+    const vatBonus = item.vatIncluded ? 0.02 : 0;                            // 2%
+    const discountBonus = item.discountPrice > 0 ? 0.01 : 0;                 // 1%
+    const depositBonus = item.deposit > 0 ? 0.01 : 0;                        // 1%
+    const totalBonus = Math.min(includedBonus + vatBonus + discountBonus + depositBonus, 0.08);
+    return Math.round(baseScore * (1 + totalBonus));
   },
 
   getPros(item) {
     const pros = [];
-    if (item.vatIncluded) pros.push("VAT 포함 견적 (투명성 높음)");
-    if (item.discountPrice > 0) pros.push(`상당한 할인 혜택 (${(item.discountPrice || 0).toLocaleString()}원)`);
-    if ((item.includedItems || []).length > 5) pros.push("기본 포함 품목이 매우 다양함");
-    if (item.rawFilesIncluded) pros.push("원본 데이터 기본 제공");
-    if (item.refundPolicy.includes('100%')) pros.push("환불 규정이 소비자에게 유리");
-    
-    // Default fallback
+    if (item.vatIncluded) pros.push("부가세 포함 견적 (실제 납부액 투명)");
+    if (item.discountPrice > 0) pros.push(`할인 혜택 적용 (${(item.discountPrice).toLocaleString()}원 절감)`);
+    if (item.includedItems.length >= 10) pros.push("기본 포함 항목이 매우 풍부함");
+    else if (item.includedItems.length >= 6) pros.push("기본 포함 항목이 다양함");
+    if (item.rentalFee === 0 && item.category === '웨딩홀') pros.push("대관료 별도 없음 (패키지 포함)");
+    if (item.decorationPrice > 0 && item.includedItems.some(i => i.includes('데코') || i.includes('꽃'))) pros.push("데코레이션 기본 포함");
+    if (item.refundPolicy && item.refundPolicy.includes('100%')) pros.push("환불 규정이 소비자에게 유리");
+    if (item.serviceChargePercent === 0) pros.push("봉사료 없음");
     if (pros.length === 0) pros.push("표준적인 구성");
-    return pros.slice(0, 3);
+    return pros.slice(0, 4);
   },
 
   getCons(item) {
     const cons = [];
-    if (!item.vatIncluded) cons.push("VAT 10% 별도 결제 필요");
-    if (item.optionsPrice > 0) cons.push("추가 옵션 비용 발생 가능성 높음");
-    if (item.excludedItems.length > 2) cons.push("주요 항목 중 불포함된 사항이 있음");
+    if (!item.vatIncluded) cons.push(`부가세 ${item.vatPercent || 10}% 별도 — 실제 납부액 더 높음`);
+    if (item.serviceChargePercent > 0) cons.push(`봉사료 ${item.serviceChargePercent}% 별도 부과`);
+    if (item.optionsPrice > item.totalPrice * 0.15) cons.push(`추가 옵션 비용 높음 (${item.optionsPrice.toLocaleString()}원)`);
+    if (item.excludedItems.length > 2) cons.push(`불포함 항목 다수 (${item.excludedItems.length}건) — 추가 비용 발생 가능`);
+    if (item.refundPolicy && item.refundPolicy.includes('불가')) cons.push("취소 시 위약금 리스크 높음");
     if (!item.rawFilesIncluded && item.category === '스튜디오') cons.push("원본 파일 별도 구매 필요");
-    if (item.refundPolicy.includes('불가')) cons.push("예약 취소 시 위약금 리스크");
-    
+    if (item.guaranteedCapacity > 0 && item.capacity > 0 && item.guaranteedCapacity / item.capacity > 0.8) cons.push("보증인원이 수용인원 대비 높아 비용 부담 있음");
     if (cons.length === 0) cons.push("특이사항 없음");
-    return cons.slice(0, 3);
+    return cons.slice(0, 4);
   },
 
   getQuestions(item) {
     const questions = [];
-    if (!item.vatIncluded) questions.push("카드/현금가 동일 여부 확인");
-    if (item.excludedItems.length > 0) questions.push(`${item.excludedItems[0]} 비용 구체적 확인`);
-    questions.push("보증인원 변경 가능한 최소 시점");
-    questions.push("당일 계약 추가 혜택 유효 기간");
-    return questions.slice(0, 3);
+    if (!item.vatIncluded) questions.push("카드 결제 시 현금가와 동일한지 확인");
+    if (item.serviceChargePercent > 0) questions.push(`봉사료 ${item.serviceChargePercent}% 면제 협의 가능 여부`);
+    if (item.guaranteedCapacity > 0) questions.push(`보증인원(${item.guaranteedCapacity}명) 하향 조정 가능 시점`);
+    else questions.push("보증인원 및 변경 가능한 최소 시점 확인");
+    if (item.excludedItems.length > 0) questions.push(`불포함 항목(${item.excludedItems[0]}) 별도 비용 구체적 확인`);
+    questions.push("계약 후 메뉴·데코 변경 가능 범위 확인");
+    return questions.slice(0, 4);
   }
 };

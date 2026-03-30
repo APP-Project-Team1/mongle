@@ -13,7 +13,6 @@ import {
   Modal,
   Alert,
   Share,
-  ScrollView,
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -37,9 +36,6 @@ export default function ChatRoomScreen() {
 
   // 초대 모달
   const [isInviteModalVisible, setInviteModalVisible] = useState(false);
-  const [inviteTab, setInviteTab] = useState('email'); // 'email' | 'code'
-  const [inviteEmail, setInviteEmail] = useState('');
-  const [inviting, setInviting] = useState(false);
   const [inviteCode, setInviteCode] = useState('');
   const [generatingCode, setGeneratingCode] = useState(false);
 
@@ -72,17 +68,18 @@ export default function ChatRoomScreen() {
         } = await supabase.auth.getUser();
         const uid = user?.id;
 
-        // 채팅방 제목
+        // 채팅방 제목 + 기존 초대 코드 함께 조회
         const { data: chatData, error: chatError } = await supabase
           .from('chats')
-          .select('title')
+          .select('title, invite_code')
           .eq('id', chatId)
           .single();
 
         if (chatError) console.error('채팅방 조회 오류:', chatError.message);
         if (chatData?.title) setChatTitle(chatData.title);
+        if (chatData?.invite_code) setInviteCode(chatData.invite_code);
 
-        // 멤버 목록 조회 (profiles 조인 없이 별도 조회)
+        // 멤버 목록 조회
         const { data: memberData, error: memberError } = await supabase
           .from('chat_members')
           .select('user_id, role')
@@ -91,19 +88,7 @@ export default function ChatRoomScreen() {
         if (memberError) {
           console.error('멤버 조회 오류:', memberError.message);
         } else if (memberData) {
-          // profiles 별도 조회
-          const userIds = memberData.map((m) => m.user_id);
-          const { data: profilesData } = await supabase
-            .from('profiles')
-            .select('id, display_name, email')
-            .in('id', userIds);
-
-          const membersWithProfiles = memberData.map((m) => ({
-            ...m,
-            profiles: profilesData?.find((p) => p.id === m.user_id) ?? null,
-          }));
-
-          setMembers(membersWithProfiles);
+          setMembers(memberData);
           const myRole = memberData.find((m) => m.user_id === uid)?.role;
           setIsOwner(myRole === 'owner');
         }
@@ -123,7 +108,6 @@ export default function ChatRoomScreen() {
       } catch (e) {
         console.error('fetchChatData 예외:', e);
       } finally {
-        // 어떤 오류가 나도 반드시 로딩 종료
         setLoading(false);
       }
     };
@@ -174,7 +158,6 @@ export default function ChatRoomScreen() {
 
       if (error) throw error;
 
-      // 낙관적 메시지를 실제 데이터로 교체
       setMessages((prev) => prev.map((m) => (m.id === optimisticId ? data[0] : m)));
     } catch (e) {
       console.error('메시지 전송 오류:', e);
@@ -182,64 +165,6 @@ export default function ChatRoomScreen() {
     } finally {
       setSending(false);
     }
-  };
-
-  // ── 이메일로 초대 ──
-  const handleInviteByEmail = async () => {
-    const email = inviteEmail.trim().toLowerCase();
-    if (!email) {
-      Alert.alert('알림', '초대할 사람의 이메일을 입력해주세요.');
-      return;
-    }
-
-    setInviting(true);
-
-    // profiles 테이블에서 이메일로 유저 검색
-    const { data: profile, error: profileError } = await supabase
-      .from('profiles')
-      .select('id, display_name, email')
-      .eq('email', email)
-      .maybeSingle();
-
-    if (profileError || !profile) {
-      Alert.alert('사용자 없음', '해당 이메일로 가입된 사용자를 찾을 수 없습니다.');
-      setInviting(false);
-      return;
-    }
-
-    // 이미 멤버인지 확인
-    const alreadyMember = members.some((m) => m.user_id === profile.id);
-    if (alreadyMember) {
-      Alert.alert('알림', '이미 채팅방 멤버입니다.');
-      setInviting(false);
-      return;
-    }
-
-    // chat_members에 추가
-    const { error: insertError } = await supabase.from('chat_members').insert({
-      chat_id: chatId,
-      user_id: profile.id,
-      role: 'member',
-    });
-
-    if (insertError) {
-      Alert.alert('오류', '초대에 실패했습니다.');
-      console.error(insertError.message);
-      setInviting(false);
-      return;
-    }
-
-    // 시스템 메시지 전송
-    await supabase.from('messages').insert({
-      chat_id: chatId,
-      sender: 'system',
-      content: `${profile.display_name || email}님이 채팅방에 참여했습니다.`,
-    });
-
-    setMembers((prev) => [...prev, { user_id: profile.id, role: 'member', profiles: profile }]);
-    setInviteEmail('');
-    Alert.alert('초대 완료', `${profile.display_name || email}님을 초대했습니다.`);
-    setInviting(false);
   };
 
   // ── 초대 코드 생성 ──
@@ -250,10 +175,7 @@ export default function ChatRoomScreen() {
     const { error } = await supabase.from('chats').update({ invite_code: code }).eq('id', chatId);
 
     if (error) {
-      Alert.alert(
-        '오류',
-        '초대 코드 생성에 실패했습니다.\n\nSupabase에서 먼저 실행해주세요:\nALTER TABLE chats ADD COLUMN invite_code TEXT UNIQUE;',
-      );
+      Alert.alert('오류', '초대 코드 생성에 실패했습니다.');
       console.error(error.message);
       setGeneratingCode(false);
       return;
@@ -277,8 +199,7 @@ export default function ChatRoomScreen() {
 
   // ── 멤버 강퇴 (owner만) ──
   const handleKickMember = (member) => {
-    const name = member.profiles?.display_name || member.profiles?.email || '이 멤버';
-    Alert.alert('멤버 강퇴', `${name}를 채팅방에서 내보내시겠습니까?`, [
+    Alert.alert('멤버 강퇴', '이 멤버를 채팅방에서 내보내시겠습니까?', [
       { text: '취소', style: 'cancel' },
       {
         text: '내보내기',
@@ -298,7 +219,7 @@ export default function ChatRoomScreen() {
           await supabase.from('messages').insert({
             chat_id: chatId,
             sender: 'system',
-            content: `${name}님이 채팅방에서 나갔습니다.`,
+            content: '멤버가 채팅방에서 나갔습니다.',
           });
 
           setMembers((prev) => prev.filter((m) => m.user_id !== member.user_id));
@@ -427,7 +348,7 @@ export default function ChatRoomScreen() {
             <Text style={styles.menuMemberCount}>멤버 {members.length}명</Text>
 
             {/* 멤버 목록 */}
-            <ScrollView style={styles.memberList}>
+            <View style={styles.memberList}>
               {members.map((m) => (
                 <View key={m.user_id} style={styles.memberRow}>
                   <View style={styles.memberAvatar}>
@@ -435,8 +356,7 @@ export default function ChatRoomScreen() {
                   </View>
                   <View style={styles.memberInfo}>
                     <Text style={styles.memberName}>
-                      {m.profiles?.display_name || m.profiles?.email || '알 수 없음'}
-                      {m.user_id === currentUserId ? ' (나)' : ''}
+                      {m.user_id === currentUserId ? '나' : '멤버'}
                     </Text>
                     {m.role === 'owner' && <Text style={styles.ownerLabel}>방장</Text>}
                   </View>
@@ -447,7 +367,7 @@ export default function ChatRoomScreen() {
                   )}
                 </View>
               ))}
-            </ScrollView>
+            </View>
 
             <View style={styles.menuDivider} />
 
@@ -471,7 +391,7 @@ export default function ChatRoomScreen() {
         </TouchableOpacity>
       </Modal>
 
-      {/* ── 초대 모달 ── */}
+      {/* ── 초대 코드 모달 ── */}
       <Modal
         visible={isInviteModalVisible}
         transparent={true}
@@ -483,145 +403,62 @@ export default function ChatRoomScreen() {
           style={styles.inviteOverlay}
         >
           <View style={styles.inviteSheet}>
-            {/* 모달 헤더 */}
             <View style={styles.inviteHeader}>
               <Text style={styles.inviteTitle}>멤버 초대</Text>
-              <TouchableOpacity
-                onPress={() => {
-                  setInviteModalVisible(false);
-                  setInviteEmail('');
-                  setInviteCode('');
-                }}
-              >
+              <TouchableOpacity onPress={() => setInviteModalVisible(false)}>
                 <Ionicons name="close" size={24} color="#3a2e2a" />
               </TouchableOpacity>
             </View>
 
-            {/* 탭 */}
-            <View style={styles.tabRow}>
-              <TouchableOpacity
-                style={[styles.tab, inviteTab === 'email' && styles.tabActive]}
-                onPress={() => setInviteTab('email')}
-              >
-                <Ionicons
-                  name="mail-outline"
-                  size={16}
-                  color={inviteTab === 'email' ? '#c9a98e' : '#8a7870'}
-                />
-                <Text style={[styles.tabText, inviteTab === 'email' && styles.tabTextActive]}>
-                  이메일로 초대
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.tab, inviteTab === 'code' && styles.tabActive]}
-                onPress={() => setInviteTab('code')}
-              >
-                <Ionicons
-                  name="key-outline"
-                  size={16}
-                  color={inviteTab === 'code' ? '#c9a98e' : '#8a7870'}
-                />
-                <Text style={[styles.tabText, inviteTab === 'code' && styles.tabTextActive]}>
-                  초대 코드
-                </Text>
-              </TouchableOpacity>
-            </View>
+            <View style={styles.codeSection}>
+              <Text style={styles.codeDesc}>
+                초대 코드를 생성해 공유하세요.{'\n'}코드를 받은 사람은 앱에서 코드를 입력해 참여할
+                수 있습니다.
+              </Text>
 
-            {/* 이메일 초대 탭 */}
-            {inviteTab === 'email' && (
-              <View style={styles.tabContent}>
-                <Text style={styles.tabDesc}>
-                  초대할 사람의 이메일 주소를 입력하세요.{'\n'}앱에 가입된 계정만 초대할 수
-                  있습니다.
-                </Text>
-                <View style={styles.inputWrap}>
-                  <Ionicons
-                    name="mail-outline"
-                    size={16}
-                    color="#8a7870"
-                    style={{ marginRight: 10 }}
-                  />
-                  <TextInput
-                    style={styles.inviteInput}
-                    placeholder="example@email.com"
-                    placeholderTextColor="#8a7870"
-                    value={inviteEmail}
-                    onChangeText={setInviteEmail}
-                    keyboardType="email-address"
-                    autoCapitalize="none"
-                  />
+              {inviteCode ? (
+                <View style={styles.codeBox}>
+                  <Text style={styles.codeText}>{inviteCode}</Text>
+                  <Text style={styles.codeHint}>이 코드를 상대방에게 공유하세요</Text>
                 </View>
+              ) : (
+                <View style={styles.codeEmptyBox}>
+                  <Ionicons name="key-outline" size={32} color="#e8e0dc" />
+                  <Text style={styles.codeEmptyText}>아직 코드가 없습니다</Text>
+                </View>
+              )}
+
+              <View style={styles.codeActions}>
                 <TouchableOpacity
-                  style={[
-                    styles.inviteBtn,
-                    (!inviteEmail.trim() || inviting) && styles.inviteBtnDisabled,
-                  ]}
-                  onPress={handleInviteByEmail}
-                  disabled={!inviteEmail.trim() || inviting}
+                  style={[styles.codeBtn, styles.codeGenerateBtn]}
+                  onPress={handleGenerateCode}
+                  disabled={generatingCode}
                 >
-                  {inviting ? (
+                  {generatingCode ? (
                     <ActivityIndicator size="small" color="#fff" />
                   ) : (
-                    <Text style={styles.inviteBtnText}>초대 보내기</Text>
+                    <>
+                      <Ionicons name="refresh-outline" size={16} color="#fff" />
+                      <Text style={styles.codeBtnText}>
+                        {inviteCode ? '코드 재생성' : '코드 생성'}
+                      </Text>
+                    </>
                   )}
                 </TouchableOpacity>
-              </View>
-            )}
 
-            {/* 초대 코드 탭 */}
-            {inviteTab === 'code' && (
-              <View style={styles.tabContent}>
-                <Text style={styles.tabDesc}>
-                  초대 코드를 생성해 공유하세요.{'\n'}코드를 받은 사람은 앱에서 코드를 입력해 참여할
-                  수 있습니다.
-                </Text>
-
-                {inviteCode ? (
-                  <View style={styles.codeBox}>
-                    <Text style={styles.codeText}>{inviteCode}</Text>
-                    <Text style={styles.codeHint}>이 코드를 상대방에게 공유하세요</Text>
-                  </View>
-                ) : (
-                  <View style={styles.codeEmptyBox}>
-                    <Ionicons name="key-outline" size={32} color="#e8e0dc" />
-                    <Text style={styles.codeEmptyText}>아직 코드가 없습니다</Text>
-                  </View>
-                )}
-
-                <View style={styles.codeActions}>
+                {inviteCode && (
                   <TouchableOpacity
-                    style={[styles.codeBtn, styles.codeGenerateBtn]}
-                    onPress={handleGenerateCode}
-                    disabled={generatingCode}
+                    style={[styles.codeBtn, styles.codeShareBtn]}
+                    onPress={handleShareCode}
                   >
-                    {generatingCode ? (
-                      <ActivityIndicator size="small" color="#fff" />
-                    ) : (
-                      <>
-                        <Ionicons name="refresh-outline" size={16} color="#fff" />
-                        <Text style={styles.codeBtnText}>
-                          {inviteCode ? '코드 재생성' : '코드 생성'}
-                        </Text>
-                      </>
-                    )}
+                    <Ionicons name="share-outline" size={16} color="#c9a98e" />
+                    <Text style={[styles.codeBtnText, { color: '#c9a98e' }]}>공유</Text>
                   </TouchableOpacity>
-
-                  {inviteCode && (
-                    <TouchableOpacity
-                      style={[styles.codeBtn, styles.codeShareBtn]}
-                      onPress={handleShareCode}
-                    >
-                      <Ionicons name="share-outline" size={16} color="#c9a98e" />
-                      <Text style={[styles.codeBtnText, { color: '#c9a98e' }]}>공유</Text>
-                    </TouchableOpacity>
-                  )}
-                </View>
-
-                <Text style={styles.codeWarning}>
-                  ⚠️ 코드를 재생성하면 기존 코드는 무효화됩니다.
-                </Text>
+                )}
               </View>
-            )}
+
+              <Text style={styles.codeWarning}>⚠️ 코드를 재생성하면 기존 코드는 무효화됩니다.</Text>
+            </View>
           </View>
         </KeyboardAvoidingView>
       </Modal>
@@ -795,51 +632,8 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   inviteTitle: { fontSize: 18, fontWeight: 'bold', color: '#3a2e2a' },
-
-  // Tabs
-  tabRow: {
-    flexDirection: 'row',
-    gap: 8,
-    marginBottom: 20,
-    backgroundColor: '#f5f0ee',
-    borderRadius: 12,
-    padding: 4,
-  },
-  tab: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-    paddingVertical: 10,
-    borderRadius: 10,
-  },
-  tabActive: { backgroundColor: '#fff' },
-  tabText: { fontSize: 14, color: '#8a7870', fontWeight: '500' },
-  tabTextActive: { color: '#c9a98e', fontWeight: '600' },
-  tabContent: { gap: 16 },
-  tabDesc: { fontSize: 14, color: '#8a7870', lineHeight: 20 },
-
-  // Email invite
-  inputWrap: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#f5f0ee',
-    borderRadius: 12,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-  },
-  inviteInput: { flex: 1, fontSize: 14, color: '#3a2e2a' },
-  inviteBtn: {
-    backgroundColor: '#c9a98e',
-    borderRadius: 12,
-    paddingVertical: 14,
-    alignItems: 'center',
-  },
-  inviteBtnDisabled: { backgroundColor: '#e8ddd8' },
-  inviteBtnText: { color: '#fff', fontWeight: '600', fontSize: 15 },
-
-  // Code invite
+  codeSection: { gap: 16 },
+  codeDesc: { fontSize: 14, color: '#8a7870', lineHeight: 20 },
   codeBox: {
     backgroundColor: '#fdf5ee',
     borderRadius: 16,

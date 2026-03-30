@@ -414,10 +414,31 @@ export default function ChatScreen() {
     ]);
   };
 
+  const AIAssistantEntry = () => (
+    <TouchableOpacity
+      style={styles.aiRoomItem}
+      onPress={() => router.push('/(couple)/chat/ai')}
+      activeOpacity={0.7}
+    >
+      <View style={styles.aiRoomIcon}>
+        <Ionicons name="sparkles" size={20} color="#fff" />
+      </View>
+      <View style={styles.roomInfo}>
+        <View style={styles.roomHeader}>
+          <Text style={styles.roomTitle}>AI 어시스턴트</Text>
+          <View style={styles.aiBadge}>
+            <Text style={styles.aiBadgeText}>AI</Text>
+          </View>
+        </View>
+        <Text style={styles.roomMessage}>스튜디오, 드레스, 웨딩홀, 플래너를 추천해드려요</Text>
+      </View>
+    </TouchableOpacity>
+  );
+
   const renderRoom = ({ item }) => (
     <TouchableOpacity
       style={styles.roomItem}
-      onPress={() => router.push(`/(planner)/chat/${item.id}`)}
+      onPress={() => router.push(`/(couple)/chat/${item.id}`)}
       onLongPress={() => handleLongPress(item)}
       activeOpacity={0.7}
     >
@@ -495,6 +516,7 @@ export default function ChatScreen() {
       ) : (
         <FlatList
           data={rooms}
+          ListHeaderComponent={<AIAssistantEntry />}
           keyExtractor={(item) => item.id}
           renderItem={renderRoom}
           contentContainerStyle={styles.listContainer}

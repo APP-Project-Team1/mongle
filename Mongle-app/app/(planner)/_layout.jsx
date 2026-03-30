@@ -51,9 +51,7 @@ export default function PlannerLayout() {
           ),
         }}
       />
-      <Tabs.Screen name="wedding_vendor_partners" options={{ href: null }} />
-      <Tabs.Screen name="couple_list" options={{ href: null }} />
-      <Tabs.Screen name="notifications" options={{ href: null }} />
+
       <Tabs.Screen
         name="chat"
         options={{
@@ -73,8 +71,11 @@ export default function PlannerLayout() {
           ),
         }}
       />
-      <Tabs.Screen name="(tabs)" options={{ href: null }} />
+      <Tabs.Screen name="wedding_vendor_partners" options={{ href: null }} />
+      <Tabs.Screen name="couple_list" options={{ href: null }} />
+      <Tabs.Screen name="notifications" options={{ href: null }} />
       <Tabs.Screen name="customer/[id]" options={{ href: null }} />
+      <Tabs.Screen name="(tabs)" options={{ href: null }} />
     </Tabs>
   );
 }

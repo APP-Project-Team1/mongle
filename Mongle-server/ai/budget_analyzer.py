@@ -45,7 +45,8 @@ class BudgetAnalyzer:
             sim = self.calculate_style_similarity(style_tags, v.get("style_tags", []))
             # Score: High is better.
             price_score = 1.0 - (v["price_min"] / current_price) if current_price > 0 else 0
-            score = (sim * 0.6) + (price_score * 0.4)
+            # Higher weight on price_score (0.7) for better budget optimization
+            score = (sim * 0.3) + (price_score * 0.7)
             ranked.append((score, v))
         
         ranked.sort(key=lambda x: x[0], reverse=True)
@@ -220,8 +221,15 @@ class BudgetAnalyzer:
 
 # Helper to load data from JSON strings/files
 def load_sample_data():
-    base_path = "c:/app-project/what-the-menu/Mongle-server/ai/script/vendors/"
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    base_path = os.path.join(current_dir, "script", "vendors")
     vendors = []
+    
+    # Debug print to verify path
+    if not os.path.exists(base_path):
+        print(f"Warning: Vendor data path does not exist: {base_path}")
+    else:
+        print(f"Loading vendor data from: {base_path}")
     
     files = {
         "wedding_hall": "hall_vendors.json",

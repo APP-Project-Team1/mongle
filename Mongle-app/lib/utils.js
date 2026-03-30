@@ -25,6 +25,7 @@ export const CATEGORY_MAP = {
   '스튜디오': 'studio',
   '드레스': 'dress',
   '메이크업': 'makeup',
+  '헤어 (추가 옵션)': 'makeup',
   '본식스냅': 'snapshot',
   '스드메 패키지': 'package',
 };

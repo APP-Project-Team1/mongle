@@ -80,21 +80,47 @@ export default function BudgetOptimizationModal({
   };
 
   const renderPlanCard = (plan) => {
+    const isBestVal = plan.type === 'balanced' || plan.type === 'max_savings';
+    
     return (
-      <View key={plan.type} style={styles.planCard}>
+      <View key={plan.type} style={[styles.planCard, isBestVal && styles.bestPlanCard]}>
+        {isBestVal && (
+          <View style={styles.bestBadge}>
+            <Text style={styles.bestBadgeText}>추천</Text>
+          </View>
+        )}
+        
         <View style={styles.planHeader}>
-          <Text style={styles.planTitle}>{plan.title}</Text>
-          <Text style={styles.planSaved}>-{formatNumber(plan.totalSaved)}만원</Text>
+          <View>
+            <Text style={styles.planTitle}>{plan.title}</Text>
+            <Text style={styles.planSubtitle}>최종 예산: {formatNumber(plan.finalTotal)}만원</Text>
+          </View>
+          <View style={styles.savingsTag}>
+            <Text style={styles.planSaved}>-{formatNumber(plan.totalSaved)}만원</Text>
+          </View>
         </View>
+
+        <View style={styles.divider} />
+        
         <Text style={styles.planExplanation}>{plan.explanation}</Text>
         
+        <View style={styles.changeListHeader}>
+          <Text style={styles.changeListTitle}>주요 변경 항목</Text>
+          <View style={styles.changeCountBadge}>
+            <Text style={styles.changeCountText}>{plan.changes.length}개</Text>
+          </View>
+        </View>
+
         <View style={styles.changeList}>
           {plan.changes.map((c, idx) => (
             <View key={idx} style={styles.changeRow}>
-              <Text style={styles.changeCat}>{CATEGORY_LABEL[c.category] || c.category}</Text>
+              <View style={styles.changeRowLeft}>
+                <View style={styles.dot} />
+                <Text style={styles.changeCat}>{CATEGORY_LABEL[c.category] || c.category}</Text>
+              </View>
               <View style={styles.changePath}>
                 <Text style={styles.oldPrice}>{formatNumber(c.from.price_min)}</Text>
-                <Ionicons name="arrow-forward" size={12} color="#B8A9A5" />
+                <Ionicons name="arrow-forward" size={12} color="#D4C9C5" style={{ marginHorizontal: 4 }} />
                 <Text style={styles.newPrice}>{formatNumber(c.to.price_min)}만</Text>
               </View>
             </View>
@@ -102,10 +128,12 @@ export default function BudgetOptimizationModal({
         </View>
 
         <TouchableOpacity 
-          style={styles.applyBtn}
+          style={[styles.applyBtn, isBestVal && styles.bestApplyBtn]}
           onPress={() => onApplyPlan(plan)}
+          activeOpacity={0.8}
         >
-          <Text style={styles.applyBtnText}>이 플랜 적용하기</Text>
+          <Text style={styles.applyBtnText}>이 플랜으로 적용하기</Text>
+          <Ionicons name="checkmark-circle" size={18} color="#fff" />
         </TouchableOpacity>
       </View>
     );
@@ -184,9 +212,11 @@ export default function BudgetOptimizationModal({
                   <View style={styles.resultsArea}>
                     <Text style={styles.resultSummary}>
                       현재 예산보다 <Text style={styles.highlight}>{formatNumber(result.overflow)}만원</Text> 초과되었습니다.{'\n'}
-                      분석 결과 3가지 대안을 제안합니다.
+                      {result.plans && result.plans.length > 0 
+                        ? `분석 결과 ${result.plans.length}가지 대안을 제안합니다.`
+                        : "현재 조건에서 더 이상 추천할 대안이 없습니다."}
                     </Text>
-                    {result.plans.map(renderPlanCard)}
+                    {result.plans && result.plans.map(renderPlanCard)}
                   </View>
                 ) : (
                   <View style={styles.errorArea}>
@@ -320,133 +350,226 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     marginTop: 16,
-    fontSize: 14,
+    fontSize: 15,
     color: '#6B5B55',
+    fontWeight: '500',
   },
   resultsArea: {
-    gap: 16,
+    gap: 20,
+    paddingBottom: 20,
   },
   resultSummary: {
-    fontSize: 14,
+    fontSize: 15,
     color: '#6B5B55',
-    lineHeight: 22,
+    lineHeight: 24,
     textAlign: 'center',
-    marginBottom: 8,
+    marginBottom: 10,
+    paddingHorizontal: 10,
   },
   highlight: {
     color: '#C9716A',
-    fontWeight: '700',
+    fontWeight: '800',
   },
   planCard: {
-    backgroundColor: '#FBF8F7',
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#F0E8E4',
+    borderRadius: 20,
+    padding: 20,
+    shadowColor: '#2C2420',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 3,
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  bestPlanCard: {
+    borderColor: '#C9716A20',
+    backgroundColor: '#FCFAF9',
     borderWidth: 1.5,
-    borderColor: '#EDE5E2',
-    borderRadius: 16,
-    padding: 16,
+  },
+  bestBadge: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    backgroundColor: '#C9716A',
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderBottomLeftRadius: 12,
+  },
+  bestBadgeText: {
+    color: '#fff',
+    fontSize: 11,
+    fontWeight: '800',
   },
   planHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 10,
+    alignItems: 'flex-start',
+    marginBottom: 16,
   },
   planTitle: {
-    fontSize: 16,
-    fontWeight: '700',
+    fontSize: 18,
+    fontWeight: '800',
     color: '#2C2420',
+    marginBottom: 4,
+  },
+  planSubtitle: {
+    fontSize: 13,
+    color: '#A8928A',
+    fontWeight: '500',
+  },
+  savingsTag: {
+    backgroundColor: '#E8F5EE',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 8,
   },
   planSaved: {
     fontSize: 14,
-    fontWeight: '700',
-    color: '#7A9E8E',
+    fontWeight: '800',
+    color: '#4A8F6A',
+  },
+  divider: {
+    height: 1,
+    backgroundColor: '#F0E8E4',
+    marginBottom: 16,
   },
   planExplanation: {
-    fontSize: 13,
+    fontSize: 14,
     color: '#6B5B55',
-    lineHeight: 18,
-    marginBottom: 16,
+    lineHeight: 22,
+    marginBottom: 20,
+  },
+  changeListHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+    gap: 8,
+  },
+  changeListTitle: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#2C2420',
+  },
+  changeCountBadge: {
+    backgroundColor: '#F5F0EE',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  changeCountText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#A8928A',
   },
   changeList: {
-    backgroundColor: '#fff',
-    borderRadius: 10,
-    padding: 12,
-    gap: 8,
-    marginBottom: 16,
+    backgroundColor: '#FBF8F7',
+    borderRadius: 12,
+    padding: 14,
+    gap: 12,
+    marginBottom: 20,
   },
   changeRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
+  changeRowLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  dot: {
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: '#D4C9C5',
+  },
   changeCat: {
-    fontSize: 12,
-    color: '#8A7870',
-    fontWeight: '500',
+    fontSize: 13,
+    color: '#6B5B55',
+    fontWeight: '600',
   },
   changePath: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
   },
   oldPrice: {
-    fontSize: 12,
-    color: '#B8A9A5',
+    fontSize: 13,
+    color: '#D4C9C5',
     textDecorationLine: 'line-through',
+    fontWeight: '400',
   },
   newPrice: {
-    fontSize: 12,
+    fontSize: 13,
     color: '#C9716A',
-    fontWeight: '600',
+    fontWeight: '800',
   },
   applyBtn: {
-    backgroundColor: '#C9716A',
-    borderRadius: 10,
-    paddingVertical: 12,
+    backgroundColor: '#8A7870',
+    borderRadius: 14,
+    paddingVertical: 14,
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  bestApplyBtn: {
+    backgroundColor: '#C9716A',
   },
   applyBtnText: {
     color: '#fff',
-    fontSize: 14,
-    fontWeight: '600',
+    fontSize: 15,
+    fontWeight: '700',
   },
   mainBtn: {
     backgroundColor: '#C9716A',
-    borderRadius: 12,
-    paddingVertical: 16,
+    borderRadius: 14,
+    paddingVertical: 18,
     alignItems: 'center',
+    shadowColor: '#C9716A',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 5,
   },
   mainBtnText: {
     color: '#fff',
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: '800',
   },
   subBtn: {
-    paddingVertical: 12,
+    paddingVertical: 16,
     alignItems: 'center',
   },
   subBtnText: {
-    color: '#B8A9A5',
+    color: '#A8928A',
     fontSize: 14,
-    fontWeight: '500',
+    fontWeight: '600',
+    textDecorationLine: 'underline',
   },
   errorArea: {
-    paddingVertical: 40,
+    paddingVertical: 60,
     alignItems: 'center',
   },
   errorText: {
-    fontSize: 14,
+    fontSize: 15,
     color: '#D0534A',
-    marginBottom: 20,
+    marginBottom: 24,
+    textAlign: 'center',
   },
   retryBtn: {
-    borderWidth: 1,
-    borderColor: '#EDE5E2',
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 8,
+    borderWidth: 1.5,
+    borderColor: '#F0E8E4',
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 12,
   },
   retryBtnText: {
-    fontSize: 13,
+    fontSize: 14,
     color: '#6B5B55',
+    fontWeight: '600',
   },
 });

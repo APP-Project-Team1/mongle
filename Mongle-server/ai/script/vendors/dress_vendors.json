@@ -1,6 +1,27 @@
 [
   {
     "basic_info": {
+      "vendor_id": "budget_dress_1",
+      "name": "모스앤코튼 (데일리)",
+      "category": "dress",
+      "region": "서울",
+      "district": "강남구",
+      "status": "active"
+    },
+    "search_filters": {
+      "style_concepts": ["심플", "네추럴"],
+      "price_min": 400000,
+      "price_max": 600000,
+      "price_level": "budget"
+    },
+    "pricing": {
+      "rental_price_min": 400000,
+      "rental_price_max": 600000
+    },
+    "content": { "tags": ["가성비", "스냅드레스"] }
+  },
+  {
+    "basic_info": {
       "vendor_id": "dress_26423739",
       "source": "kakao",
       "source_id": "26423739",

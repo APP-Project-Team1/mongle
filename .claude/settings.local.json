@@ -3,7 +3,8 @@
     "allow": [
       "WebFetch(domain:github.com)",
       "Bash(ls \"c:/app-project/what-the-menu/Mongle-app/app/\\(couple\\)/chat/\")",
-      "Bash(python3 -c \":*)"
+      "Bash(python3 -c \":*)",
+      "Bash(find \"c:/mongle/Mongle-app/app/\\(couple\\)\" -type f)"
     ]
   }
 }

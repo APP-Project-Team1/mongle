@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import * as DocumentPicker from 'expo-document-picker';
 import * as ImagePicker from 'expo-image-picker';
+import { useQuery } from '@tanstack/react-query';
 
 // Services & Components
 import { EstimationParser } from '../../../lib/services/estimation/EstimationParser';
@@ -13,12 +14,29 @@ import { PDFService } from '../../../lib/services/pdf/PDFService';
 import { ComparisonSummary } from '../../../components/estimation/ComparisonSummary';
 import { ComparisonTable } from '../../../components/estimation/ComparisonTable';
 import { InsightSection } from '../../../components/estimation/InsightSection';
+import { projectsApi, budgetsApi } from '../../../lib/api';
 
 export default function EstimateComparisonScreen() {
   const [loading, setLoading] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [analysisResult, setAnalysisResult] = useState(null);
-  const [userBudget] = useState(35000000); // Mock user budget from store
+
+  // 1. Fetch Current Project & Budget
+  const { data: projects = [] } = useQuery({
+    queryKey: ['projects'],
+    queryFn: projectsApi.getProjects,
+  });
+
+  const activeProject = projects[0];
+
+  const { data: budgetResponse } = useQuery({
+    queryKey: ['budget', activeProject?.id],
+    queryFn: () => budgetsApi.getBudgets(activeProject.id),
+    enabled: !!activeProject?.id,
+  });
+
+  const budgetData = budgetResponse?.[0];
+  const userBudget = (budgetData?.total_amount || 3500) * 10000; // Default 35M if none
 
   // 1. Pick PDF Files
   const handlePickFiles = async () => {
@@ -70,7 +88,6 @@ export default function EstimateComparisonScreen() {
           return;
         }
         
-        // Map ImagePicker assets to match selection format
         const assets = result.assets.map(asset => ({
           uri: asset.uri,
           name: asset.fileName || `image-${Date.now()}.jpg`,
@@ -90,10 +107,7 @@ export default function EstimateComparisonScreen() {
   const runAnalysis = async (files) => {
     setLoading(true);
     try {
-      // Step A: Parse Files using AI
       const parsedItems = await EstimationParser.parseFiles(files);
-
-      // Step B: Compare and Analyze
       const analysis = ComparisonEngine.analyze(parsedItems, userBudget);
       setAnalysisResult(analysis);
     } catch (err) {
@@ -114,11 +128,10 @@ export default function EstimateComparisonScreen() {
     }
   };
 
-  // Render Logic
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#FF6B6B" />
+        <ActivityIndicator size="large" color="#C9716A" />
         <Text style={styles.loadingText}>견적서 분석 중...</Text>
         <Text style={styles.loadingSub}>AI가 견적 항목을 매칭하고 가격을 분석하고 있습니다.</Text>
       </View>
@@ -137,7 +150,7 @@ export default function EstimateComparisonScreen() {
           disabled={!analysisResult}
           style={[styles.exportBtn, !analysisResult && { opacity: 0.3 }]}
         >
-          <Ionicons name="share-outline" size={20} color="#FF6B6B" />
+          <Ionicons name="share-outline" size={20} color="#C9716A" />
         </TouchableOpacity>
       </View>
 
@@ -168,7 +181,7 @@ export default function EstimateComparisonScreen() {
             <View style={styles.tipBox}>
               <Ionicons name="bulb-outline" size={16} color="#B8A9A5" />
               <Text style={styles.tipText}>
-                Tip: 견적서 내용을 정면에서 밝게 찍어주시면 AI가 더 정확하게 분석할 수 있어요!
+                현재 설정된 나의 예산({(userBudget/10000).toLocaleString()}만원)을 기준으로 최적의 견적을 분석합니다.
               </Text>
             </View>
           </View>
@@ -233,97 +246,27 @@ const styles = StyleSheet.create({
   backBtn: { width: 40, height: 40, justifyContent: 'center' },
   exportBtn: { width: 40, height: 40, justifyContent: 'center', alignItems: 'flex-end' },
   scrollContent: { padding: 20, paddingBottom: 100 },
-  
-  // Empty State
   emptyContainer: { alignItems: 'center', marginTop: 60 },
   emptyIconWrap: { 
-    width: 120, 
-    height: 120, 
-    borderRadius: 60, 
-    backgroundColor: '#F5F5F5', 
-    justifyContent: 'center', 
-    alignItems: 'center',
-    marginBottom: 24,
-    position: 'relative'
+    width: 120, height: 120, borderRadius: 60, backgroundColor: '#F5F5F5', justifyContent: 'center', alignItems: 'center', marginBottom: 24, position: 'relative'
   },
   emptyTitle: { fontSize: 18, fontWeight: '700', color: '#3a2e2a', marginBottom: 12 },
   emptyDesc: { fontSize: 14, color: '#8a7870', textAlign: 'center', lineHeight: 22, marginBottom: 30 },
-  pickBtn: { 
-    flexDirection: 'row',
-    backgroundColor: '#3a2e2a', 
-    paddingHorizontal: 20, 
-    paddingVertical: 14, 
-    borderRadius: 30,
-    shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.2, shadowRadius: 8, elevation: 4
-  },
+  pickBtn: { flexDirection: 'row', backgroundColor: '#3a2e2a', paddingHorizontal: 20, paddingVertical: 14, borderRadius: 30, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.2, shadowRadius: 8, elevation: 4 },
   pickBtnText: { color: '#fff', fontSize: 14, fontWeight: '700' },
   pickOptions: { gap: 12, width: '100%', paddingHorizontal: 20 },
-
-  // Active State
   sectionLabel: { fontSize: 12, color: '#8a7870', marginBottom: 8 },
   fileList: { marginBottom: 20 },
   filePills: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, alignItems: 'center' },
-  filePill: { 
-    flexDirection: 'row', 
-    alignItems: 'center', 
-    backgroundColor: '#F0E8E4', 
-    paddingHorizontal: 10, 
-    paddingVertical: 6, 
-    borderRadius: 6,
-    gap: 4,
-    maxWidth: 120
-  },
+  filePill: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F0E8E4', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 6, gap: 4, maxWidth: 120 },
   filePillText: { fontSize: 11, color: '#917878' },
   rePickBtn: { marginLeft: 4 },
   rePickText: { fontSize: 12, color: '#3a2e2a', textDecorationLine: 'underline' },
-  confBox: { 
-    flexDirection: 'row', 
-    alignItems: 'center', 
-    gap: 8, 
-    backgroundColor: '#E1FAEE', 
-    padding: 12, 
-    borderRadius: 10,
-    marginTop: 10
-  },
+  confBox: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: '#E1FAEE', padding: 12, borderRadius: 10, marginTop: 10 },
   confText: { fontSize: 13, color: '#27AE60' },
-  
-  bottomBar: { 
-    position: 'absolute', 
-    bottom: 0, 
-    left: 0, 
-    right: 0, 
-    backgroundColor: '#fff', 
-    padding: 16, 
-    paddingBottom: 32,
-    borderTopWidth: 1, 
-    borderTopColor: '#f0e8e4' 
-  },
-  mainSaveBtn: { 
-    backgroundColor: '#FF6B6B', 
-    height: 54, 
-    borderRadius: 12, 
-    justifyContent: 'center', 
-    alignItems: 'center' 
-  },
+  bottomBar: { position: 'absolute', bottom: 0, left: 0, right: 0, backgroundColor: '#fff', padding: 16, paddingBottom: 32, borderTopWidth: 1, borderTopColor: '#f0e8e4' },
+  mainSaveBtn: { backgroundColor: '#C9716A', height: 54, borderRadius: 12, justifyContent: 'center', alignItems: 'center' },
   mainSaveBtnText: { color: '#fff', fontSize: 16, fontWeight: '700' },
-  
-  // Tip Box
-  tipBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#F9F7F6',
-    padding: 12,
-    borderRadius: 10,
-    marginTop: 30,
-    marginHorizontal: 20,
-    gap: 8,
-    borderWidth: 1,
-    borderColor: '#F0E8E4',
-  },
-  tipText: {
-    fontSize: 12,
-    color: '#8A7870',
-    flex: 1,
-    lineHeight: 18,
-  },
+  tipBox: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F9F7F6', padding: 12, borderRadius: 10, marginTop: 30, marginHorizontal: 20, gap: 8, borderWidth: 1, borderColor: '#F0E8E4' },
+  tipText: { fontSize: 12, color: '#8A7870', flex: 1, lineHeight: 18 },
 });

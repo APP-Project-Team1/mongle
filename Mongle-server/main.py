@@ -32,6 +32,12 @@ async def lifespan(app: FastAPI):
 app = FastAPI(lifespan=lifespan)
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 
+# ── 알림(Cron Job) 즉시 테스트를 위한 임시 라우터 ──
+@app.get("/test/trigger-daily-job")
+async def manual_trigger_job():
+    await run_daily_notification_job()
+    return {"status": "success", "message": "알림 스케줄러가 즉시 수동 실행되었습니다! 설정하신 1일, 3일, 7일 후 날짜의 데이터가 알림으로 전송되었는지 앱에서 확인해보세요."}
+
 # Standard Routers
 app.include_router(projects.router, prefix="/projects", tags=["projects"])
 app.include_router(timelines.router, prefix="/timelines", tags=["timelines"])

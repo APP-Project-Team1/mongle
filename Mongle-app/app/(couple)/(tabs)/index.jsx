@@ -13,6 +13,9 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useNotifications } from '../../../hooks/useNotifications';
+import { supabase } from '../../../lib/supabase';
+import { useAuthStore } from '../../../stores/authStore';
 
 const { width } = Dimensions.get('window');
 
@@ -77,11 +80,46 @@ let persistedSubTab = 0;
 let persistedSearchText = '';
 
 export default function HomeScreen() {
+  const { user } = useAuthStore();
+  const { permissionDenied, notification } = useNotifications();
+  const [unreadCount, setUnreadCount] = React.useState(0);
+  const [urgentAlert, setUrgentAlert] = React.useState(null);
+
   const [activeCategoryTab, setActiveCategoryTabState] = useState(persistedCategoryTab);
   const [activeSubTab, setActiveSubTabState] = useState(persistedSubTab);
   const [activeBanner, setActiveBanner] = useState(0);
   const [searchText, setSearchTextState] = useState(persistedSearchText);
   const bannerRef = useRef(null);
+
+  React.useEffect(() => {
+    if (user) {
+      checkNotifications();
+    }
+  }, [user, notification]);
+
+  const checkNotifications = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('notifications')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('is_read', false);
+
+      if (!error && data) {
+        setUnreadCount(data.length);
+        if (permissionDenied && data.length > 0) {
+          const urgent = data.find(
+            (n) => n.type === 'payment_due' || n.type === 'cost_urgent' || n.type === 'dday_reminder'
+          );
+          if (urgent) setUrgentAlert(urgent);
+        } else {
+          setUrgentAlert(null);
+        }
+      }
+    } catch (e) {
+      console.log(e);
+    }
+  };
 
   const setActiveCategoryTab = (index) => {
     persistedCategoryTab = index;
@@ -118,11 +156,26 @@ export default function HomeScreen() {
       {/* ── 헤더 ── */}
       <View style={styles.header}>
         <Text style={styles.logo}>Mongle</Text>
-        <TouchableOpacity style={styles.notifBtn} activeOpacity={0.7}>
+        <TouchableOpacity style={styles.notifBtn} activeOpacity={0.7} onPress={() => router.push('/(couple)/notifications')}>
           <Ionicons name="notifications-outline" size={20} color="#3a2e2a" />
-          <View style={styles.notifDot} />
+          {unreadCount > 0 && <View style={styles.notifDot} />}
         </TouchableOpacity>
       </View>
+
+      {/* ── 푸시 거부 시 긴급 인앱 배너 ── */}
+      {permissionDenied && urgentAlert && (
+        <TouchableOpacity 
+          style={styles.urgentBanner} 
+          activeOpacity={0.8}
+          onPress={() => router.push('/(couple)/notifications')}
+        >
+          <Ionicons name="warning" size={18} color="#fff" />
+          <Text style={styles.urgentBannerText} numberOfLines={1}>
+            {urgentAlert.title}: {urgentAlert.body}
+          </Text>
+          <Ionicons name="chevron-forward" size={16} color="#fff" />
+        </TouchableOpacity>
+      )}
 
       {/* ── 검색바 ── */}
       <View style={styles.searchWrap}>
@@ -347,6 +400,23 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     borderWidth: 1.5,
     borderColor: '#fff',
+  },
+  urgentBanner: {
+    marginHorizontal: 20,
+    marginBottom: 10,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: '#e87070',
+    borderRadius: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  urgentBannerText: {
+    flex: 1,
+    color: '#fff',
+    fontSize: 13,
+    fontWeight: '600',
   },
 
   // 검색바

@@ -97,7 +97,14 @@ async function registerForPushNotificationsAsync() {
     }
     try {
       const projectId =
-        Constants?.expoConfig?.extra?.eas?.projectId ?? Constants?.easConfig?.projectId;
+        Constants?.expoConfig?.extra?.eas?.projectId ??
+        Constants?.easConfig?.projectId;
+
+      if (!projectId) {
+        console.log('Skipping Expo Push Token request: No EAS projectId configured.');
+        return null;
+      }
+
       token = (await Notifications.getExpoPushTokenAsync({ projectId })).data;
     } catch (e) {
       console.log('Error getting push token', e);

@@ -68,8 +68,9 @@ export default function MyPage() {
         .from('user_profiles')
         .select('role, planner_id, couple_id')
         .eq('id', userId)
-        .single();
+        .maybeSingle();
       if (profileError) throw profileError;
+      if (!profileRow) return;
 
       const { role, planner_id, couple_id } = profileRow;
       setRole(role);
@@ -82,7 +83,7 @@ export default function MyPage() {
             'name, brand_name, title, one_liner, specialties, style_keywords, career_years, weddings_completed, major_experiences, profile_image_url',
           )
           .eq('id', planner_id)
-          .single();
+          .maybeSingle();
         if (error) throw error;
         setProfile(data);
       } else if (role === 'couple' && couple_id) {
@@ -90,7 +91,7 @@ export default function MyPage() {
           .from('couples')
           .select('groom_name, bride_name, email, phone')
           .eq('id', couple_id)
-          .single();
+          .maybeSingle();
         if (error) throw error;
         setProfile(data);
       }

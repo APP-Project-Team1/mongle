@@ -49,7 +49,7 @@ export const fetchUserRole = async (userId) => {
     .from('user_profiles')
     .select('role, planner_id, couple_id')
     .eq('id', userId)
-    .single();
+    .maybeSingle();
   if (error) throw error;
   return data;
 };

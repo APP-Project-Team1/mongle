@@ -29,6 +29,7 @@ function AuthGate() {
   const [session, setSession] = useState(null);
   const [role, setRole] = useState(null);
   const [isReady, setIsReady] = useState(false);
+  const [registrationPending, setRegistrationPending] = useState(false);
   const { setUserId } = useNotifications();
 
   useEffect(() => {
@@ -41,7 +42,7 @@ function AuthGate() {
         if (session) {
           // 2. 로그인된 경우 역할 확인
           const profile = await fetchUserRole(session.user.id);
-          setRole(profile?.role || 'couple');
+          setRole(profile?.role || null);
           setUserId(session.user.id);
         }
       } catch (e) {
@@ -58,7 +59,7 @@ function AuthGate() {
       setSession(session);
       if (session) {
         const profile = await fetchUserRole(session.user.id);
-        setRole(profile?.role || 'couple');
+        setRole(profile?.role || null);
         setUserId(session.user.id);
       } else {
         setRole(null);
@@ -72,6 +73,7 @@ function AuthGate() {
 
   useEffect(() => {
     if (!isReady) return;
+    if (registrationPending) return;
 
     const rootSegment = segments[0] || '';
     const inAuthGroup = rootSegment === '(auth)';
@@ -86,6 +88,9 @@ function AuthGate() {
     }
     // B. 로그인 상태
     else {
+      // 프로필이 없으면(회원가입 OTP 인증 중 임시 세션 등) 리디렉션하지 않음
+      if (role === null) return;
+
       if (role === 'planner') {
         // 플래너인데 플래너 그룹에 없으면 대시보드로!
         if (!inPlannerGroup) {
@@ -109,7 +114,7 @@ function AuthGate() {
   }
 
   return (
-    <AuthContext.Provider value={{ session, role }}>
+    <AuthContext.Provider value={{ session, role, registrationPending, setRegistrationPending }}>
       <Slot />
     </AuthContext.Provider>
   );

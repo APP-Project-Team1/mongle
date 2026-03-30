@@ -1,6 +1,27 @@
 // lib/auth.js
 import { supabase } from './supabase';
 
+// 이메일 중복 확인 (Supabase RPC: check_email_available)
+export const checkEmailAvailable = async (email) => {
+  const { data, error } = await supabase.rpc('check_email_available', {
+    check_email: email.toLowerCase(),
+  });
+  if (error) throw error;
+  return data; // true = 사용 가능, false = 이미 사용 중
+};
+
+// 회원가입 후 이메일 인증 코드 검증
+export const verifySignupOtp = async (email, token) => {
+  const { data, error } = await supabase.auth.verifyOtp({
+    email,
+    token,
+    type: 'signup',
+  });
+  if (error) throw error;
+  if (!data?.user) throw new Error('인증번호가 올바르지 않거나 만료되었습니다.');
+  return data;
+};
+
 // 플래너로 가입
 export const signUpPlanner = async (email, password) => {
   const { data, error } = await supabase.auth.signUp({

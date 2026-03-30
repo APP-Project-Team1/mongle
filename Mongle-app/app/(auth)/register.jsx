@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import {
   View,
   Text,
@@ -15,131 +15,196 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { signUpPlanner, signUpCouple } from '../../lib/auth'; // ← Supabase Auth 함수
+import { supabase } from '../../lib/supabase';
+import {
+  signUpPlanner,
+  signUpCouple,
+  verifySignupOtp,
+  checkEmailAvailable,
+} from '../../lib/auth';
+import { useAuth } from '../../context/AuthContext';
 
 export default function RegisterScreen() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const { setRegistrationPending } = useAuth();
+
   const [isPlanner, setIsPlanner] = useState(false);
+
+  // Step 1: 이메일
+  const [email, setEmail] = useState('');
+  const [emailCheckLoading, setEmailCheckLoading] = useState(false);
+  const [emailAvailable, setEmailAvailable] = useState(null); // null | true | false
+
+  // Step 2~4: OTP 발송 / 인증
+  const [otpSending, setOtpSending] = useState(false);
+  const [otpSent, setOtpSent] = useState(false);
+  const [otpCode, setOtpCode] = useState('');
+  const [otpVerifying, setOtpVerifying] = useState(false);
+  const [otpVerified, setOtpVerified] = useState(false);
+
+  // Step 6~8: 비밀번호
+  const [password, setPassword] = useState('');
+  const [passwordConfirm, setPasswordConfirm] = useState('');
   const [showPw, setShowPw] = useState(false);
-  const [isEmailVerified, setIsEmailVerified] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [showPwConfirm, setShowPwConfirm] = useState(false);
+  const [finalLoading, setFinalLoading] = useState(false);
+
+  // 모달
   const [modalVisible, setModalVisible] = useState(false);
   const [modalConfig, setModalConfig] = useState({ title: '', message: '', onConfirm: null });
-
-  const renderBottomTab = () => (
-    <View style={tabStyles.container}>
-      <TouchableOpacity style={tabStyles.tabItem} onPress={() => router.replace('/(couple)/(tabs)/timeline')}>
-        <Ionicons name="calendar-outline" size={24} color="#8a7870" />
-        <Text style={tabStyles.tabText}>일정</Text>
-      </TouchableOpacity>
-      <TouchableOpacity style={tabStyles.tabItem} onPress={() => router.replace('/(couple)/(tabs)/budget')}>
-        <Ionicons name="wallet-outline" size={24} color="#8a7870" />
-        <Text style={tabStyles.tabText}>비용</Text>
-      </TouchableOpacity>
-      <TouchableOpacity style={tabStyles.tabItem} onPress={() => router.replace('/(couple)')}>
-        <Ionicons name="home-outline" size={24} color="#8a7870" />
-        <Text style={tabStyles.tabText}>홈</Text>
-      </TouchableOpacity>
-      <TouchableOpacity style={tabStyles.tabItem} onPress={() => router.replace('/(couple)/(tabs)/chat')}>
-        <Ionicons name="chatbubble-outline" size={24} color="#8a7870" />
-        <Text style={tabStyles.tabText}>채팅</Text>
-      </TouchableOpacity>
-      <TouchableOpacity style={tabStyles.tabItem} onPress={() => router.push('/(auth)/login')}>
-        <Ionicons name="person-outline" size={24} color="#8a7870" />
-        <Text style={tabStyles.tabText}>마이</Text>
-      </TouchableOpacity>
-    </View>
-  );
 
   const showModal = (title, message, onConfirm = null) => {
     setModalConfig({ title, message, onConfirm });
     setModalVisible(true);
   };
 
-  // 이메일 형식 검사
-  const handleVerifyEmail = () => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
+  const isValidEmail = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+  const isValidPassword = (pw) =>
+    /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,16}$/.test(pw);
+
+  // 이메일 변경 시 하위 단계 초기화
+  const handleEmailChange = (text) => {
+    setEmail(text);
+    setEmailAvailable(null);
+    setOtpSent(false);
+    setOtpVerified(false);
+    setOtpCode('');
+    setPassword('');
+    setPasswordConfirm('');
+  };
+
+  // Step 1: 이메일 확인 (형식 + 중복 체크)
+  const handleCheckEmail = async () => {
+    if (!isValidEmail(email)) {
       showModal('알림', '유효한 이메일 형식을 입력해주세요.');
       return;
     }
-    showModal('알림', '이메일 확인이 완료되었습니다.', () => {
-      setIsEmailVerified(true);
-    });
-  };
-
-  // 비밀번호 유효성: 영문 대/소문자, 숫자, 특수문자 포함 8~16자
-  const isValidPassword = (pw) => {
-    const pwRegex = /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,16}$/;
-    return pwRegex.test(pw);
-  };
-
-  const isSignUpEnabled = isEmailVerified && isValidPassword(password);
-
-  // ── 회원가입 처리 ─────────────────────────────────────────
-  // const handleRegister = async () => {
-  //   if (!isSignUpEnabled) return;
-
-  //   try {
-  //     setLoading(true);
-
-  // role에 따라 Supabase 가입 함수 호출
-  // → 트리거가 자동으로 wedding_planners 또는 couples 행 생성
-  //   if (isPlanner) {
-  //     await signUpPlanner(email, password);
-  //   } else {
-  //     await signUpCouple(email, password);
-  //   }
-
-  //   const roleText = isPlanner ? '웨딩 플래너' : '예비 신혼';
-  //   showModal(
-  //     '환영합니다!',
-  //     `${roleText}로 가입이 완료되었습니다.\n이메일 인증 후 로그인해주세요.`,
-  //     () => router.replace('/(auth)/login'),
-  //   );
-  // } catch (e) {
-  // 이미 가입된 이메일인 경우 등 오류 처리
-  //     if (e.message?.includes('already registered')) {
-  //       showModal('알림', '이미 가입된 이메일입니다.');
-  //     } else {
-  //       showModal('알림', e.message || '회원가입 중 오류가 발생했습니다.');
-  //     }
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
-
-  const handleRegister = async () => {
-    if (!isSignUpEnabled) return;
-
     try {
-      setLoading(true);
-
-      if (isPlanner) {
-        await signUpPlanner(email, password);
+      setEmailCheckLoading(true);
+      const available = await checkEmailAvailable(email);
+      if (available) {
+        setEmailAvailable(true);
       } else {
-        await signUpCouple(email, password);
+        setEmailAvailable(false);
+        showModal('알림', '이미 사용 중인 이메일입니다.');
       }
-
-      const roleText = isPlanner ? '웨딩 플래너' : '예비 신혼';
-
-      // 수정된 안내 문구: "이메일 인증" 관련 내용을 삭제했습니다.
-      showModal(
-        '환영합니다!',
-        `${roleText} 가입이 완료되었습니다.`,
-        () => router.replace('/(auth)/login'), // 바로 로그인을 유도하거나 메인으로 보냅니다.
-      );
     } catch (e) {
-      if (e.message?.includes('already registered')) {
-        showModal('알림', '이미 가입된 이메일입니다.');
-      } else {
-        showModal('알림', e.message || '회원가입 중 오류가 발생했습니다.');
-      }
+      showModal('오류', e.message || '이메일 확인 중 오류가 발생했습니다.');
     } finally {
-      setLoading(false);
+      setEmailCheckLoading(false);
     }
   };
+
+  // Step 3: 인증번호 발송
+  const handleSendOtp = async () => {
+    try {
+      setOtpSending(true);
+      // 임시 비밀번호로 계정 생성 (OTP 이메일 발송 트리거)
+      const tempPw = `Tx${Math.random().toString(36).slice(2, 10)}!9A`;
+      const data = isPlanner
+        ? await signUpPlanner(email, tempPw)
+        : await signUpCouple(email, tempPw);
+
+      // identities가 비어있으면 이미 등록된 이메일 (race condition 방어)
+      if (data?.user?.identities?.length === 0) {
+        setEmailAvailable(false);
+        showModal('알림', '이미 사용 중인 이메일입니다.\n로그인해주세요.');
+        return;
+      }
+      setOtpSent(true);
+    } catch (e) {
+      showModal('오류', e.message || '인증번호 발송에 실패했습니다.');
+    } finally {
+      setOtpSending(false);
+    }
+  };
+
+  // Step 5: OTP 인증
+  const handleVerifyOtp = async () => {
+    if (!otpCode.trim()) {
+      showModal('알림', '인증번호를 입력해주세요.');
+      return;
+    }
+    try {
+      setOtpVerifying(true);
+      // 리디렉션 방지 플래그 먼저 설정 (verifyOtp 성공 시 세션 생성 → onAuthStateChange 방어)
+      setRegistrationPending(true);
+      await verifySignupOtp(email, otpCode.trim());
+      setOtpVerified(true);
+      showModal('알림', '인증이 완료되었습니다.');
+    } catch (e) {
+      setRegistrationPending(false);
+      showModal('알림', e.message || '인증번호가 올바르지 않거나 만료되었습니다.');
+    } finally {
+      setOtpVerifying(false);
+    }
+  };
+
+  // Step 8: 회원가입 완료 (비밀번호 설정)
+  const handleFinalSignup = async () => {
+    if (!isValidPassword(password)) {
+      showModal('알림', '비밀번호 조건을 확인해주세요.\n(영문 대소문자, 숫자, 특수문자 포함 8~16자)');
+      return;
+    }
+    if (password !== passwordConfirm) {
+      showModal('알림', '비밀번호가 일치하지 않습니다.');
+      return;
+    }
+    try {
+      setFinalLoading(true);
+      // 현재 세션(verifyOtp로 생성)을 사용해 비밀번호 업데이트
+      const { error } = await supabase.auth.updateUser({ password });
+      if (error) throw error;
+      // 리디렉션 허용 → _layout.jsx가 role 확인 후 자동 이동
+      setRegistrationPending(false);
+    } catch (e) {
+      showModal('오류', e.message || '비밀번호 설정에 실패했습니다.');
+    } finally {
+      setFinalLoading(false);
+    }
+  };
+
+  const isFinalEnabled =
+    isValidPassword(password) && password === passwordConfirm && !finalLoading;
+
+  const renderBottomTab = () => (
+    <View style={tabStyles.container}>
+      <TouchableOpacity
+        style={tabStyles.tabItem}
+        onPress={() => router.replace('/(couple)/(tabs)/timeline')}
+      >
+        <Ionicons name="calendar-outline" size={24} color="#8a7870" />
+        <Text style={tabStyles.tabText}>일정</Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={tabStyles.tabItem}
+        onPress={() => router.replace('/(couple)/(tabs)/budget')}
+      >
+        <Ionicons name="wallet-outline" size={24} color="#8a7870" />
+        <Text style={tabStyles.tabText}>비용</Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={tabStyles.tabItem}
+        onPress={() => router.replace('/(couple)')}
+      >
+        <Ionicons name="home-outline" size={24} color="#8a7870" />
+        <Text style={tabStyles.tabText}>홈</Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={tabStyles.tabItem}
+        onPress={() => router.replace('/(couple)/(tabs)/chat')}
+      >
+        <Ionicons name="chatbubble-outline" size={24} color="#8a7870" />
+        <Text style={tabStyles.tabText}>채팅</Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={tabStyles.tabItem}
+        onPress={() => router.push('/(auth)/login')}
+      >
+        <Ionicons name="person-outline" size={24} color="#8a7870" />
+        <Text style={tabStyles.tabText}>마이</Text>
+      </TouchableOpacity>
+    </View>
+  );
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -164,11 +229,11 @@ export default function RegisterScreen() {
           </View>
 
           <View style={styles.form}>
-            {/* 가입 유형 선택 탭 */}
+            {/* 가입 유형 선택 (OTP 발송 전까지만 변경 가능) */}
             <View style={styles.roleTabContainer}>
               <TouchableOpacity
                 style={[styles.roleTab, !isPlanner && styles.activeRoleTab]}
-                onPress={() => setIsPlanner(false)}
+                onPress={() => !otpSent && setIsPlanner(false)}
                 activeOpacity={0.8}
               >
                 <Text style={[styles.roleTabText, !isPlanner && styles.activeRoleTabText]}>
@@ -177,7 +242,7 @@ export default function RegisterScreen() {
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.roleTab, isPlanner && styles.activeRoleTab]}
-                onPress={() => setIsPlanner(true)}
+                onPress={() => !otpSent && setIsPlanner(true)}
                 activeOpacity={0.8}
               >
                 <Text style={[styles.roleTabText, isPlanner && styles.activeRoleTabText]}>
@@ -186,7 +251,7 @@ export default function RegisterScreen() {
               </TouchableOpacity>
             </View>
 
-            {/* 이메일 입력 & 형식 확인 */}
+            {/* Step 1: 이메일 입력 + 확인 버튼 */}
             <View style={styles.emailContainer}>
               <View style={[styles.inputWrap, styles.emailInputWrap]}>
                 <Ionicons name="mail-outline" size={16} color="#8a7870" style={styles.inputIcon} />
@@ -195,89 +260,203 @@ export default function RegisterScreen() {
                   placeholder="아이디 (이메일)"
                   placeholderTextColor="#8a7870"
                   value={email}
-                  onChangeText={(text) => {
-                    setEmail(text);
-                    setIsEmailVerified(false);
-                  }}
+                  onChangeText={handleEmailChange}
                   keyboardType="email-address"
                   autoCapitalize="none"
-                  editable={!isEmailVerified}
+                  editable={!otpSent}
                 />
               </View>
               <TouchableOpacity
-                style={[styles.verifyBtn, isEmailVerified && styles.verifyBtnDisabled]}
-                onPress={handleVerifyEmail}
-                disabled={isEmailVerified}
+                style={[
+                  styles.verifyBtn,
+                  (emailAvailable === true || emailCheckLoading || otpSent) &&
+                    styles.verifyBtnDisabled,
+                ]}
+                onPress={handleCheckEmail}
+                disabled={emailAvailable === true || emailCheckLoading || otpSent}
                 activeOpacity={0.8}
               >
                 <Text
-                  style={[styles.verifyBtnText, isEmailVerified && styles.verifyBtnTextDisabled]}
+                  style={[
+                    styles.verifyBtnText,
+                    (emailAvailable === true || otpSent) && styles.verifyBtnTextDisabled,
+                  ]}
                 >
-                  {isEmailVerified ? '확인완료' : '확인'}
+                  {emailCheckLoading ? '확인중' : emailAvailable === true ? '완료' : '확인'}
                 </Text>
               </TouchableOpacity>
             </View>
 
-            {/* 비밀번호 입력 */}
-            <View style={styles.pwContainer}>
-              <View style={styles.inputWrap}>
-                <Ionicons
-                  name="lock-closed-outline"
-                  size={16}
-                  color="#8a7870"
-                  style={styles.inputIcon}
-                />
-                <TextInput
-                  style={styles.input}
-                  placeholder="비밀번호"
-                  placeholderTextColor="#8a7870"
-                  value={password}
-                  onChangeText={setPassword}
-                  secureTextEntry={!showPw}
-                />
-                <TouchableOpacity onPress={() => setShowPw(!showPw)} style={styles.eyeBtn}>
-                  <Ionicons
-                    name={showPw ? 'eye-outline' : 'eye-off-outline'}
-                    size={16}
-                    color="#8a7870"
-                  />
-                </TouchableOpacity>
-              </View>
-              <Text
-                style={[
-                  styles.hintText,
-                  password.length > 0 && !isValidPassword(password)
-                    ? { color: '#d77875' }
-                    : password.length > 0 && isValidPassword(password)
-                      ? { color: '#94b381' }
-                      : null,
-                ]}
-              >
-                * 영문 대문자, 소문자, 숫자, 특수문자 최소 하나 포함 (8~16자)
-              </Text>
-            </View>
+            {/* 이메일 사용 가능 메시지 */}
+            {emailAvailable === true && (
+              <Text style={styles.successText}>✓ 사용 가능한 이메일입니다.</Text>
+            )}
 
-            {/* 가입하기 버튼 */}
-            <TouchableOpacity
-              style={[
-                styles.registerBtnWrapper,
-                (!isSignUpEnabled || loading) && styles.registerBtnDisabled,
-              ]}
-              activeOpacity={0.85}
-              onPress={handleRegister}
-              disabled={!isSignUpEnabled || loading}
-            >
-              <LinearGradient
-                colors={
-                  isSignUpEnabled && !loading ? ['#c89494', '#ccc79e'] : ['#e5e3e3', '#e8e7e2']
-                }
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={styles.registerBtnGradient}
+            {/* Step 2~3: 인증번호 발송 버튼 */}
+            {emailAvailable === true && !otpSent && (
+              <TouchableOpacity
+                style={[styles.sendOtpBtn, otpSending && styles.sendOtpBtnDisabled]}
+                onPress={handleSendOtp}
+                disabled={otpSending}
+                activeOpacity={0.8}
               >
-                <Text style={styles.registerBtnText}>{loading ? '가입 중...' : '가입하기'}</Text>
-              </LinearGradient>
-            </TouchableOpacity>
+                <Text style={styles.sendOtpBtnText}>
+                  {otpSending ? '발송 중...' : '인증번호 발송'}
+                </Text>
+              </TouchableOpacity>
+            )}
+
+            {/* Step 4~5: OTP 입력 + 인증 버튼 */}
+            {otpSent && !otpVerified && (
+              <View style={{ gap: 8 }}>
+                <View style={styles.emailContainer}>
+                  <View style={[styles.inputWrap, styles.emailInputWrap]}>
+                    <Ionicons
+                      name="key-outline"
+                      size={16}
+                      color="#8a7870"
+                      style={styles.inputIcon}
+                    />
+                    <TextInput
+                      style={styles.input}
+                      placeholder="이메일 인증번호 입력"
+                      placeholderTextColor="#8a7870"
+                      value={otpCode}
+                      onChangeText={setOtpCode}
+                      keyboardType="number-pad"
+                      autoCapitalize="none"
+                      maxLength={8}
+                    />
+                  </View>
+                  <TouchableOpacity
+                    style={[styles.verifyBtn, otpVerifying && styles.verifyBtnDisabled]}
+                    onPress={handleVerifyOtp}
+                    disabled={otpVerifying}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={styles.verifyBtnText}>
+                      {otpVerifying ? '확인중' : '인증'}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+                <Text style={styles.hintText}>* 이메일로 받은 인증번호를 입력해주세요.</Text>
+              </View>
+            )}
+
+            {/* 인증 완료 메시지 */}
+            {otpVerified && (
+              <Text style={styles.successText}>✓ 인증이 완료되었습니다.</Text>
+            )}
+
+            {/* Step 6~8: 비밀번호 설정 (인증 완료 후 노출) */}
+            {otpVerified && (
+              <>
+                {/* 비밀번호 */}
+                <View style={styles.pwContainer}>
+                  <View style={styles.inputWrap}>
+                    <Ionicons
+                      name="lock-closed-outline"
+                      size={16}
+                      color="#8a7870"
+                      style={styles.inputIcon}
+                    />
+                    <TextInput
+                      style={styles.input}
+                      placeholder="비밀번호"
+                      placeholderTextColor="#8a7870"
+                      value={password}
+                      onChangeText={setPassword}
+                      secureTextEntry={!showPw}
+                    />
+                    <TouchableOpacity onPress={() => setShowPw(!showPw)} style={styles.eyeBtn}>
+                      <Ionicons
+                        name={showPw ? 'eye-outline' : 'eye-off-outline'}
+                        size={16}
+                        color="#8a7870"
+                      />
+                    </TouchableOpacity>
+                  </View>
+                  <Text
+                    style={[
+                      styles.hintText,
+                      password.length > 0 && !isValidPassword(password)
+                        ? { color: '#d77875' }
+                        : password.length > 0 && isValidPassword(password)
+                          ? { color: '#94b381' }
+                          : null,
+                    ]}
+                  >
+                    * 영문 대문자, 소문자, 숫자, 특수문자 최소 하나 포함 (8~16자)
+                  </Text>
+                </View>
+
+                {/* 비밀번호 확인 */}
+                <View style={styles.pwContainer}>
+                  <View style={styles.inputWrap}>
+                    <Ionicons
+                      name="lock-closed-outline"
+                      size={16}
+                      color="#8a7870"
+                      style={styles.inputIcon}
+                    />
+                    <TextInput
+                      style={styles.input}
+                      placeholder="비밀번호 확인"
+                      placeholderTextColor="#8a7870"
+                      value={passwordConfirm}
+                      onChangeText={setPasswordConfirm}
+                      secureTextEntry={!showPwConfirm}
+                    />
+                    <TouchableOpacity
+                      onPress={() => setShowPwConfirm(!showPwConfirm)}
+                      style={styles.eyeBtn}
+                    >
+                      <Ionicons
+                        name={showPwConfirm ? 'eye-outline' : 'eye-off-outline'}
+                        size={16}
+                        color="#8a7870"
+                      />
+                    </TouchableOpacity>
+                  </View>
+                  {passwordConfirm.length > 0 && (
+                    <Text
+                      style={[
+                        styles.hintText,
+                        password === passwordConfirm ? { color: '#94b381' } : { color: '#d77875' },
+                      ]}
+                    >
+                      {password === passwordConfirm
+                        ? '✓ 비밀번호가 일치합니다.'
+                        : '✗ 비밀번호가 일치하지 않습니다.'}
+                    </Text>
+                  )}
+                </View>
+
+                {/* 회원가입 버튼 */}
+                <TouchableOpacity
+                  style={[
+                    styles.registerBtnWrapper,
+                    !isFinalEnabled && styles.registerBtnDisabled,
+                  ]}
+                  activeOpacity={0.85}
+                  onPress={handleFinalSignup}
+                  disabled={!isFinalEnabled}
+                >
+                  <LinearGradient
+                    colors={
+                      isFinalEnabled ? ['#c89494', '#ccc79e'] : ['#e5e3e3', '#e8e7e2']
+                    }
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={styles.registerBtnGradient}
+                  >
+                    <Text style={styles.registerBtnText}>
+                      {finalLoading ? '처리 중...' : '회원가입'}
+                    </Text>
+                  </LinearGradient>
+                </TouchableOpacity>
+              </>
+            )}
           </View>
 
           <View style={styles.loginRow}>
@@ -368,15 +547,8 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 2,
   },
-  roleTabText: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#8a7870',
-  },
-  activeRoleTabText: {
-    color: '#917878',
-    fontWeight: '700',
-  },
+  roleTabText: { fontSize: 14, fontWeight: '500', color: '#8a7870' },
+  activeRoleTabText: { color: '#917878', fontWeight: '700' },
   emailContainer: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   emailInputWrap: { flex: 1 },
   inputWrap: {
@@ -404,6 +576,18 @@ const styles = StyleSheet.create({
   verifyBtnDisabled: { backgroundColor: '#e8e0dc' },
   verifyBtnText: { fontSize: 14, fontWeight: '600', color: '#fff' },
   verifyBtnTextDisabled: { color: '#8a7870' },
+  sendOtpBtn: {
+    backgroundColor: '#9d7878',
+    borderRadius: 10,
+    paddingVertical: 14,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderColor: '#c8c0bd',
+    borderWidth: 1,
+  },
+  sendOtpBtnDisabled: { backgroundColor: '#e8e0dc' },
+  sendOtpBtnText: { fontSize: 14, fontWeight: '600', color: '#fff' },
+  successText: { fontSize: 12, color: '#94b381', marginLeft: 4 },
   pwContainer: { gap: 8 },
   eyeBtn: { padding: 4 },
   hintText: { fontSize: 12, color: '#8a7870', marginLeft: 4 },
@@ -450,36 +634,16 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
     elevation: 8,
   },
-  modalTitle: {
-    fontSize: 17,
-    fontWeight: '700',
-    color: '#3a2e2a',
-    letterSpacing: 0.3,
-  },
-  modalMessage: {
-    fontSize: 14,
-    color: '#8a7870',
-    textAlign: 'center',
-    lineHeight: 20,
-  },
-  modalBtn: {
-    width: '100%',
-    height: 46,
-    borderRadius: 10,
-    marginTop: 8,
-  },
+  modalTitle: { fontSize: 17, fontWeight: '700', color: '#3a2e2a', letterSpacing: 0.3 },
+  modalMessage: { fontSize: 14, color: '#8a7870', textAlign: 'center', lineHeight: 20 },
+  modalBtn: { width: '100%', height: 46, borderRadius: 10, marginTop: 8 },
   modalBtnGradient: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     borderRadius: 10,
   },
-  modalBtnText: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#fff',
-    letterSpacing: 0.5,
-  },
+  modalBtnText: { fontSize: 15, fontWeight: '600', color: '#fff', letterSpacing: 0.5 },
 });
 
 const tabStyles = StyleSheet.create({
@@ -494,15 +658,6 @@ const tabStyles = StyleSheet.create({
     justifyContent: 'space-around',
     alignItems: 'center',
   },
-  tabItem: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    flex: 1,
-  },
-  tabText: {
-    fontSize: 11,
-    color: '#8a7870',
-    marginTop: 4,
-    fontWeight: '500',
-  },
+  tabItem: { alignItems: 'center', justifyContent: 'center', flex: 1 },
+  tabText: { fontSize: 11, color: '#8a7870', marginTop: 4, fontWeight: '500' },
 });

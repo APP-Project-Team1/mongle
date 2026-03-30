@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -11,143 +11,324 @@ import {
   StatusBar,
   KeyboardAvoidingView,
   Platform,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-
-// Dummy user ID to mock authentication
-const CURRENT_USER_ID = 'me';
+import { supabase } from '../../../../lib/supabase';
 
 export default function ChatScreen() {
-  const [rooms, setRooms] = useState([
-    {
-      id: '1',
-      title: 'Our Wedding Plan',
-      participants: ['me', 'partner'],
-      isMuted: false,
-      lastMessage: 'Did you check the venue?',
-      createdAt: new Date().toISOString(),
-    },
-  ]);
+  const [rooms, setRooms] = useState([]);
+  const [currentUserId, setCurrentUserId] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(null);
 
   const [isCreateModalVisible, setCreateModalVisible] = useState(false);
   const [newRoomTitle, setNewRoomTitle] = useState('');
-  const [inviteeId, setInviteeId] = useState('');
+  const [creating, setCreating] = useState(false);
 
-  // 제목 변경 모달 상태 관리
+  // 제목 변경 모달
   const [isRenameModalVisible, setRenameModalVisible] = useState(false);
   const [renameRoomId, setRenameRoomId] = useState('');
   const [renameRoomTitle, setRenameRoomTitle] = useState('');
 
-  // 1. 초대받은 사람만 접근 가능: 나와 관련된 방만 필터링
-  const visibleRooms = rooms.filter(room => room.participants.includes(CURRENT_USER_ID));
+  // ── 채팅방 목록: chat_members 기반으로 내가 속한 방만 조회 ──
+  const fetchRooms = async () => {
+    setLoading(true);
 
-  const AIAssistantEntry = () => (
-    <TouchableOpacity
-      style={styles.aiRoomItem}
-      onPress={() => router.push('/(couple)/chat/ai')}
-      activeOpacity={0.7}
-    >
-      <View style={styles.aiRoomIcon}>
-        <Ionicons name="sparkles" size={20} color="#fff" />
-      </View>
-      <View style={styles.roomInfo}>
-        <View style={styles.roomHeader}>
-          <Text style={styles.roomTitle}>AI 어시스턴트</Text>
-          <View style={styles.aiBadge}>
-            <Text style={styles.aiBadgeText}>AI</Text>
-          </View>
-        </View>
-        <Text style={styles.roomMessage}>스튜디오, 드레스, 웨딩홀, 플래너를 추천해드려요</Text>
-      </View>
-    </TouchableOpacity>
+    try {
+      // chats 기본 조회 (messages 포함)
+      const { data, error } = await supabase
+        .from('chats')
+        .select(
+          `
+          id,
+          title,
+          created_at,
+          updated_at,
+          messages (
+            content,
+            created_at
+          )
+        `,
+        )
+        .order('updated_at', { ascending: false });
+
+      if (error) {
+        console.error('채팅방 조회 오류:', error.message);
+        return;
+      }
+
+      // chat_members 별도 조회해서 멤버 수 계산
+      const chatIds = (data ?? []).map((r) => r.id);
+      let memberCountMap = {};
+
+      if (chatIds.length > 0) {
+        const { data: memberData, error: memberError } = await supabase
+          .from('chat_members')
+          .select('chat_id')
+          .in('chat_id', chatIds);
+
+        if (memberError) {
+          console.error('멤버 수 조회 오류:', memberError.message);
+        } else {
+          memberData?.forEach((m) => {
+            memberCountMap[m.chat_id] = (memberCountMap[m.chat_id] ?? 0) + 1;
+          });
+        }
+      }
+
+      const roomsWithLastMessage = (data ?? []).map((room) => {
+        const sortedMessages = (room.messages ?? []).sort(
+          (a, b) => new Date(b.created_at) - new Date(a.created_at),
+        );
+        return {
+          ...room,
+          lastMessage: sortedMessages[0]?.content ?? '채팅방이 생성되었습니다.',
+          memberCount: memberCountMap[room.id] ?? 1,
+          isMuted: false,
+        };
+      });
+
+      setRooms(roomsWithLastMessage);
+    } catch (e) {
+      console.error('fetchRooms 예외:', e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 화면 포커스 시 인증 확인 + 목록 갱신
+  useFocusEffect(
+    useCallback(() => {
+      let isMounted = true;
+
+      const load = async () => {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+
+        if (!isMounted) return;
+
+        if (!user) {
+          setIsAuthenticated(false);
+          setLoading(false);
+          return;
+        }
+
+        setIsAuthenticated(true);
+        setCurrentUserId(user.id);
+        await fetchRooms();
+      };
+
+      load();
+      return () => {
+        isMounted = false;
+      };
+    }, []),
   );
 
-  const handleCreateRoom = () => {
+  // 실시간 구독: chats 변경 감지
+  useEffect(() => {
+    if (!currentUserId) return;
+
+    const channel = supabase
+      .channel('chats-changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'chats' }, () => {
+        fetchRooms();
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'chat_members' }, () => {
+        fetchRooms();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [currentUserId]);
+
+  // ── 채팅방 생성 (생성자를 owner로 chat_members에 등록) ──
+  const handleCreateRoom = async () => {
     if (!newRoomTitle.trim()) {
       Alert.alert('알림', '채팅방 제목을 입력해주세요.');
       return;
     }
 
-    // Create new room structure
-    const newRoom = {
-      id: Date.now().toString(),
-      title: newRoomTitle,
-      participants: [CURRENT_USER_ID],
-      isMuted: false,
-      lastMessage: '채팅방이 생성되었습니다.',
-      createdAt: new Date().toISOString(),
-    };
+    setCreating(true);
 
-    if (inviteeId.trim()) {
-      newRoom.participants.push(inviteeId.trim());
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) {
+        Alert.alert('오류', '로그인이 필요합니다.');
+        return;
+      }
+
+      // 유저의 가장 최근 프로젝트 조회
+      let pid = null;
+      const { data: projectData } = await supabase
+        .from('projects')
+        .select('id')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      pid = projectData?.id;
+
+      if (!pid) {
+        const { data: newProject, error: projectError } = await supabase
+          .from('projects')
+          .insert({ user_id: user.id, title: '내 웨딩 플랜' })
+          .select()
+          .single();
+
+        if (projectError) {
+          Alert.alert('오류', '프로젝트 생성에 실패했습니다.');
+          console.error('프로젝트 생성 오류:', projectError.message);
+          return;
+        }
+        pid = newProject.id;
+      }
+
+      // 채팅방 생성
+      const { data: chatData, error: chatError } = await supabase
+        .from('chats')
+        .insert({ project_id: pid, title: newRoomTitle.trim() })
+        .select()
+        .single();
+
+      if (chatError) {
+        Alert.alert('오류', '채팅방 생성에 실패했습니다.');
+        console.error('채팅방 생성 오류:', chatError.message);
+        return;
+      }
+
+      // 생성자를 owner로 chat_members에 추가
+      // chat_members 테이블이 없어도 채팅방 생성은 완료 처리
+      const { error: memberError } = await supabase.from('chat_members').insert({
+        chat_id: chatData.id,
+        user_id: user.id,
+        role: 'owner',
+      });
+
+      if (memberError) {
+        console.error('멤버 등록 오류 (chat_members 테이블 확인 필요):', memberError.message);
+      }
+
+      setRooms((prev) => [
+        { ...chatData, lastMessage: '채팅방이 생성되었습니다.', memberCount: 1, isMuted: false },
+        ...prev,
+      ]);
+      setCreateModalVisible(false);
+      setNewRoomTitle('');
+    } catch (e) {
+      console.error('handleCreateRoom 예외:', e);
+      Alert.alert('오류', '채팅방 생성 중 문제가 발생했습니다.');
+    } finally {
+      setCreating(false);
     }
-
-    setRooms(prev => [newRoom, ...prev]);
-    setCreateModalVisible(false);
-    setNewRoomTitle('');
-    setInviteeId('');
   };
 
-  const handleLongPress = (room) => {
+  // 채팅방 제목 변경
+  const handleRenameConfirm = async () => {
+    if (!renameRoomTitle.trim()) return;
+
+    const { error } = await supabase
+      .from('chats')
+      .update({ title: renameRoomTitle.trim(), updated_at: new Date().toISOString() })
+      .eq('id', renameRoomId);
+
+    if (error) {
+      Alert.alert('오류', '제목 변경에 실패했습니다.');
+      return;
+    }
+
+    setRooms((prev) =>
+      prev.map((r) => (r.id === renameRoomId ? { ...r, title: renameRoomTitle.trim() } : r)),
+    );
+    setRenameModalVisible(false);
+    setRenameRoomId('');
+    setRenameRoomTitle('');
+  };
+
+  // 채팅방 나가기 (chat_members에서 본인 제거)
+  const handleLeaveRoom = (room) => {
+    const isOwner = room.chat_members?.some(
+      (m) => m.user_id === currentUserId && m.role === 'owner',
+    );
+
     Alert.alert(
-      '채팅방 설정',
-      `'${room.title}' 방의 설정을 변경합니다.`,
+      '채팅방 나가기',
+      isOwner
+        ? '방장이 나가면 채팅방이 삭제됩니다. 계속하시겠습니까?'
+        : '정말로 이 채팅방에서 나가시겠습니까?',
       [
+        { text: '취소', style: 'cancel' },
         {
-          text: '제목 변경',
-          onPress: () => handleChangeTitle(room.id, room.title),
-        },
-        {
-          text: room.isMuted ? '알림 켜기' : '알림 음소거',
-          onPress: () => handleToggleMute(room.id),
-        },
-        {
-          text: '채팅방 나가기',
+          text: '나가기',
           style: 'destructive',
-          onPress: () => handleLeaveRoom(room.id),
+          onPress: async () => {
+            if (isOwner) {
+              // 방장이면 채팅방 전체 삭제 (CASCADE로 chat_members, messages도 삭제)
+              const { error } = await supabase.from('chats').delete().eq('id', room.id);
+              if (error) {
+                Alert.alert('오류', '채팅방 삭제에 실패했습니다.');
+                return;
+              }
+            } else {
+              // 일반 멤버면 본인만 chat_members에서 제거
+              const { error } = await supabase
+                .from('chat_members')
+                .delete()
+                .eq('chat_id', room.id)
+                .eq('user_id', currentUserId);
+              if (error) {
+                Alert.alert('오류', '채팅방 나가기에 실패했습니다.');
+                return;
+              }
+            }
+            setRooms((prev) => prev.filter((r) => r.id !== room.id));
+          },
         },
-        {
-          text: '취소',
-          style: 'cancel',
-        },
-      ]
+      ],
     );
   };
 
-  const handleChangeTitle = (roomId, currentTitle) => {
-    setRenameRoomId(roomId);
-    setRenameRoomTitle(currentTitle);
-    setRenameModalVisible(true);
-  };
-
   const handleToggleMute = (roomId) => {
-    setRooms(prev => prev.map(r => r.id === roomId ? { ...r, isMuted: !r.isMuted } : r));
+    setRooms((prev) => prev.map((r) => (r.id === roomId ? { ...r, isMuted: !r.isMuted } : r)));
   };
 
-  const handleLeaveRoom = (roomId) => {
-    Alert.alert('채팅방 나가기', '정말로 이 채팅방에서 나가시겠습니까?', [
-      { text: '취소', style: 'cancel' },
+  const handleLongPress = (room) => {
+    Alert.alert('채팅방 설정', `'${room.title}' 방의 설정을 변경합니다.`, [
       {
-        text: '나가기',
-        style: 'destructive',
+        text: '제목 변경',
         onPress: () => {
-          setRooms(prev => prev.map(r => {
-            if (r.id === roomId) {
-              return { ...r, participants: r.participants.filter(p => p !== CURRENT_USER_ID) };
-            }
-            return r;
-          }));
-        }
-      }
+          setRenameRoomId(room.id);
+          setRenameRoomTitle(room.title);
+          setRenameModalVisible(true);
+        },
+      },
+      {
+        text: room.isMuted ? '알림 켜기' : '알림 음소거',
+        onPress: () => handleToggleMute(room.id),
+      },
+      {
+        text: '채팅방 나가기',
+        style: 'destructive',
+        onPress: () => handleLeaveRoom(room),
+      },
+      { text: '취소', style: 'cancel' },
     ]);
   };
 
   const renderRoom = ({ item }) => (
     <TouchableOpacity
       style={styles.roomItem}
-      onPress={() => router.push(`/(couple)/chat/${item.id}`)}
+      onPress={() => router.push(`/(planner)/chat/${item.id}`)}
       onLongPress={() => handleLongPress(item)}
       activeOpacity={0.7}
     >
@@ -156,14 +337,60 @@ export default function ChatScreen() {
       </View>
       <View style={styles.roomInfo}>
         <View style={styles.roomHeader}>
-          <Text style={styles.roomTitle} numberOfLines={1}>{item.title}</Text>
-          {item.isMuted && <Ionicons name="volume-mute" size={16} color="#c9a98e" style={{ marginLeft: 4 }} />}
+          <Text style={styles.roomTitle} numberOfLines={1}>
+            {item.title}
+          </Text>
+          {item.isMuted && (
+            <Ionicons name="volume-mute" size={16} color="#c9a98e" style={{ marginLeft: 4 }} />
+          )}
+          {/* 멤버 수 뱃지 */}
+          {item.memberCount > 1 && (
+            <View style={styles.memberBadge}>
+              <Ionicons name="people" size={11} color="#8a7870" />
+              <Text style={styles.memberBadgeText}>{item.memberCount}</Text>
+            </View>
+          )}
         </View>
-        <Text style={styles.roomMessage} numberOfLines={1}>{item.lastMessage}</Text>
+        <Text style={styles.roomMessage} numberOfLines={1}>
+          {item.lastMessage}
+        </Text>
       </View>
     </TouchableOpacity>
   );
 
+  // ── 인증 확인 중 ──
+  if (isAuthenticated === null) {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <StatusBar barStyle="dark-content" backgroundColor="#fff" />
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>채팅</Text>
+        </View>
+        <View style={styles.centerContainer}>
+          <ActivityIndicator size="large" color="#c9a98e" />
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  // ── 미로그인 ──
+  if (!isAuthenticated) {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <StatusBar barStyle="dark-content" backgroundColor="#fff" />
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>채팅</Text>
+        </View>
+        <View style={styles.centerContainer}>
+          <Ionicons name="lock-closed-outline" size={48} color="#e8e0dc" />
+          <Text style={styles.unauthTitle}>로그인이 필요한 서비스입니다</Text>
+          <Text style={styles.unauthSubtitle}>채팅 기능은 로그인 후 이용할 수 있어요</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  // ── 로그인 상태 ──
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="dark-content" backgroundColor="#fff" />
@@ -172,21 +399,26 @@ export default function ChatScreen() {
         <Text style={styles.headerTitle}>채팅</Text>
       </View>
 
-      <FlatList
-        data={visibleRooms}
-        keyExtractor={(item) => item.id}
-        renderItem={renderRoom}
-        contentContainerStyle={styles.listContainer}
-        ListHeaderComponent={<AIAssistantEntry />}
-        ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            <Ionicons name="chatbubble-ellipses-outline" size={48} color="#e8e0dc" />
-            <Text style={styles.emptyText}>참여 중인 채팅방이 없습니다.</Text>
-          </View>
-        }
-      />
+      {loading ? (
+        <View style={styles.centerContainer}>
+          <ActivityIndicator size="large" color="#c9a98e" />
+        </View>
+      ) : (
+        <FlatList
+          data={rooms}
+          keyExtractor={(item) => item.id}
+          renderItem={renderRoom}
+          contentContainerStyle={styles.listContainer}
+          ListEmptyComponent={
+            <View style={styles.emptyContainer}>
+              <Ionicons name="chatbubble-ellipses-outline" size={48} color="#e8e0dc" />
+              <Text style={styles.emptyText}>참여 중인 채팅방이 없습니다.</Text>
+            </View>
+          }
+        />
+      )}
 
-      {/* FAB - 방 생성 버튼 */}
+      {/* FAB */}
       <TouchableOpacity
         style={styles.fab}
         activeOpacity={0.8}
@@ -195,7 +427,7 @@ export default function ChatScreen() {
         <Ionicons name="add" size={32} color="#fff" />
       </TouchableOpacity>
 
-      {/* 방 생성 및 초대 모달 */}
+      {/* 방 생성 모달 */}
       <Modal
         visible={isCreateModalVisible}
         transparent={true}
@@ -208,7 +440,6 @@ export default function ChatScreen() {
         >
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>새 채팅방 만들기</Text>
-
             <View style={styles.inputWrap}>
               <Ionicons name="pencil-outline" size={16} color="#8a7870" style={styles.inputIcon} />
               <TextInput
@@ -219,26 +450,12 @@ export default function ChatScreen() {
                 onChangeText={setNewRoomTitle}
               />
             </View>
-
-            <View style={styles.inputWrap}>
-              <Ionicons name="person-add-outline" size={16} color="#8a7870" style={styles.inputIcon} />
-              <TextInput
-                style={styles.input}
-                placeholder="초대할 사용자 ID (선택)"
-                placeholderTextColor="#8a7870"
-                value={inviteeId}
-                onChangeText={setInviteeId}
-                autoCapitalize="none"
-              />
-            </View>
-
             <View style={styles.modalActions}>
               <TouchableOpacity
                 style={[styles.modalBtn, styles.modalCancelBtn]}
                 onPress={() => {
                   setCreateModalVisible(false);
                   setNewRoomTitle('');
-                  setInviteeId('');
                 }}
               >
                 <Text style={styles.modalCancelBtnText}>취소</Text>
@@ -246,8 +463,13 @@ export default function ChatScreen() {
               <TouchableOpacity
                 style={[styles.modalBtn, styles.modalCreateBtn]}
                 onPress={handleCreateRoom}
+                disabled={creating}
               >
-                <Text style={styles.modalCreateBtnText}>만들기</Text>
+                {creating ? (
+                  <ActivityIndicator size="small" color="#fff" />
+                ) : (
+                  <Text style={styles.modalCreateBtnText}>만들기</Text>
+                )}
               </TouchableOpacity>
             </View>
           </View>
@@ -267,7 +489,6 @@ export default function ChatScreen() {
         >
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>채팅방 제목 변경</Text>
-
             <View style={styles.inputWrap}>
               <Ionicons name="pencil-outline" size={16} color="#8a7870" style={styles.inputIcon} />
               <TextInput
@@ -279,7 +500,6 @@ export default function ChatScreen() {
                 autoFocus={true}
               />
             </View>
-
             <View style={styles.modalActions}>
               <TouchableOpacity
                 style={[styles.modalBtn, styles.modalCancelBtn]}
@@ -293,14 +513,7 @@ export default function ChatScreen() {
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.modalBtn, styles.modalCreateBtn]}
-                onPress={() => {
-                  if (renameRoomTitle && renameRoomTitle.trim()) {
-                    setRooms(prev => prev.map(r => r.id === renameRoomId ? { ...r, title: renameRoomTitle.trim() } : r));
-                  }
-                  setRenameModalVisible(false);
-                  setRenameRoomId('');
-                  setRenameRoomTitle('');
-                }}
+                onPress={handleRenameConfirm}
               >
                 <Text style={styles.modalCreateBtnText}>변경</Text>
               </TouchableOpacity>
@@ -308,7 +521,6 @@ export default function ChatScreen() {
           </View>
         </KeyboardAvoidingView>
       </Modal>
-
     </SafeAreaView>
   );
 }
@@ -321,14 +533,11 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#f5f0ee',
   },
-  headerTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#3a2e2a',
-  },
-  listContainer: {
-    padding: 16,
-  },
+  headerTitle: { fontSize: 24, fontWeight: 'bold', color: '#3a2e2a' },
+  centerContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', gap: 12 },
+  unauthTitle: { fontSize: 16, fontWeight: '600', color: '#3a2e2a', marginTop: 4 },
+  unauthSubtitle: { fontSize: 14, color: '#8a7870' },
+  listContainer: { padding: 16 },
   roomItem: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -345,62 +554,23 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginRight: 16,
   },
-  roomInfo: {
-    flex: 1,
-  },
-  roomHeader: {
+  roomInfo: { flex: 1 },
+  roomHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 4 },
+  roomTitle: { fontSize: 16, fontWeight: '600', color: '#3a2e2a' },
+  memberBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 4,
-  },
-  roomTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#3a2e2a',
-  },
-  roomMessage: {
-    fontSize: 14,
-    color: '#8a7870',
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  emptyText: {
-    marginTop: 12,
-    fontSize: 15,
-    color: '#8a7870',
-  },
-  aiRoomItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f5f0ee',
-    marginBottom: 4,
-  },
-  aiRoomIcon: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: '#c9a98e',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 16,
-  },
-  aiBadge: {
     backgroundColor: '#f5f0ee',
-    borderRadius: 6,
+    borderRadius: 8,
     paddingHorizontal: 6,
     paddingVertical: 2,
     marginLeft: 6,
+    gap: 3,
   },
-  aiBadgeText: {
-    fontSize: 11,
-    color: '#c9a98e',
-    fontWeight: '600',
-  },
+  memberBadgeText: { fontSize: 11, color: '#8a7870' },
+  roomMessage: { fontSize: 14, color: '#8a7870' },
+  emptyContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingTop: 60 },
+  emptyText: { marginTop: 12, fontSize: 15, color: '#8a7870' },
   fab: {
     position: 'absolute',
     bottom: 24,
@@ -431,12 +601,7 @@ const styles = StyleSheet.create({
     padding: 24,
     gap: 16,
   },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#3a2e2a',
-    marginBottom: 8,
-  },
+  modalTitle: { fontSize: 18, fontWeight: 'bold', color: '#3a2e2a', marginBottom: 8 },
   inputWrap: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -447,29 +612,16 @@ const styles = StyleSheet.create({
   },
   inputIcon: { marginRight: 10 },
   input: { flex: 1, fontSize: 14, color: '#3a2e2a' },
-  modalActions: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    gap: 12,
-    marginTop: 8,
-  },
+  modalActions: { flexDirection: 'row', justifyContent: 'flex-end', gap: 12, marginTop: 8 },
   modalBtn: {
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 8,
+    minWidth: 72,
+    alignItems: 'center',
   },
-  modalCancelBtn: {
-    backgroundColor: '#f5f0ee',
-  },
-  modalCancelBtnText: {
-    color: '#8a7870',
-    fontWeight: '600',
-  },
-  modalCreateBtn: {
-    backgroundColor: '#c9a98e',
-  },
-  modalCreateBtnText: {
-    color: '#fff',
-    fontWeight: '600',
-  },
+  modalCancelBtn: { backgroundColor: '#f5f0ee' },
+  modalCancelBtnText: { color: '#8a7870', fontWeight: '600' },
+  modalCreateBtn: { backgroundColor: '#c9a98e' },
+  modalCreateBtnText: { color: '#fff', fontWeight: '600' },
 });

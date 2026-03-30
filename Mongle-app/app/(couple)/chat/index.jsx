@@ -278,7 +278,7 @@ export default function ChatScreen() {
         Alert.alert('알림', '이미 참여 중인 채팅방입니다.');
         setJoinModalVisible(false);
         setJoinCode('');
-        router.push(`/(planner)/chat/${chatData.id}`);
+        router.push(`/(couple)/chat/${chatData.id}`);
         return;
       }
 
@@ -296,7 +296,7 @@ export default function ChatScreen() {
       setJoinModalVisible(false);
       setJoinCode('');
       await fetchRooms();
-      router.push(`/(planner)/chat/${chatData.id}`);
+      router.push(`/(couple)/chat/${chatData.id}`);
     } catch (e) {
       console.error('handleJoinByCode 예외:', e);
       Alert.alert('오류', '채팅방 참여 중 문제가 발생했습니다.');
@@ -874,5 +874,77 @@ const styles = StyleSheet.create({
     color: '#8a7870',
     textAlign: 'center',
     marginTop: 4,
+  },
+
+  roomItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f5f0ee',
+  },
+  roomIcon: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: '#f5f0ee',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
+  },
+  roomInfo: { flex: 1 },
+  roomHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  roomTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#3a2e2a',
+  },
+  roomMessage: {
+    fontSize: 14,
+    color: '#8a7870',
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingTop: 60,
+  },
+  emptyText: {
+    marginTop: 12,
+    fontSize: 15,
+    color: '#8a7870',
+  },
+  aiRoomItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f5f0ee',
+    marginBottom: 4,
+  },
+  aiRoomIcon: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: '#c9a98e',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
+  },
+  aiBadge: {
+    backgroundColor: '#f5f0ee',
+    borderRadius: 6,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    marginLeft: 6,
+  },
+  aiBadgeText: {
+    fontSize: 11,
+    color: '#c9a98e',
+    fontWeight: '600',
   },
 });

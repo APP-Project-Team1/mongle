@@ -89,6 +89,14 @@ export default function TabsLayout() {
             <Ionicons name="person-outline" size={size} color={color} />
           ),
         }}
+        listeners={{
+          tabPress: (e) => {
+            if (!session) {
+              e.preventDefault();
+              router.push('/(auth)/login');
+            }
+          },
+        }}
       />
     </Tabs>
   );

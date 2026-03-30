@@ -16,6 +16,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import * as Clipboard from 'expo-clipboard';
 import { supabase } from '../../../../lib/supabase';
 
 export default function ChatScreen() {
@@ -27,6 +28,16 @@ export default function ChatScreen() {
   const [isCreateModalVisible, setCreateModalVisible] = useState(false);
   const [newRoomTitle, setNewRoomTitle] = useState('');
   const [creating, setCreating] = useState(false);
+
+  // 초대 코드로 입장 모달
+  const [isJoinModalVisible, setJoinModalVisible] = useState(false);
+  const [joinCode, setJoinCode] = useState('');
+  const [joining, setJoining] = useState(false);
+
+  // 초대 코드 보기 모달
+  const [isInviteModalVisible, setInviteModalVisible] = useState(false);
+  const [inviteCode, setInviteCode] = useState('');
+  const [inviteRoomTitle, setInviteRoomTitle] = useState('');
 
   // 제목 변경 모달
   const [isRenameModalVisible, setRenameModalVisible] = useState(false);
@@ -233,6 +244,67 @@ export default function ChatScreen() {
     }
   };
 
+  // 초대 코드로 채팅방 참여
+  const handleJoinByCode = async () => {
+    if (!joinCode.trim()) {
+      Alert.alert('알림', '초대 코드를 입력해주세요.');
+      return;
+    }
+
+    setJoining(true);
+
+    try {
+      // 초대 코드로 채팅방 조회
+      const { data: chatData, error: chatError } = await supabase
+        .from('chats')
+        .select('id, title')
+        .eq('invite_code', joinCode.trim())
+        .maybeSingle();
+
+      if (chatError || !chatData) {
+        Alert.alert('오류', '유효하지 않은 초대 코드입니다.');
+        return;
+      }
+
+      // 이미 참여 중인지 확인
+      const { data: existing } = await supabase
+        .from('chat_members')
+        .select('id')
+        .eq('chat_id', chatData.id)
+        .eq('user_id', currentUserId)
+        .maybeSingle();
+
+      if (existing) {
+        Alert.alert('알림', '이미 참여 중인 채팅방입니다.');
+        setJoinModalVisible(false);
+        setJoinCode('');
+        router.push(`/(planner)/chat/${chatData.id}`);
+        return;
+      }
+
+      // chat_members에 추가
+      const { error: memberError } = await supabase
+        .from('chat_members')
+        .insert({ chat_id: chatData.id, user_id: currentUserId, role: 'member' });
+
+      if (memberError) {
+        Alert.alert('오류', '채팅방 참여에 실패했습니다.');
+        console.error('참여 오류:', memberError.message);
+        return;
+      }
+
+      setJoinModalVisible(false);
+      setJoinCode('');
+      await fetchRooms();
+      router.push(`/(planner)/chat/${chatData.id}`);
+    } catch (e) {
+      console.error('handleJoinByCode 예외:', e);
+      Alert.alert('오류', '채팅방 참여 중 문제가 발생했습니다.');
+    } finally {
+      setJoining(false);
+    }
+  };
+
   // 채팅방 제목 변경
   const handleRenameConfirm = async () => {
     if (!renameRoomTitle.trim()) return;
@@ -315,6 +387,23 @@ export default function ChatScreen() {
       {
         text: room.isMuted ? '알림 켜기' : '알림 음소거',
         onPress: () => handleToggleMute(room.id),
+      },
+      {
+        text: '초대 코드 보기',
+        onPress: async () => {
+          const { data } = await supabase
+            .from('chats')
+            .select('invite_code, title')
+            .eq('id', room.id)
+            .single();
+          if (data?.invite_code) {
+            setInviteCode(data.invite_code);
+            setInviteRoomTitle(data.title ?? room.title);
+            setInviteModalVisible(true);
+          } else {
+            Alert.alert('오류', '초대 코드를 불러오지 못했습니다.');
+          }
+        },
       },
       {
         text: '채팅방 나가기',
@@ -418,6 +507,15 @@ export default function ChatScreen() {
         />
       )}
 
+      {/* 코드로 입장 버튼 */}
+      <TouchableOpacity
+        style={styles.joinBtn}
+        activeOpacity={0.8}
+        onPress={() => setJoinModalVisible(true)}
+      >
+        <Ionicons name="enter-outline" size={22} color="#c9a98e" />
+      </TouchableOpacity>
+
       {/* FAB */}
       <TouchableOpacity
         style={styles.fab}
@@ -516,6 +614,90 @@ export default function ChatScreen() {
                 onPress={handleRenameConfirm}
               >
                 <Text style={styles.modalCreateBtnText}>변경</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
+      {/* 초대 코드 보기 모달 */}
+      <Modal
+        visible={isInviteModalVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setInviteModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>초대 코드</Text>
+            <Text style={styles.inviteRoomName}>{inviteRoomTitle}</Text>
+            <View style={styles.inviteCodeBox}>
+              <Text style={styles.inviteCodeText}>{inviteCode}</Text>
+              <TouchableOpacity
+                onPress={() => {
+                  Clipboard.setStringAsync(inviteCode);
+                  Alert.alert('복사 완료', '초대 코드가 클립보드에 복사되었습니다.');
+                }}
+                style={styles.copyBtn}
+              >
+                <Ionicons name="copy-outline" size={20} color="#c9a98e" />
+              </TouchableOpacity>
+            </View>
+            <Text style={styles.inviteGuide}>위 코드를 상대방에게 공유하세요.</Text>
+            <TouchableOpacity
+              style={[styles.modalBtn, styles.modalCreateBtn, { alignSelf: 'flex-end' }]}
+              onPress={() => setInviteModalVisible(false)}
+            >
+              <Text style={styles.modalCreateBtnText}>확인</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* 초대 코드로 입장 모달 */}
+      <Modal
+        visible={isJoinModalVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setJoinModalVisible(false)}
+      >
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          style={styles.modalOverlay}
+        >
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>초대 코드로 입장</Text>
+            <View style={styles.inputWrap}>
+              <Ionicons name="key-outline" size={16} color="#8a7870" style={styles.inputIcon} />
+              <TextInput
+                style={styles.input}
+                placeholder="초대 코드 입력"
+                placeholderTextColor="#8a7870"
+                value={joinCode}
+                onChangeText={setJoinCode}
+                autoCapitalize="none"
+                autoFocus={true}
+              />
+            </View>
+            <View style={styles.modalActions}>
+              <TouchableOpacity
+                style={[styles.modalBtn, styles.modalCancelBtn]}
+                onPress={() => {
+                  setJoinModalVisible(false);
+                  setJoinCode('');
+                }}
+              >
+                <Text style={styles.modalCancelBtnText}>취소</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modalBtn, styles.modalCreateBtn]}
+                onPress={handleJoinByCode}
+                disabled={joining}
+              >
+                {joining ? (
+                  <ActivityIndicator size="small" color="#fff" />
+                ) : (
+                  <Text style={styles.modalCreateBtnText}>입장</Text>
+                )}
               </TouchableOpacity>
             </View>
           </View>
@@ -624,4 +806,51 @@ const styles = StyleSheet.create({
   modalCancelBtnText: { color: '#8a7870', fontWeight: '600' },
   modalCreateBtn: { backgroundColor: '#c9a98e' },
   modalCreateBtnText: { color: '#fff', fontWeight: '600' },
+  joinBtn: {
+    position: 'absolute',
+    bottom: 100,
+    right: 28,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#fff',
+    borderWidth: 1.5,
+    borderColor: '#c9a98e',
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.15,
+    shadowRadius: 3,
+  },
+  inviteRoomName: {
+    fontSize: 14,
+    color: '#8a7870',
+    marginBottom: 12,
+  },
+  inviteCodeBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f5f0ee',
+    borderRadius: 12,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    justifyContent: 'space-between',
+  },
+  inviteCodeText: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#3a2e2a',
+    letterSpacing: 6,
+  },
+  copyBtn: {
+    padding: 4,
+  },
+  inviteGuide: {
+    fontSize: 13,
+    color: '#8a7870',
+    textAlign: 'center',
+    marginTop: 4,
+  },
 });

@@ -64,12 +64,17 @@ export default function MyPage() {
   const loadProfile = async (userId) => {
     try {
       // 1단계
-      const { data: profileRow, error: profileError } = await supabase
+      const { data: profileRows, error: profileError } = await supabase
         .from('user_profiles')
         .select('role, planner_id, couple_id')
         .eq('id', userId)
-        .single();
+        .limit(1);
       if (profileError) throw profileError;
+      if (!profileRows || profileRows.length === 0) {
+        setLoading(false);
+        return;
+      }
+      const profileRow = profileRows[0];
 
       const { role, planner_id, couple_id } = profileRow;
       setRole(role);
@@ -82,17 +87,17 @@ export default function MyPage() {
             'name, brand_name, title, one_liner, specialties, style_keywords, career_years, weddings_completed, major_experiences, profile_image_url',
           )
           .eq('id', planner_id)
-          .single();
+          .limit(1);
         if (error) throw error;
-        setProfile(data);
+        setProfile(data && data.length > 0 ? data[0] : null);
       } else if (role === 'couple' && couple_id) {
         const { data, error } = await supabase
           .from('couples')
           .select('groom_name, bride_name, email, phone')
           .eq('id', couple_id)
-          .single();
+          .limit(1);
         if (error) throw error;
-        setProfile(data);
+        setProfile(data && data.length > 0 ? data[0] : null);
       }
     } catch (e) {
       console.error('프로필 로드 실패:', e.message);

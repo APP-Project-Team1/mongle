@@ -15,6 +15,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
+import { supabase } from '../../../lib/supabase';
 import { Calendar, LocaleConfig } from 'react-native-calendars';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { formatNumber, CATEGORY_MAP, CATEGORY_LABEL } from '../../../lib/utils';
@@ -307,9 +308,30 @@ export default function BudgetHubScreen() {
                       {formatBalanceSub(item.balance_due)}
                     </Text>
                   </View>
-                  <Text style={[styles.balanceAmount, item.isUrgent && { color: '#C9716A' }]}>
-                    {item.balance_amount ? `${formatNumber(item.balance_amount)}만원` : '미정'}
-                  </Text>
+                  <View style={{ alignItems: 'flex-end', justifyContent: 'center' }}>
+                    <Text style={[styles.balanceAmount, item.isUrgent && { color: '#C9716A' }]}>
+                      {item.balance_amount ? `${formatNumber(item.balance_amount)}만원` : '미정'}
+                    </Text>
+                    <TouchableOpacity
+                      style={{ marginTop: 6, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12, backgroundColor: '#EBF2EE' }}
+                      onPress={async () => {
+                        Alert.alert('잔금 결제 완료', `${item.label} 잔금 결제를 완료하시겠습니까? (관련 알림이 모두 취소됩니다.)`, [
+                          { text: '취소', style: 'cancel' },
+                          { text: '확인', onPress: async () => {
+                              try {
+                                await supabase.from('notifications').update({ is_read: true }).eq('ref_id', item.id);
+                                Alert.alert('완료', '정상 처리되었습니다!');
+                              } catch (e) {
+                                console.log(e);
+                              }
+                            }
+                          }
+                        ]);
+                      }}
+                    >
+                      <Text style={{ fontSize: 11, color: '#7A9E8E', fontWeight: 'bold' }}>결제 완료</Text>
+                    </TouchableOpacity>
+                  </View>
                 </View>
               ))}
             {costItems.filter(i => i.has_balance).length === 0 && (

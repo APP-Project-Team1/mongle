@@ -1,0 +1,4 @@
+id,user_id,wedding_id,type,title,body,icon,icon_color,icon_bg,is_read,created_at,ref_type,ref_id,sender_id
+10,4eb2cef2-1362-40c1-98b2-7e7b286da927,,info_consultation,🗓️ 새 상담 신청 도착,"planner1 플래너님, 2030-10-01 오전 1시 상담 신청이 있습니다. (예산: 500)",,,,true,2026-03-29 02:57:49.93603+00,consultation,,
+11,4eb2cef2-1362-40c1-98b2-7e7b286da927,,info_consultation,🗓️ 새 상담 신청 도착,"planner1 플래너님, 2027-2-2 오후 2시 상담 신청이 있습니다. (예산: 200)",,,,true,2026-03-29 03:18:11.664469+00,consultation,,16d9b12d-e4dc-4b89-9d25-e64afcc43e37
+12,4eb2cef2-1362-40c1-98b2-7e7b286da927,,info_consultation,🗓️ 새 상담 신청 도착,"planner1 플래너님, 2028-2-2 오후 2시 상담 신청이 있습니다. (예산: 200)",,,,true,2026-03-29 03:19:19.74622+00,consultation,,16d9b12d-e4dc-4b89-9d25-e64afcc43e37

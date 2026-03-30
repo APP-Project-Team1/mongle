@@ -1,0 +1,10 @@
+id,label,icon,recipient_type,trigger_desc
+cost_urgent,긴급 잔금 마감,warning-outline,couple,잔금 마감 3일 전 (cron)
+couple_added,새 커플 등록,person-add-outline,planner,새 커플 등록 시 (API)
+dday_reminder,D-Day 알림,calendar-outline,both,"D-30, D-14, D-7, D-1 (cron)"
+info_consultation,상담 신청 알림,person-add-outline,planner,커플 상담 신청 시
+payment_due,잔금 납부 임박,cash-outline,both,납부일 10일 전 (cron)
+timeline_added,일정 추가,calendar-clear-outline,both,타임라인 항목 추가 시 (API)
+timeline_updated,일정 변경,calendar-outline,both,타임라인 항목 수정 시 (API)
+todo_completed,할 일 완료,checkmark-circle-outline,planner,할 일 완료 처리 시 (API)
+todo_deadline,할 일 마감,alert-circle-outline,planner,마감일 당일 오전 9시 (cron)

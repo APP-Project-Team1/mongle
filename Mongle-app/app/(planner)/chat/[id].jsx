@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -9,56 +9,158 @@ import {
   KeyboardAvoidingView,
   Platform,
   StatusBar,
+  ActivityIndicator,
 } from 'react-native';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-
-const CURRENT_USER_ID = 'me';
+import { supabase } from '../../../lib/supabase';
 
 export default function ChatRoomScreen() {
+  const { id: chatId } = useLocalSearchParams();
+  console.log('현재 페이지의 chatId:', chatId);
+
   const [message, setMessage] = useState('');
+  const [messages, setMessages] = useState([]);
+  const [chatTitle, setChatTitle] = useState('채팅방');
+  const [currentUserId, setCurrentUserId] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [sending, setSending] = useState(false);
 
-  // Dummy messages for demonstration
-  const [messages, setMessages] = useState([
-    {
-      id: '1',
-      text: '안녕하세요! 채팅방 구조를 잡았습니다.',
-      sender: 'partner',
-      timestamp: new Date().toISOString(),
-    },
-    {
-      id: '2',
-      text: '채팅방 생성이 완료되었습니다.',
-      sender: 'system',
-      timestamp: new Date().toISOString(),
-    },
-  ]);
+  const flatListRef = useRef(null);
 
-  const handleSend = () => {
-    if (!message.trim()) return;
+  // 현재 유저 ID 가져오기
+  useEffect(() => {
+    const getUser = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      setCurrentUserId(user?.id ?? null);
+    };
+    getUser();
+  }, []);
 
-    const newMessage = {
-      id: Date.now().toString(),
-      text: message.trim(),
-      sender: CURRENT_USER_ID,
-      timestamp: new Date().toISOString(),
+  // 채팅방 정보 & 메시지 초기 로드
+  useEffect(() => {
+    if (!chatId) return;
+
+    const fetchChatData = async () => {
+      setLoading(true);
+
+      // 채팅방 제목
+      const { data: chatData } = await supabase
+        .from('chats')
+        .select('title')
+        .eq('id', chatId)
+        .single();
+
+      console.log('타입확인:', typeof chatId, chatId);
+
+      if (chatData?.title) setChatTitle(chatData.title);
+
+      // 메시지 목록 (최신순 → FlatList inverted이므로)
+      const { data: msgData, error } = await supabase
+        .from('messages')
+        .select('*')
+        .eq('chat_id', chatId)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('메시지 조회 오류:', error.message);
+      } else {
+        setMessages(msgData ?? []);
+      }
+
+      setLoading(false);
     };
 
-    setMessages((prev) => [newMessage, ...prev]);
+    fetchChatData();
+  }, [chatId]);
+
+  // 실시간 구독: 새 메시지 수신
+  useEffect(() => {
+    if (!chatId) return;
+
+    const channel = supabase
+      .channel(`messages-${chatId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'messages',
+          filter: `chat_id=eq.${chatId}`,
+        },
+        (payload) => {
+          const newMsg = payload.new;
+          setMessages((prev) => {
+            // 이미 낙관적 업데이트로 추가된 경우 중복 방지
+            if (prev.some((m) => m.id === newMsg.id)) return prev;
+            return [newMsg, ...prev];
+          });
+        },
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [chatId]);
+
+  // 메시지 전송
+  const handleSend = async () => {
+    if (!message.trim() || sending) return;
+    console.log('1. 함수 진입 성공');
+
+    const content = message.trim();
     setMessage('');
+    setSending(true);
+
+    // 화면에 먼저 보여주기 (이건 작동 중)
+    const optimisticId = `optimistic-${Date.now()}`;
+    setMessages((prev) => [{ id: optimisticId, content, sender: 'me' }, ...prev]);
+    console.log('2. 낙관적 업데이트 완료');
+
+    try {
+      console.log('3. Supabase 요청 직전...', { chatId, content });
+
+      // 이 지점에서 멈춘다면 supabase 객체 설정 문제일 확률 100%
+      const { data, error } = await supabase
+        .from('messages')
+        .insert({
+          chat_id: chatId,
+          sender: currentUserId || 'me',
+          content: content,
+        })
+        .select();
+
+      console.log('4. Supabase 응답 받음!');
+
+      if (error) {
+        console.error('5. DB 에러 발생:', error.message);
+        throw error;
+      }
+
+      console.log('6. 최종 성공:', data);
+    } catch (e) {
+      console.error('7. Catch 문 실행 (치명적 에러):', e);
+      setMessages((prev) => prev.filter((m) => m.id !== optimisticId));
+    } finally {
+      setSending(false);
+    }
   };
 
   const renderMessage = ({ item }) => {
     if (item.sender === 'system') {
       return (
         <View style={styles.systemMessageContainer}>
-          <Text style={styles.systemMessageText}>{item.text}</Text>
+          <Text style={styles.systemMessageText}>{item.content}</Text>
         </View>
       );
     }
 
-    const isMe = item.sender === CURRENT_USER_ID;
+    const isMe = item.sender === currentUserId || item.sender === 'me';
+    const isOptimistic = item.id?.toString().startsWith('optimistic-');
 
     return (
       <View style={[styles.messageRow, isMe ? styles.messageRowMe : styles.messageRowOther]}>
@@ -67,9 +169,15 @@ export default function ChatRoomScreen() {
             <Ionicons name="person" size={16} color="#8a7870" />
           </View>
         )}
-        <View style={[styles.bubble, isMe ? styles.bubbleMe : styles.bubbleOther]}>
+        <View
+          style={[
+            styles.bubble,
+            isMe ? styles.bubbleMe : styles.bubbleOther,
+            isOptimistic && styles.bubbleOptimistic,
+          ]}
+        >
           <Text style={[styles.messageText, isMe ? styles.messageTextMe : styles.messageTextOther]}>
-            {item.text}
+            {item.content}
           </Text>
         </View>
       </View>
@@ -85,7 +193,9 @@ export default function ChatRoomScreen() {
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
           <Ionicons name="chevron-back" size={24} color="#3a2e2a" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>채팅방</Text>
+        <Text style={styles.headerTitle} numberOfLines={1}>
+          {chatTitle}
+        </Text>
         <TouchableOpacity style={styles.menuBtn}>
           <Ionicons name="ellipsis-vertical" size={24} color="#3a2e2a" />
         </TouchableOpacity>
@@ -96,13 +206,21 @@ export default function ChatRoomScreen() {
         style={styles.keyboardAvoiding}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-        <FlatList
-          data={messages}
-          keyExtractor={(item) => item.id}
-          renderItem={renderMessage}
-          contentContainerStyle={styles.messageList}
-          inverted
-        />
+        {loading ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color="#c9a98e" />
+          </View>
+        ) : (
+          <FlatList
+            ref={flatListRef}
+            data={messages}
+            keyExtractor={(item) => item.id.toString()}
+            renderItem={renderMessage}
+            contentContainerStyle={styles.messageList}
+            inverted
+          />
+        )}
+
         {/* Input Area */}
         <View style={styles.inputContainer}>
           <TouchableOpacity style={styles.attachBtn}>
@@ -120,9 +238,13 @@ export default function ChatRoomScreen() {
           <TouchableOpacity
             style={[styles.sendBtn, message.trim() ? styles.sendBtnActive : {}]}
             onPress={handleSend}
-            disabled={!message.trim()}
+            disabled={!message.trim() || sending}
           >
-            <Ionicons name="send" size={18} color={message.trim() ? '#fff' : '#c9a98e'} />
+            {sending ? (
+              <ActivityIndicator size="small" color="#fff" />
+            ) : (
+              <Ionicons name="send" size={18} color={message.trim() ? '#fff' : '#c9a98e'} />
+            )}
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
@@ -144,13 +266,19 @@ const styles = StyleSheet.create({
   },
   backBtn: { padding: 8 },
   headerTitle: {
+    flex: 1,
     fontSize: 18,
     fontWeight: 'bold',
     color: '#3a2e2a',
+    textAlign: 'center',
+    marginHorizontal: 8,
   },
   menuBtn: { padding: 8 },
-  keyboardAvoiding: {
+  keyboardAvoiding: { flex: 1 },
+  loadingContainer: {
     flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   messageList: {
     padding: 16,
@@ -161,12 +289,8 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
     marginBottom: 8,
   },
-  messageRowMe: {
-    justifyContent: 'flex-end',
-  },
-  messageRowOther: {
-    justifyContent: 'flex-start',
-  },
+  messageRowMe: { justifyContent: 'flex-end' },
+  messageRowOther: { justifyContent: 'flex-start' },
   avatar: {
     width: 28,
     height: 28,
@@ -192,16 +316,12 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#f5f0ee',
   },
-  messageText: {
-    fontSize: 15,
-    lineHeight: 20,
+  bubbleOptimistic: {
+    opacity: 0.7,
   },
-  messageTextMe: {
-    color: '#fff',
-  },
-  messageTextOther: {
-    color: '#3a2e2a',
-  },
+  messageText: { fontSize: 15, lineHeight: 20 },
+  messageTextMe: { color: '#fff' },
+  messageTextOther: { color: '#3a2e2a' },
   systemMessageContainer: {
     alignItems: 'center',
     marginVertical: 12,
@@ -224,10 +344,7 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: '#f5f0ee',
   },
-  attachBtn: {
-    padding: 8,
-    marginRight: 4,
-  },
+  attachBtn: { padding: 8, marginRight: 4 },
   input: {
     flex: 1,
     backgroundColor: '#f5f0ee',
@@ -248,9 +365,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginLeft: 8,
   },
-  sendBtnActive: {
-    backgroundColor: '#c9a98e',
-  },
+  sendBtnActive: { backgroundColor: '#c9a98e' },
   aiBtn: {
     width: 36,
     height: 36,

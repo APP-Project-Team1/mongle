@@ -17,13 +17,13 @@ import { Ionicons } from '@expo/vector-icons';
 const { width } = Dimensions.get('window');
 
 // ── Vendor & Planner Data ──────────────────────────────────────────
-import hallData from '../vendors/data/hall.json';
-import studioData from '../vendors/data/studio.json';
-import dressData from '../vendors/data/dress.json';
-import makeupData from '../vendors/data/makeup.json';
-import videoSnapData from '../vendors/data/video_snap.json';
-import packageData from '../vendors/data/package.json';
-import plannersData from '../planners/planners.json';
+import hallData from '../../vendors/data/hall.json';
+import studioData from '../../vendors/data/studio.json';
+import dressData from '../../vendors/data/dress.json';
+import makeupData from '../../vendors/data/makeup.json';
+import videoSnapData from '../../vendors/data/video_snap.json';
+import packageData from '../../vendors/data/package.json';
+import plannersData from '../../planners/planners.json';
 
 const mapVendor = (v) => ({
   id: v.basic_info.vendor_id,
@@ -46,9 +46,9 @@ const SUB_TABS = ['웨딩홀', '영상·스냅', '웨딩플래너'];
 const SUB_IDS = ['hall', 'video_snap'];
 
 const BANNER_DATA = [
-  { id: '1', label: '봄 웨딩 특집', image: require('../../assets/images/banner_01.jpg') },
-  { id: '2', label: '허니문 패키지', image: require('../../assets/images/banner_02.jpg') },
-  { id: '3', label: '드레스 할인전', image: require('../../assets/images/banner_03.jpg') },
+  { id: '1', label: '봄 웨딩 특집', image: require('../../../assets/images/banner_01.jpg') },
+  { id: '2', label: '허니문 패키지', image: require('../../../assets/images/banner_02.jpg') },
+  { id: '3', label: '드레스 할인전', image: require('../../../assets/images/banner_03.jpg') },
 ];
 
 // 카테고리 탭별 업체 데이터

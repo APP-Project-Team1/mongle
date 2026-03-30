@@ -17,10 +17,10 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { Calendar, LocaleConfig } from 'react-native-calendars';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { formatNumber, CATEGORY_MAP, CATEGORY_LABEL } from '../../lib/utils';
-import { projectsApi, budgetsApi, vendorsApi } from '../../lib/api';
-import BudgetOptimizationModal from '../../components/budget/BudgetOptimizationModal';
-import { PDFService } from '../../lib/services/pdf/PDFService';
+import { formatNumber, CATEGORY_MAP, CATEGORY_LABEL } from '../../../lib/utils';
+import { projectsApi, budgetsApi, vendorsApi } from '../../../lib/api';
+import BudgetOptimizationModal from '../../../components/budget/BudgetOptimizationModal';
+import { PDFService } from '../../../lib/services/pdf/PDFService';
 
 const { width } = Dimensions.get('window');
 

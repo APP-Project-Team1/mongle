@@ -12,9 +12,9 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { useAi } from '../../../hooks/useAi';
-import ChatInput from '../../../components/chat/ChatInput';
-import MessageBubble from '../../../components/chat/MessageBubble';
+import { useAi } from '../../../../hooks/useAi';
+import ChatInput from '../../../../components/chat/ChatInput';
+import MessageBubble from '../../../../components/chat/MessageBubble';
 
 const QUICK_START_CHIPS = [
   '스튜디오 추천해줘',

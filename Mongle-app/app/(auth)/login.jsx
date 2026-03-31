@@ -33,11 +33,17 @@ export default function LoginScreen() {
 
   const renderBottomTab = () => (
     <View style={tabStyles.container}>
-      <TouchableOpacity style={tabStyles.tabItem} onPress={() => router.replace('/(couple)/(tabs)/timeline')}>
+      <TouchableOpacity
+        style={tabStyles.tabItem}
+        onPress={() => router.replace('/(couple)/(tabs)/timeline')}
+      >
         <Ionicons name="calendar-outline" size={24} color="#8a7870" />
         <Text style={tabStyles.tabText}>일정</Text>
       </TouchableOpacity>
-      <TouchableOpacity style={tabStyles.tabItem} onPress={() => router.replace('/(couple)/(tabs)/budget')}>
+      <TouchableOpacity
+        style={tabStyles.tabItem}
+        onPress={() => router.replace('/(couple)/(tabs)/budget')}
+      >
         <Ionicons name="wallet-outline" size={24} color="#8a7870" />
         <Text style={tabStyles.tabText}>비용</Text>
       </TouchableOpacity>
@@ -45,7 +51,10 @@ export default function LoginScreen() {
         <Ionicons name="home-outline" size={24} color="#8a7870" />
         <Text style={tabStyles.tabText}>홈</Text>
       </TouchableOpacity>
-      <TouchableOpacity style={tabStyles.tabItem} onPress={() => router.replace('/(couple)/(tabs)/chat')}>
+      <TouchableOpacity
+        style={tabStyles.tabItem}
+        onPress={() => router.replace('/(couple)/(tabs)/chat')}
+      >
         <Ionicons name="chatbubble-outline" size={24} color="#8a7870" />
         <Text style={tabStyles.tabText}>채팅</Text>
       </TouchableOpacity>
@@ -74,6 +83,7 @@ export default function LoginScreen() {
 
       if (!userRole) {
         await signOut();
+        setLoading(false);
         showAlert('계정 정보를 불러올 수 없습니다.\n잠시 후 다시 시도해주세요.');
         return;
       }
@@ -81,25 +91,23 @@ export default function LoginScreen() {
       // 선택한 탭과 실제 role이 다를 경우 안내 후 로그아웃
       if (userRole === 'planner' && !isPlanner) {
         await signOut();
+        setLoading(false);
         showAlert('웨딩 플래너 계정입니다.\n웨딩 플래너 탭을 선택해주세요.');
         return;
       }
       if (userRole === 'couple' && isPlanner) {
         await signOut();
+        setLoading(false);
         showAlert('예비 신혼 계정입니다.\n예비 신혼 탭을 선택해주세요.');
         return;
       }
 
-      // 명시적 네비게이션 (_layout.jsx의 role 로딩 타이밍에 의존하지 않음)
-      if (userRole === 'planner') {
-        router.replace('/(planner)/dashboard');
-      } else {
-        router.replace('/(couple)');
-      }
+      // 로그인이 성공적으로 완료되면 전역 상태(_layout.jsx의 AuthGate)에서
+      // session 변경을 감지하고 자동으로 role에 맞는 화면으로 전환함.
+      // 직접 router.replace를 호출하면 Expo Router 컴포넌트 라우팅 충돌로 멈춤(Freeze) 발생
     } catch (e) {
-      showAlert('이메일 또는 비밀번호가 올바르지 않습니다.');
-    } finally {
       setLoading(false);
+      showAlert('이메일 또는 비밀번호가 올바르지 않습니다.');
     }
   };
 
@@ -107,7 +115,10 @@ export default function LoginScreen() {
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="dark-content" backgroundColor="#fff" />
 
-      <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
+      <TouchableOpacity
+        style={styles.backBtn}
+        onPress={() => router.canGoBack() ? router.back() : router.replace('/(couple)')}
+      >
         <Ionicons name="chevron-back" size={24} color="#3a2e2a" />
       </TouchableOpacity>
 

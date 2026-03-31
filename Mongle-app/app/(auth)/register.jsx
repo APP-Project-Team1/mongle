@@ -16,12 +16,7 @@ import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { supabase } from '../../lib/supabase';
-import {
-  signUpPlanner,
-  signUpCouple,
-  verifySignupOtp,
-  checkEmailAvailable,
-} from '../../lib/auth';
+import { signUpPlanner, signUpCouple, verifySignupOtp, checkEmailAvailable } from '../../lib/auth';
 import { useAuth } from '../../context/AuthContext';
 
 export default function RegisterScreen() {
@@ -142,7 +137,10 @@ export default function RegisterScreen() {
   // Step 8: 회원가입 완료 (비밀번호 설정)
   const handleFinalSignup = async () => {
     if (!isValidPassword(password)) {
-      showModal('알림', '비밀번호 조건을 확인해주세요.\n(영문 대소문자, 숫자, 특수문자 포함 8~16자)');
+      showModal(
+        '알림',
+        '비밀번호 조건을 확인해주세요.\n(영문 대소문자, 숫자, 특수문자 포함 8~16자)',
+      );
       return;
     }
     if (password !== passwordConfirm) {
@@ -154,23 +152,20 @@ export default function RegisterScreen() {
       // 현재 세션(verifyOtp로 생성)을 사용해 비밀번호 업데이트
       const { error } = await supabase.auth.updateUser({ password });
       if (error) throw error;
-      // registrationPending 해제 후 명시적 네비게이션
-      // (_layout.jsx의 role 로딩 타이밍에 의존하지 않음)
+
+      // 전역 가입 대기 상태 해제.
+      // _layout.jsx의 AuthGate에서 자동으로 role에 맞게 라우팅(화면 이동)함.
+      // 직접 router.replace를 호출하면 Expo Router 내비게이션 충돌로 멈춤(Freezing) 발생
       setRegistrationPending(false);
-      if (isPlanner) {
-        router.replace('/(planner)/dashboard');
-      } else {
-        router.replace('/(couple)');
-      }
+
+      // 버튼을 '처리 중...' 상태로 둔 채 화면이 자동으로 넘어갈 때까지 대기
     } catch (e) {
-      showModal('오류', e.message || '비밀번호 설정에 실패했습니다.');
-    } finally {
       setFinalLoading(false);
+      showModal('오류', e.message || '비밀번호 설정에 실패했습니다.');
     }
   };
 
-  const isFinalEnabled =
-    isValidPassword(password) && password === passwordConfirm && !finalLoading;
+  const isFinalEnabled = isValidPassword(password) && password === passwordConfirm && !finalLoading;
 
   const renderBottomTab = () => (
     <View style={tabStyles.container}>
@@ -188,10 +183,7 @@ export default function RegisterScreen() {
         <Ionicons name="wallet-outline" size={24} color="#8a7870" />
         <Text style={tabStyles.tabText}>비용</Text>
       </TouchableOpacity>
-      <TouchableOpacity
-        style={tabStyles.tabItem}
-        onPress={() => router.replace('/(couple)')}
-      >
+      <TouchableOpacity style={tabStyles.tabItem} onPress={() => router.replace('/(couple)')}>
         <Ionicons name="home-outline" size={24} color="#8a7870" />
         <Text style={tabStyles.tabText}>홈</Text>
       </TouchableOpacity>
@@ -202,10 +194,7 @@ export default function RegisterScreen() {
         <Ionicons name="chatbubble-outline" size={24} color="#8a7870" />
         <Text style={tabStyles.tabText}>채팅</Text>
       </TouchableOpacity>
-      <TouchableOpacity
-        style={tabStyles.tabItem}
-        onPress={() => router.push('/(auth)/login')}
-      >
+      <TouchableOpacity style={tabStyles.tabItem} onPress={() => router.push('/(auth)/login')}>
         <Ionicons name="person-outline" size={24} color="#8a7870" />
         <Text style={tabStyles.tabText}>마이</Text>
       </TouchableOpacity>
@@ -216,7 +205,10 @@ export default function RegisterScreen() {
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="dark-content" backgroundColor="#fff" />
 
-      <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
+      <TouchableOpacity
+        style={styles.backBtn}
+        onPress={() => router.canGoBack() ? router.back() : router.replace('/(couple)')}
+      >
         <Ionicons name="chevron-back" size={24} color="#3a2e2a" />
       </TouchableOpacity>
 
@@ -340,9 +332,7 @@ export default function RegisterScreen() {
                     disabled={otpVerifying}
                     activeOpacity={0.8}
                   >
-                    <Text style={styles.verifyBtnText}>
-                      {otpVerifying ? '확인중' : '인증'}
-                    </Text>
+                    <Text style={styles.verifyBtnText}>{otpVerifying ? '확인중' : '인증'}</Text>
                   </TouchableOpacity>
                 </View>
                 <Text style={styles.hintText}>* 이메일로 받은 인증번호를 입력해주세요.</Text>
@@ -350,9 +340,7 @@ export default function RegisterScreen() {
             )}
 
             {/* 인증 완료 메시지 */}
-            {otpVerified && (
-              <Text style={styles.successText}>✓ 인증이 완료되었습니다.</Text>
-            )}
+            {otpVerified && <Text style={styles.successText}>✓ 인증이 완료되었습니다.</Text>}
 
             {/* Step 6~8: 비밀번호 설정 (인증 완료 후 노출) */}
             {otpVerified && (
@@ -440,18 +428,13 @@ export default function RegisterScreen() {
 
                 {/* 회원가입 버튼 */}
                 <TouchableOpacity
-                  style={[
-                    styles.registerBtnWrapper,
-                    !isFinalEnabled && styles.registerBtnDisabled,
-                  ]}
+                  style={[styles.registerBtnWrapper, !isFinalEnabled && styles.registerBtnDisabled]}
                   activeOpacity={0.85}
                   onPress={handleFinalSignup}
                   disabled={!isFinalEnabled}
                 >
                   <LinearGradient
-                    colors={
-                      isFinalEnabled ? ['#c89494', '#ccc79e'] : ['#e5e3e3', '#e8e7e2']
-                    }
+                    colors={isFinalEnabled ? ['#c89494', '#ccc79e'] : ['#e5e3e3', '#e8e7e2']}
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 1 }}
                     style={styles.registerBtnGradient}
@@ -467,7 +450,7 @@ export default function RegisterScreen() {
 
           <View style={styles.loginRow}>
             <Text style={styles.loginText}>이미 계정이 있으신가요?</Text>
-            <TouchableOpacity onPress={() => router.back()}>
+            <TouchableOpacity onPress={() => router.canGoBack() ? router.back() : router.replace('/(auth)/login')}>
               <Text style={styles.loginLink}>로그인</Text>
             </TouchableOpacity>
           </View>

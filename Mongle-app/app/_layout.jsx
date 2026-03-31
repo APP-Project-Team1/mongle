@@ -91,6 +91,7 @@ function AuthGate() {
     const inAuthGroup = rootSegment === '(auth)';
     const inPlannerGroup = rootSegment === '(planner)';
     const inCoupleGroup = rootSegment === '(couple)';
+    const inSettingsGroup = rootSegment === 'settings';
 
     // A. 비로그인 상태
     if (!session) {
@@ -102,6 +103,8 @@ function AuthGate() {
     else {
       // 프로필이 없으면(회원가입 OTP 인증 중 임시 세션 등) 리디렉션하지 않음
       if (role === null) return;
+      // 설정 화면(이용약관, 개인정보 처리방침 등)은 리디렉션하지 않음
+      if (inSettingsGroup) return;
 
       if (role === 'planner') {
         // 플래너인데 플래너 그룹에 없으면 대시보드로!

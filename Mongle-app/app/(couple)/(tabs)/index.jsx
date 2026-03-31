@@ -223,9 +223,9 @@ export default function HomeScreen() {
               activeOpacity={0.8}
             >
               <View style={styles.moreCardInner}>
-                <Ionicons name="grid-outline" size={24} color="#c9a98e" />
+                <Ionicons name="grid-outline" size={24} color="#cbbbae" />
                 <Text style={styles.moreCardText}>더보기</Text>
-                <Ionicons name="chevron-forward" size={14} color="#c9a98e" />
+                <Ionicons name="chevron-forward" size={14} color="#cbbbae" />
               </View>
             </TouchableOpacity>
           )}
@@ -271,7 +271,7 @@ export default function HomeScreen() {
               style={styles.moreCard}
               onPress={() => {
                 if (activeSubTab === 2) {
-                  router.push('/planners');
+                  router.navigate('/planners');
                 } else {
                   router.push(`/vendors?category=${SUB_IDS[activeSubTab]}`);
                 }
@@ -279,9 +279,9 @@ export default function HomeScreen() {
               activeOpacity={0.8}
             >
               <View style={styles.moreCardInner}>
-                <Ionicons name="grid-outline" size={24} color="#c9a98e" />
+                <Ionicons name="grid-outline" size={24} color="#cbbbae" />
                 <Text style={styles.moreCardText}>더보기</Text>
-                <Ionicons name="chevron-forward" size={14} color="#c9a98e" />
+                <Ionicons name="chevron-forward" size={14} color="#cbbbae" />
               </View>
             </TouchableOpacity>
           )}
@@ -497,7 +497,7 @@ const styles = StyleSheet.create({
     height: 120 + 10 + 19 + 5 + 15 + 10,
     backgroundColor: '#faf5f2',
     borderRadius: 14,
-    borderWidth: 1.5,
+    borderWidth: 0.5,
     borderColor: '#e8ddd8',
     justifyContent: 'center',
     alignItems: 'center',
@@ -508,16 +508,16 @@ const styles = StyleSheet.create({
   },
   moreCardText: {
     fontSize: 13,
-    fontWeight: '600',
-    color: '#c9a98e',
+    fontWeight: '500',
+    color: '#cbbbae',
   },
 
   // 서브 탭
   subTabRow: {
     flexDirection: 'row',
     paddingHorizontal: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0e8e4',
+    // borderBottomWidth: 1,
+    // borderBottomColor: '#f0e8e4',
     marginBottom: 14,
     marginTop: 8,
   },
@@ -539,7 +539,7 @@ const styles = StyleSheet.create({
   subTabUnderline: {
     position: 'absolute',
     bottom: -1,
-    width: '40%',
+    width: '90%',
     height: 2,
     backgroundColor: '#c9a98e',
     borderRadius: 1,

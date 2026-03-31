@@ -448,6 +448,14 @@ const tabStyles = StyleSheet.create({
 });
 
 const styles = StyleSheet.create({
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+
   safeArea: {
     flex: 1,
     backgroundColor: '#fff',
@@ -485,6 +493,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '700',
     color: '#3a2e2a',
+    marginLeft: 90,
   },
   detailContent: {
     flex: 1,

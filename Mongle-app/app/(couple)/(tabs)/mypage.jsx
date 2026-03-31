@@ -10,6 +10,7 @@ import {
   TextInput,
   ActivityIndicator,
   StatusBar,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -66,7 +67,7 @@ export default function MyPage() {
       // 1단계
       const { data: profileRows, error: profileError } = await supabase
         .from('user_profiles')
-        .select('role, planner_id, couple_id')
+        .select('role, planner_id, couple_id, name, profile_image_url')
         .eq('id', userId)
         .limit(1);
       if (profileError) throw profileError;
@@ -76,8 +77,10 @@ export default function MyPage() {
       }
       const profileRow = profileRows[0];
 
-      const { role, planner_id, couple_id } = profileRow;
+      const { role, planner_id, couple_id, name: userProfileName, profile_image_url: userProfileImage } = profileRow;
       setRole(role);
+
+      const baseProfile = { userProfileName, userProfileImage };
 
       // 2단계
       if (role === 'planner' && planner_id) {
@@ -89,7 +92,7 @@ export default function MyPage() {
           .eq('id', planner_id)
           .limit(1);
         if (error) throw error;
-        setProfile(data && data.length > 0 ? data[0] : null);
+        setProfile({ ...baseProfile, ...(data && data.length > 0 ? data[0] : null) });
       } else if (role === 'couple' && couple_id) {
         const { data, error } = await supabase
           .from('couples')
@@ -97,7 +100,9 @@ export default function MyPage() {
           .eq('id', couple_id)
           .limit(1);
         if (error) throw error;
-        setProfile(data && data.length > 0 ? data[0] : null);
+        setProfile({ ...baseProfile, ...(data && data.length > 0 ? data[0] : null) });
+      } else {
+        setProfile(baseProfile);
       }
     } catch (e) {
       console.error('프로필 로드 실패:', e.message);
@@ -170,9 +175,16 @@ export default function MyPage() {
         {/* ── 프로필 카드 (공통) ── */}
         <View style={styles.profileCard}>
           <View style={styles.avatarWrap}>
-            <View style={styles.avatar}>
-              <Ionicons name="person" size={36} color="#917878" />
-            </View>
+            {profile?.userProfileImage || profile?.profile_image_url ? (
+              <Image
+                source={{ uri: profile?.userProfileImage || profile?.profile_image_url }}
+                style={{ width: 84, height: 84, borderRadius: 42 }}
+              />
+            ) : (
+              <View style={styles.avatar}>
+                <Ionicons name="person" size={36} color="#917878" />
+              </View>
+            )}
           </View>
 
           <View
@@ -193,7 +205,7 @@ export default function MyPage() {
             </Text>
           </View>
 
-          <Text style={styles.profileName}>{profile?.name ?? '-'}</Text>
+          <Text style={styles.profileName}>{profile?.userProfileName || profile?.name || '-'}</Text>
           {isPlanner && profile?.brand_name ? (
             <Text style={styles.profileBrand}>{profile.brand_name}</Text>
           ) : null}
@@ -339,7 +351,7 @@ export default function MyPage() {
                   </>
                 ) : (
                   <>
-                    <InfoRow icon="person-outline" label="이름" value={profile?.name ?? '-'} />
+                    <InfoRow icon="person-outline" label="이름" value={profile?.userProfileName || profile?.name || '-'} />
                     <Divider />
                   </>
                 )}

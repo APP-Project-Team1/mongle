@@ -133,8 +133,17 @@ export default function MyPage() {
       return;
     }
     try {
-      const { error } = await supabase.from('user_profiles').delete().eq('id', session.user.id);
-      if (error) throw error;
+      // 1. Supabase RPC 'delete_user' 호출 (auth.users 데이터 완전히 삭제)
+      // (Supabase 대시보드 SQL Editor에 등록된 함수 실행 필요)
+      const { error: rpcError } = await supabase.rpc('delete_user');
+
+      if (rpcError) {
+        // RPC가 없거나 에러가 난 경우 fallback으로 user_profiles만 삭제
+        console.warn('delete_user RPC failed or missing, falling back to manual profile delete:', rpcError);
+        const { error: profileError } = await supabase.from('user_profiles').delete().eq('id', session.user.id);
+        if (profileError) throw profileError;
+      }
+
       await supabase.auth.signOut();
       setDeleteModalVisible(false);
       Alert.alert('탈퇴 완료', '그동안 Mongle을 이용해주셔서 감사했습니다.', [

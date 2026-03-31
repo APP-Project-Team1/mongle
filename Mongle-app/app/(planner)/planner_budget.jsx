@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -10,113 +10,143 @@ import {
   TextInput,
   KeyboardAvoidingView,
   Platform,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useAuth } from '../../context/AuthContext';
+import { supabase } from '../../lib/supabase';
 
 // ── 유틸 ─────────────────────────────────────────────────
 const fmt = (n) => (n / 10000).toLocaleString() + '만원';
 const pct = (r, t) => (t === 0 ? 0 : Math.round((r / t) * 100));
 const numOnly = (s) => s.replace(/[^0-9]/g, '');
 
-// ── 초기 데이터 ──────────────────────────────────────────
-const INIT_COUPLES = [
-  {
-    id: 'c1',
-    name: '박지수 · 이현우',
-    total: 38000000,
-    received: 31500000,
-    due: '4월 1일',
-    payments: [
-      { id: 'p1', label: '계약금', amount: 10000000, date: '2025년 11월 3일', paid: true },
-      { id: 'p2', label: '중도금', amount: 15000000, date: '2026년 2월 10일', paid: true },
-      { id: 'p3', label: '잔금', amount: 13000000, date: '2026년 4월 1일', paid: false },
-    ],
-    vendorCosts: [
-      { id: 'v1', vendor: '일다스튜디오', amount: 5000000, paid: true },
-      { id: 'v2', vendor: '르블랑 웨딩', amount: 8000000, paid: false },
-      { id: 'v3', vendor: '더채플 청담', amount: 9000000, paid: false },
-    ],
-  },
-  {
-    id: 'c2',
-    name: '최민정 · 강태준',
-    total: 42000000,
-    received: 21000000,
-    due: '4월 8일',
-    payments: [
-      { id: 'p1', label: '계약금', amount: 10000000, date: '2025년 12월 5일', paid: true },
-      { id: 'p2', label: '중도금', amount: 11000000, date: '2026년 2월 20일', paid: true },
-      { id: 'p3', label: '중도금2', amount: 10000000, date: '2026년 4월 8일', paid: false },
-      { id: 'p4', label: '잔금', amount: 11000000, date: '2026년 4월 8일', paid: false },
-    ],
-    vendorCosts: [
-      { id: 'v1', vendor: '일다스튜디오', amount: 5500000, paid: true },
-      { id: 'v2', vendor: '뷰티스튜디오K', amount: 3000000, paid: false },
-      { id: 'v3', vendor: '롯데호텔 잠실', amount: 12000000, paid: false },
-    ],
-  },
-  {
-    id: 'c3',
-    name: '윤서연 · 오민석',
-    total: 35000000,
-    received: 35000000,
-    due: null,
-    payments: [
-      { id: 'p1', label: '계약금', amount: 10000000, date: '2026년 1월 8일', paid: true },
-      { id: 'p2', label: '중도금', amount: 15000000, date: '2026년 3월 1일', paid: true },
-      { id: 'p3', label: '잔금', amount: 10000000, date: '2026년 4월 20일', paid: true },
-    ],
-    vendorCosts: [
-      { id: 'v1', vendor: '모먼트 스냅', amount: 4000000, paid: true },
-      { id: 'v2', vendor: '그랜드 인터컨티', amount: 10000000, paid: true },
-    ],
-  },
-  {
-    id: 'c4',
-    name: '정하린 · 김도윤',
-    total: 28000000,
-    received: 7000000,
-    due: '5월 10일',
-    payments: [
-      { id: 'p1', label: '계약금', amount: 7000000, date: '2026년 2월 15일', paid: true },
-      { id: 'p2', label: '중도금', amount: 11000000, date: '2026년 5월 10일', paid: false },
-      { id: 'p3', label: '잔금', amount: 10000000, date: '2026년 5월 25일', paid: false },
-    ],
-    vendorCosts: [
-      { id: 'v1', vendor: '페이퍼가든', amount: 800000, paid: false },
-      { id: 'v2', vendor: '더베뉴 한남', amount: 8000000, paid: false },
-    ],
-  },
-];
-
 const TABS = ['수금 현황', '업체 지출'];
-
-// ── 빈 폼 ────────────────────────────────────────────────
 const EMPTY_RECV = { coupleId: '', label: '', amount: '', date: '', paid: false };
 const EMPTY_VEND = { vendor: '', coupleId: '', amount: '', paid: false };
-const EMPTY_COUPLE = { name: '', total: '', due: '' };
+
+// 날짜 표시 헬퍼 (YYYY-MM-DD → YYYY년 M월 D일)
+const fmtDate = (d) => {
+  if (!d) return '-';
+  const [y, m, day] = d.split('-');
+  return `${y}년 ${parseInt(m)}월 ${parseInt(day)}일`;
+};
 
 export default function PlannerBudget() {
-  const [couples, setCouples] = useState(INIT_COUPLES);
+  const { planner_id } = useAuth();
+
+  const [couples, setCouples] = useState([]); // couples + payments + vendors 합친 형태
+  const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState(0);
   const [expanded, setExpanded] = useState(null);
 
-  // 통합 추가 모달 ('recv' | 'vend' | null)
   const [addModal, setAddModal] = useState(false);
-  const [addType, setAddType] = useState('recv'); // 'recv' | 'vend'
+  const [addType, setAddType] = useState('recv');
   const [recvForm, setRecvForm] = useState(EMPTY_RECV);
   const [recvError, setRecvError] = useState('');
   const [vendForm, setVendForm] = useState(EMPTY_VEND);
   const [vendError, setVendError] = useState('');
 
-  // 커플 추가 모달
-  const [coupleModal, setCoupleModal] = useState(false);
-  const [coupleForm, setCoupleForm] = useState(EMPTY_COUPLE);
-  const [coupleError, setCoupleError] = useState('');
-
   const toggle = (id) => setExpanded((p) => (p === id ? null : id));
+
+  // ── 데이터 로드 + Realtime ─────────────────────────────
+  useEffect(() => {
+    if (!planner_id) return;
+    fetchAll();
+
+    const ch1 = supabase
+      .channel(`budget-couples-${planner_id}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'couples', filter: `planner_id=eq.${planner_id}` },
+        fetchAll,
+      )
+      .subscribe();
+    const ch2 = supabase
+      .channel(`budget-payments-${planner_id}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'couple_payments' }, fetchAll)
+      .subscribe();
+    const ch3 = supabase
+      .channel(`budget-vendor-costs-${planner_id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'couple_vendor_costs',
+          filter: `planner_id=eq.${planner_id}`,
+        },
+        fetchAll,
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(ch1);
+      supabase.removeChannel(ch2);
+      supabase.removeChannel(ch3);
+    };
+  }, [planner_id]);
+
+  const fetchAll = async () => {
+    setLoading(true);
+
+    // couples + couple_payments + couple_vendor_costs 한 번에 조회
+    const { data: couplesData, error } = await supabase
+      .from('couples')
+      .select(
+        `
+        id, groom_name, bride_name,
+        total_amount, received_amount, due_date,
+        couple_payments ( id, label, amount, due_date, paid ),
+        couple_vendor_costs ( id, vendor_name, amount, paid )
+      `,
+      )
+      .eq('planner_id', planner_id)
+      .order('wedding_date', { ascending: true });
+
+    if (error) {
+      console.error('fetchAll error:', error);
+      setLoading(false);
+      return;
+    }
+
+    if (couplesData) {
+      const normalized = couplesData.map((c) => {
+        const payments = (c.couple_payments ?? []).map((p) => ({
+          id: p.id,
+          label: p.label,
+          amount: p.amount,
+          date: fmtDate(p.due_date),
+          paid: p.paid,
+        }));
+
+        // total_amount가 0이면 payments 합계로 계산
+        const totalFromPayments = payments.reduce((s, p) => s + p.amount, 0);
+        const receivedFromPayments = payments
+          .filter((p) => p.paid)
+          .reduce((s, p) => s + p.amount, 0);
+
+        return {
+          id: c.id,
+          name: `${c.groom_name ?? ''} · ${c.bride_name ?? ''}`,
+          total: c.total_amount > 0 ? c.total_amount : totalFromPayments,
+          received: c.received_amount > 0 ? c.received_amount : receivedFromPayments,
+          due: c.due_date ? fmtDate(c.due_date) : null,
+          payments,
+          vendorCosts: (c.couple_vendor_costs ?? []).map((v) => ({
+            id: v.id,
+            vendor: v.vendor_name,
+            amount: v.amount,
+            paid: v.paid,
+          })),
+        };
+      });
+      setCouples(normalized);
+    }
+    setLoading(false);
+  };
 
   // ── 파생 계산 ──
   const totalReceived = couples.reduce((s, c) => s + c.received, 0);
@@ -151,7 +181,7 @@ export default function PlannerBudget() {
   }, [couples]);
 
   // ── 수금 항목 추가 ──
-  const handleAddRecv = () => {
+  const handleAddRecv = async () => {
     if (!recvForm.coupleId) {
       setRecvError('커플을 선택해주세요.');
       return;
@@ -164,35 +194,40 @@ export default function PlannerBudget() {
       setRecvError('금액을 입력해주세요.');
       return;
     }
+
     const amt = parseInt(recvForm.amount) * 10000;
-    setCouples((prev) =>
-      prev.map((c) =>
-        c.id !== recvForm.coupleId
-          ? c
-          : {
-              ...c,
-              total: c.total + amt,
-              payments: [
-                ...c.payments,
-                {
-                  id: `p${Date.now()}`,
-                  label: recvForm.label.trim(),
-                  amount: amt,
-                  date: recvForm.date.trim() || '-',
-                  paid: recvForm.paid,
-                },
-              ],
-              ...(recvForm.paid && { received: c.received + amt }),
-            },
-      ),
-    );
+
+    // couple_payments에 insert
+    const { error: payErr } = await supabase.from('couple_payments').insert({
+      couple_id: recvForm.coupleId,
+      label: recvForm.label.trim(),
+      amount: amt,
+      due_date: recvForm.date.trim() || null, // payment_date → due_date
+      paid: recvForm.paid,
+    });
+    if (payErr) {
+      setRecvError('추가 중 오류가 발생했습니다.');
+      return;
+    }
+
+    // 수금 완료면 couples.received_amount도 업데이트
+    if (recvForm.paid) {
+      const couple = couples.find((c) => c.id === recvForm.coupleId);
+      if (couple) {
+        await supabase
+          .from('couples')
+          .update({ received_amount: couple.received + amt })
+          .eq('id', recvForm.coupleId);
+      }
+    }
     setAddModal(false);
     setRecvForm(EMPTY_RECV);
     setRecvError('');
+    // Realtime이 fetchAll 자동 트리거
   };
 
   // ── 업체 지출 추가 ──
-  const handleAddVend = () => {
+  const handleAddVend = async () => {
     if (!vendForm.vendor.trim()) {
       setVendError('업체명을 입력해주세요.');
       return;
@@ -205,66 +240,42 @@ export default function PlannerBudget() {
       setVendError('금액을 입력해주세요.');
       return;
     }
-    const amt = parseInt(vendForm.amount) * 10000;
-    setCouples((prev) =>
-      prev.map((c) =>
-        c.id !== vendForm.coupleId
-          ? c
-          : {
-              ...c,
-              vendorCosts: [
-                ...c.vendorCosts,
-                {
-                  id: `v${Date.now()}`,
-                  vendor: vendForm.vendor.trim(),
-                  amount: amt,
-                  paid: vendForm.paid,
-                },
-              ],
-            },
-      ),
-    );
+
+    const { error } = await supabase.from('couple_vendor_costs').insert({
+      planner_id: planner_id,
+      couple_id: vendForm.coupleId,
+      vendor_name: vendForm.vendor.trim(),
+      amount: parseInt(vendForm.amount) * 10000,
+      paid: vendForm.paid,
+    });
+    if (error) {
+      setVendError('추가 중 오류가 발생했습니다.');
+      return;
+    }
+
     setAddModal(false);
     setVendForm(EMPTY_VEND);
     setVendError('');
-  };
-
-  // ── 커플 추가 ──
-  const handleAddCouple = () => {
-    if (!coupleForm.name.trim()) {
-      setCoupleError('커플 이름을 입력해주세요.');
-      return;
-    }
-    if (!coupleForm.total) {
-      setCoupleError('총 계약금액을 입력해주세요.');
-      return;
-    }
-    setCouples((prev) => [
-      ...prev,
-      {
-        id: `c${Date.now()}`,
-        name: coupleForm.name.trim(),
-        total: parseInt(coupleForm.total) * 10000,
-        received: 0,
-        due: coupleForm.due.trim() || null,
-        payments: [],
-        vendorCosts: [],
-      },
-    ]);
-    setCoupleModal(false);
-    setCoupleForm(EMPTY_COUPLE);
-    setCoupleError('');
+    // Realtime이 fetchAll 자동 트리거
   };
 
   // ── 통합 추가 버튼 ──
   const openAddModal = () => {
-    setRecvForm(EMPTY_RECV);
+    setRecvForm({ ...EMPTY_RECV, coupleId: couples[0]?.id ?? '' });
     setRecvError('');
-    setVendForm(EMPTY_VEND);
+    setVendForm({ ...EMPTY_VEND, coupleId: couples[0]?.id ?? '' });
     setVendError('');
     setAddType('recv');
     setAddModal(true);
   };
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <ActivityIndicator size="large" color="#c97b6e" style={{ marginTop: 120 }} />
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -316,18 +327,6 @@ export default function PlannerBudget() {
             </TouchableOpacity>
           ))}
         </View>
-        {/* <TouchableOpacity
-          style={styles.addCoupleBtn}
-          activeOpacity={0.7}
-          onPress={() => {
-            setCoupleForm(EMPTY_COUPLE);
-            setCoupleError('');
-            setCoupleModal(true);
-          }}
-        >
-          <Ionicons name="people-outline" size={13} color="#8b5e52" />
-          <Text style={styles.addCoupleBtnText}>커플 추가</Text>
-        </TouchableOpacity> */}
       </View>
 
       {/* 리스트 */}
@@ -768,76 +767,6 @@ export default function PlannerBudget() {
       </Modal>
 
       {/* ══════ 커플 추가 모달 ══════ */}
-      <Modal
-        visible={coupleModal}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setCoupleModal(false)}
-      >
-        <KeyboardAvoidingView
-          style={styles.modalOverlay}
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        >
-          <TouchableOpacity
-            style={styles.modalBackdrop}
-            activeOpacity={1}
-            onPress={() => setCoupleModal(false)}
-          />
-          <View style={styles.modalSheet}>
-            <View style={styles.modalHandle} />
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>커플 추가</Text>
-              <TouchableOpacity onPress={() => setCoupleModal(false)} activeOpacity={0.7}>
-                <Ionicons name="close" size={20} color="#a08880" />
-              </TouchableOpacity>
-            </View>
-            <Text style={styles.fieldLabel}>
-              커플 이름 <Text style={styles.required}>*</Text>
-            </Text>
-            <TextInput
-              style={styles.textInput}
-              placeholder="예) 박지수 · 이현우"
-              placeholderTextColor="#c8bdb8"
-              value={coupleForm.name}
-              onChangeText={(v) => {
-                setCoupleForm((f) => ({ ...f, name: v }));
-                setCoupleError('');
-              }}
-            />
-            <Text style={styles.fieldLabel}>
-              총 계약금액 (만원) <Text style={styles.required}>*</Text>
-            </Text>
-            <View style={styles.amountInputWrap}>
-              <TextInput
-                style={[styles.textInput, { flex: 1, marginBottom: 0 }]}
-                placeholder="예) 3800"
-                placeholderTextColor="#c8bdb8"
-                value={coupleForm.total}
-                keyboardType="number-pad"
-                onChangeText={(v) => {
-                  setCoupleForm((f) => ({ ...f, total: numOnly(v) }));
-                  setCoupleError('');
-                }}
-              />
-              <Text style={styles.amountUnit}>만원</Text>
-            </View>
-            <View style={{ height: 16 }} />
-            <Text style={styles.fieldLabel}>첫 납부 기한</Text>
-            <TextInput
-              style={styles.textInput}
-              placeholder="예) 4월 30일"
-              placeholderTextColor="#c8bdb8"
-              value={coupleForm.due}
-              onChangeText={(v) => setCoupleForm((f) => ({ ...f, due: v }))}
-            />
-            {coupleError !== '' && <ErrorBox msg={coupleError} />}
-            <TouchableOpacity style={styles.saveBtn} activeOpacity={0.8} onPress={handleAddCouple}>
-              <Text style={styles.saveBtnText}>추가하기</Text>
-            </TouchableOpacity>
-            <View style={{ height: 16 }} />
-          </View>
-        </KeyboardAvoidingView>
-      </Modal>
     </SafeAreaView>
   );
 }

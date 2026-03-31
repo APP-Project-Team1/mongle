@@ -16,7 +16,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import LottieView from 'lottie-react-native';
 import { signIn, signOut } from '../../lib/auth';
-import { fetchUserRole } from '../../lib/auth';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
@@ -70,9 +69,8 @@ export default function LoginScreen() {
       // Supabase 로그인
       const data = await signIn(email, password);
 
-      // ✅ user_metadata 대신 user_profiles 테이블에서 직접 role 확인
-      const profile = await fetchUserRole(data.user.id);
-      const userRole = profile?.role ?? data.user.user_metadata?.role;
+      // user_metadata에서 role 확인 (DB 쿼리 없이)
+      const userRole = data.user.user_metadata?.role;
 
       if (!userRole) {
         await signOut();

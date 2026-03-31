@@ -18,6 +18,7 @@ import { router, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
 import { supabase } from '../../../../lib/supabase';
+import { useAuth } from '../../../../context/AuthContext';
 
 export default function ChatScreen() {
   const [rooms, setRooms] = useState([]);
@@ -44,12 +45,13 @@ export default function ChatScreen() {
   const [renameRoomId, setRenameRoomId] = useState('');
   const [renameRoomTitle, setRenameRoomTitle] = useState('');
 
-  // ── 채팅방 목록: chat_members 기반으로 내가 속한 방만 조회 ──
-  const fetchRooms = async () => {
-    setLoading(true);
+  const { session } = useAuth(); // user 대신 session을 가져옵니다.
 
+  const fetchRooms = async () => {
+    if (!session?.user) return;
+
+    setLoading(true);
     try {
-      // chats 기본 조회 (messages 포함)
       const { data, error } = await supabase
         .from('chats')
         .select(
@@ -61,17 +63,20 @@ export default function ChatScreen() {
           messages (
             content,
             created_at
+          ),
+          chat_members!inner (
+            user_id
           )
         `,
-        )
+        ) // 각 항목 끝에 쉼표(,)가 정확히 있는지 확인하세요.
+        .eq('chat_members.user_id', session.user.id)
         .order('updated_at', { ascending: false });
-
       if (error) {
         console.error('채팅방 조회 오류:', error.message);
         return;
       }
 
-      // chat_members 별도 조회해서 멤버 수 계산
+      // 멤버 수 계산을 위한 chatIds 추출
       const chatIds = (data ?? []).map((r) => r.id);
       let memberCountMap = {};
 
@@ -91,9 +96,11 @@ export default function ChatScreen() {
       }
 
       const roomsWithLastMessage = (data ?? []).map((room) => {
+        // 최신 메시지 정렬
         const sortedMessages = (room.messages ?? []).sort(
           (a, b) => new Date(b.created_at) - new Date(a.created_at),
         );
+
         return {
           ...room,
           lastMessage: sortedMessages[0]?.content ?? '채팅방이 생성되었습니다.',
@@ -244,17 +251,17 @@ export default function ChatScreen() {
     }
   };
 
-  // 초대 코드로 채팅방 참여
   const handleJoinByCode = async () => {
     if (!joinCode.trim()) {
       Alert.alert('알림', '초대 코드를 입력해주세요.');
       return;
     }
 
+    // 1. 로딩 시작 (입장 모달 내의 ActivityIndicator 작동)
     setJoining(true);
 
     try {
-      // 초대 코드로 채팅방 조회
+      // 2. 초대 코드로 채팅방 정보 조회
       const { data: chatData, error: chatError } = await supabase
         .from('chats')
         .select('id, title')
@@ -263,10 +270,11 @@ export default function ChatScreen() {
 
       if (chatError || !chatData) {
         Alert.alert('오류', '유효하지 않은 초대 코드입니다.');
+        setJoining(false);
         return;
       }
 
-      // 이미 참여 중인지 확인
+      // 3. 이미 참여 중인지 확인
       const { data: existing } = await supabase
         .from('chat_members')
         .select('id')
@@ -275,32 +283,36 @@ export default function ChatScreen() {
         .maybeSingle();
 
       if (existing) {
-        Alert.alert('알림', '이미 참여 중인 채팅방입니다.');
+        // 이미 멤버라면 모달 닫고 즉시 이동
         setJoinModalVisible(false);
         setJoinCode('');
+        setJoining(false);
         router.push(`/(couple)/chat/${chatData.id}`);
         return;
       }
 
-      // chat_members에 추가
+      // 4. DB에 멤버 추가 (실제 가입)
       const { error: memberError } = await supabase
         .from('chat_members')
         .insert({ chat_id: chatData.id, user_id: currentUserId, role: 'member' });
 
       if (memberError) {
         Alert.alert('오류', '채팅방 참여에 실패했습니다.');
-        console.error('참여 오류:', memberError.message);
+        setJoining(false);
         return;
       }
 
       setJoinModalVisible(false);
       setJoinCode('');
-      await fetchRooms();
+      setJoining(false); // 로딩 해제와 동시에 모달이 닫힘
+
+      // 즉시 채팅방 상세 화면으로 이동
       router.push(`/(couple)/chat/${chatData.id}`);
+
+      fetchRooms();
     } catch (e) {
       console.error('handleJoinByCode 예외:', e);
       Alert.alert('오류', '채팅방 참여 중 문제가 발생했습니다.');
-    } finally {
       setJoining(false);
     }
   };

@@ -5,25 +5,21 @@ export async function resolveCoupleContext(sessionUserId, profileCoupleId = null
     return { coupleId: null, plannerId: null, couple: null };
   }
 
+  let profileCouple = null;
   if (profileCoupleId) {
-    const { data, error } = await supabase
+    const { data: profileData, error: profileError } = await supabase
       .from('couples')
-      .select('id, planner_id, groom_name, bride_name, wedding_date, user_id')
+      .select('id, planner_id, groom_name, bride_name, wedding_date, user_id, email, total_amount, created_at')
       .eq('id', profileCoupleId)
       .maybeSingle();
 
-    if (error) throw error;
-
-    return {
-      coupleId: data?.id ?? profileCoupleId,
-      plannerId: data?.planner_id ?? null,
-      couple: data ?? null,
-    };
+    if (profileError) throw profileError;
+    profileCouple = profileData ?? null;
   }
 
   const { data, error } = await supabase
     .from('couples')
-    .select('id, planner_id, groom_name, bride_name, wedding_date, user_id')
+    .select('id, planner_id, groom_name, bride_name, wedding_date, user_id, email, total_amount, created_at')
     .eq('user_id', sessionUserId)
     .order('created_at', { ascending: false })
     .limit(1)
@@ -31,10 +27,18 @@ export async function resolveCoupleContext(sessionUserId, profileCoupleId = null
 
   if (error) throw error;
 
-  if (!data?.id && userEmail) {
+  if (data?.id) {
+    return {
+      coupleId: data.id,
+      plannerId: data.planner_id ?? null,
+      couple: data,
+    };
+  }
+
+  if (userEmail) {
     const { data: emailData, error: emailError } = await supabase
       .from('couples')
-      .select('id, planner_id, groom_name, bride_name, wedding_date, user_id, email')
+      .select('id, planner_id, groom_name, bride_name, wedding_date, user_id, email, total_amount, created_at')
       .eq('email', userEmail)
       .order('created_at', { ascending: false })
       .limit(1)
@@ -42,16 +46,18 @@ export async function resolveCoupleContext(sessionUserId, profileCoupleId = null
 
     if (emailError) throw emailError;
 
-    return {
-      coupleId: emailData?.id ?? null,
-      plannerId: emailData?.planner_id ?? null,
-      couple: emailData ?? null,
-    };
+    if (emailData?.id) {
+      return {
+        coupleId: emailData.id,
+        plannerId: emailData.planner_id ?? null,
+        couple: emailData,
+      };
+    }
   }
 
   return {
-    coupleId: data?.id ?? null,
-    plannerId: data?.planner_id ?? null,
-    couple: data ?? null,
+    coupleId: profileCouple?.id ?? profileCoupleId ?? null,
+    plannerId: profileCouple?.planner_id ?? null,
+    couple: profileCouple ?? null,
   };
 }

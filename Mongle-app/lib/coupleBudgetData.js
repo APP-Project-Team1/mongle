@@ -13,7 +13,7 @@ export async function fetchCoupleById(coupleId) {
 
   const { data, error } = await supabase
     .from('couples')
-    .select('id, planner_id, user_id')
+    .select('id, planner_id, user_id, total_amount')
     .eq('id', coupleId)
     .maybeSingle();
 
@@ -26,6 +26,18 @@ export async function fetchLatestProjectForCouple(coupleId) {
 
   const couple = await fetchCoupleById(coupleId);
   if (!couple?.user_id) return null;
+
+  const { data: budgetProject, error: budgetProjectError } = await supabase
+    .from('projects')
+    .select('id, title, name, user_id, created_at')
+    .eq('user_id', couple.user_id)
+    .or('title.ilike.%예산%,name.ilike.%예산%')
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (budgetProjectError) throw budgetProjectError;
+  if (budgetProject?.id) return budgetProject;
 
   const { data, error } = await supabase
     .from('projects')

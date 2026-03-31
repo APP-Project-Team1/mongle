@@ -154,8 +154,14 @@ export default function RegisterScreen() {
       // 현재 세션(verifyOtp로 생성)을 사용해 비밀번호 업데이트
       const { error } = await supabase.auth.updateUser({ password });
       if (error) throw error;
-      // 리디렉션 허용 → _layout.jsx가 role 확인 후 자동 이동
+      // registrationPending 해제 후 명시적 네비게이션
+      // (_layout.jsx의 role 로딩 타이밍에 의존하지 않음)
       setRegistrationPending(false);
+      if (isPlanner) {
+        router.replace('/(planner)/dashboard');
+      } else {
+        router.replace('/(couple)');
+      }
     } catch (e) {
       showModal('오류', e.message || '비밀번호 설정에 실패했습니다.');
     } finally {

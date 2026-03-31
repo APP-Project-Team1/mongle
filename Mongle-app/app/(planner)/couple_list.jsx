@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -15,31 +15,33 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useAuth } from '../../context/AuthContext';
+import { supabase } from '../../lib/supabase';
 
 // ── 상수 ─────────────────────────────────────────────────
 const STAGE_STYLE = {
-  '최종 점검': {
+  최종점검: {
     stageColor: '#c97b6e',
     stageBg: '#fff5f3',
     barColor: '#d4537e',
     badgeBg: '#fbeaf0',
     badgeColor: '#993556',
   },
-  '준비 중': {
+  준비중: {
     stageColor: '#b07840',
     stageBg: '#fdf6ee',
     barColor: '#b07858',
     badgeBg: '#f5ede8',
     badgeColor: '#8b5e52',
   },
-  '초기 상담': {
+  초기상담: {
     stageColor: '#8a7870',
     stageBg: '#f5f0f0',
     barColor: '#c0b8b0',
     badgeBg: '#eeeae6',
     badgeColor: '#7a7068',
   },
-  '계약 완료': {
+  계약완료: {
     stageColor: '#5a8c3a',
     stageBg: '#f0f8f2',
     barColor: '#6aaa80',
@@ -55,8 +57,8 @@ const AVATAR_POOL = [
   { bg: '#eaf0f8', color: '#4a6e94' },
   { bg: '#eaf5ee', color: '#3a7a50' },
 ];
-const STAGE_FILTERS = ['전체', '최종 점검', '준비 중', '초기 상담', '계약 완료'];
-const STAGE_OPTIONS = ['최종 점검', '준비 중', '초기 상담', '계약 완료'];
+const STAGE_FILTERS = ['전체', '최종점검', '준비중', '초기상담', '계약완료'];
+const STAGE_OPTIONS = ['최종점검', '준비중', '초기상담', '계약완료'];
 const CATEGORY_OPTIONS = [
   '웨딩홀',
   '드레스',
@@ -86,7 +88,7 @@ const EMPTY_FORM = {
   month: '',
   day: '',
   venue: '',
-  stage: '초기 상담',
+  stage: '초기상담',
   phone: '',
 };
 const EMPTY_SCHED = { title: '', year: '', month: '', day: '', time: '', category: '예식' };
@@ -112,274 +114,50 @@ const formatPhone = (raw) => {
   if (d.length === 10) return `${d.slice(0, 3)}-${d.slice(3, 6)}-${d.slice(6)}`;
   return d;
 };
+// DB 날짜(YYYY-MM-DD) ↔ 화면 표시용 변환
+const dbToDisplay = (dateStr) => {
+  if (!dateStr) return '';
+  const [y, m, d] = dateStr.split('-');
+  return `${y}년 ${parseInt(m)}월 ${parseInt(d)}일`;
+};
+const formToDb = (year, month, day) => {
+  if (!year || !month || !day) return null;
+  return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+};
+
+// DB row → 폼 상태로 변환
 const coupleToForm = (c) => {
-  const parts = c.name.split('·').map((s) => s.trim());
-  const dm = c.date.match(/(\d{4})년\s*(\d{1,2})월\s*(\d{1,2})일/);
+  const df = c.wedding_date ? c.wedding_date.split('-') : ['', '', ''];
   return {
-    groom: parts[0] ?? '',
-    bride: parts[1] ?? '',
-    year: dm ? dm[1] : '',
-    month: dm ? dm[2] : '',
-    day: dm ? dm[3] : '',
-    venue: c.venue,
-    stage: c.stage,
-    phone: c.phone.replace(/-/g, ''),
+    groom: c.groom_name ?? '',
+    bride: c.bride_name ?? '',
+    year: df[0] ?? '',
+    month: df[1] ? String(parseInt(df[1])) : '',
+    day: df[2] ? String(parseInt(df[2])) : '',
+    venue: c.venue ?? '',
+    stage: c.stage ?? '초기상담',
+    phone: (c.phone ?? '').replace(/-/g, ''),
   };
 };
 const schedToForm = (s) => {
-  const dm = s.date.match(/(\d{4})년\s*(\d{1,2})월\s*(\d{1,2})일/);
+  const df = s.scheduled_date ? s.scheduled_date.split('-') : ['', '', ''];
   return {
     title: s.title,
-    year: dm ? dm[1] : '',
-    month: dm ? dm[2] : '',
-    day: dm ? dm[3] : '',
-    time: s.time,
+    year: df[0] ?? '',
+    month: df[1] ? String(parseInt(df[1])) : '',
+    day: df[2] ? String(parseInt(df[2])) : '',
+    time: s.time ?? '',
     category: s.category,
   };
 };
 
-// ── 임시 데이터 ──────────────────────────────────────────
-const INITIAL_COUPLES = [
-  {
-    id: '1',
-    name: '박지수 · 이현우',
-    date: '2026년 4월 5일',
-    venue: '더채플 청담',
-    stage: '최종 점검',
-    phone: '010-1234-5678',
-    progress: 92,
-    avatarIdx: 0,
-  },
-  {
-    id: '2',
-    name: '최민정 · 강태준',
-    date: '2026년 4월 12일',
-    venue: '롯데호텔 잠실',
-    stage: '준비 중',
-    phone: '010-2345-6789',
-    progress: 78,
-    avatarIdx: 1,
-  },
-  {
-    id: '3',
-    name: '윤서연 · 오민석',
-    date: '2026년 4월 26일',
-    venue: '그랜드 인터컨티',
-    stage: '준비 중',
-    phone: '010-3456-7890',
-    progress: 55,
-    avatarIdx: 2,
-  },
-  {
-    id: '4',
-    name: '정하린 · 김도윤',
-    date: '2026년 5월 31일',
-    venue: '더베뉴 한남',
-    stage: '초기 상담',
-    phone: '010-4567-8901',
-    progress: 30,
-    avatarIdx: 3,
-  },
-  {
-    id: '5',
-    name: '이수아 · 한재원',
-    date: '2026년 6월 14일',
-    venue: '파크하얏트 서울',
-    stage: '초기 상담',
-    phone: '010-5678-9012',
-    progress: 20,
-    avatarIdx: 4,
-  },
-  {
-    id: '6',
-    name: '강민준 · 서지영',
-    date: '2026년 7월 4일',
-    venue: '신라호텔',
-    stage: '계약 완료',
-    phone: '010-6789-0123',
-    progress: 15,
-    avatarIdx: 5,
-  },
-];
-const INITIAL_SCHEDULES = {
-  1: [
-    {
-      id: 's1',
-      title: '웨딩홀 최종 미팅',
-      date: '2026년 3월 28일',
-      time: '14:00',
-      category: '웨딩홀',
-      done: true,
-    },
-    {
-      id: 's2',
-      title: '드레스 최종 피팅',
-      date: '2026년 3월 30일',
-      time: '11:00',
-      category: '드레스',
-      done: false,
-    },
-    {
-      id: 's3',
-      title: '청첩장 수령',
-      date: '2026년 4월 1일',
-      time: '10:00',
-      category: '청첩장',
-      done: false,
-    },
-    {
-      id: 's4',
-      title: '본식 리허설',
-      date: '2026년 4월 4일',
-      time: '15:00',
-      category: '예식',
-      done: false,
-    },
-    {
-      id: 's5',
-      title: '결혼식',
-      date: '2026년 4월 5일',
-      time: '12:00',
-      category: '예식',
-      done: false,
-    },
-  ],
-  2: [
-    {
-      id: 's1',
-      title: '스튜디오 촬영',
-      date: '2026년 3월 29일',
-      time: '10:00',
-      category: '스튜디오',
-      done: false,
-    },
-    {
-      id: 's2',
-      title: '드레스 피팅 2차',
-      date: '2026년 4월 2일',
-      time: '13:00',
-      category: '드레스',
-      done: false,
-    },
-    {
-      id: 's3',
-      title: '메이크업 리허설',
-      date: '2026년 4월 8일',
-      time: '10:00',
-      category: '메이크업',
-      done: false,
-    },
-    {
-      id: 's4',
-      title: '결혼식',
-      date: '2026년 4월 12일',
-      time: '13:00',
-      category: '예식',
-      done: false,
-    },
-  ],
-  3: [
-    {
-      id: 's1',
-      title: '스튜디오 계약',
-      date: '2026년 3월 28일',
-      time: '15:00',
-      category: '스튜디오',
-      done: false,
-    },
-    {
-      id: 's2',
-      title: '웨딩홀 미팅',
-      date: '2026년 4월 5일',
-      time: '11:00',
-      category: '웨딩홀',
-      done: false,
-    },
-    {
-      id: 's3',
-      title: '결혼식',
-      date: '2026년 4월 26일',
-      time: '11:00',
-      category: '예식',
-      done: false,
-    },
-  ],
-  4: [
-    {
-      id: 's1',
-      title: '초기 상담',
-      date: '2026년 3월 30일',
-      time: '14:00',
-      category: '상담',
-      done: false,
-    },
-    {
-      id: 's2',
-      title: '웨딩홀 투어',
-      date: '2026년 4월 10일',
-      time: '13:00',
-      category: '웨딩홀',
-      done: false,
-    },
-    {
-      id: 's3',
-      title: '결혼식',
-      date: '2026년 5월 31일',
-      time: '12:00',
-      category: '예식',
-      done: false,
-    },
-  ],
-  5: [
-    {
-      id: 's1',
-      title: '첫 상담',
-      date: '2026년 4월 1일',
-      time: '15:00',
-      category: '상담',
-      done: false,
-    },
-    {
-      id: 's2',
-      title: '결혼식',
-      date: '2026년 6월 14일',
-      time: '11:00',
-      category: '예식',
-      done: false,
-    },
-  ],
-  6: [
-    {
-      id: 's1',
-      title: '계약 체결',
-      date: '2026년 3월 20일',
-      time: '14:00',
-      category: '계약',
-      done: true,
-    },
-    {
-      id: 's2',
-      title: '스튜디오 미팅',
-      date: '2026년 4월 15일',
-      time: '11:00',
-      category: '스튜디오',
-      done: false,
-    },
-    {
-      id: 's3',
-      title: '결혼식',
-      date: '2026년 7월 4일',
-      time: '12:00',
-      category: '예식',
-      done: false,
-    },
-  ],
-};
-
 // ── 메인 컴포넌트 ─────────────────────────────────────────
 export default function CoupleList() {
-  const [couples, setCouples] = useState(INITIAL_COUPLES);
-  const [schedules, setSchedules] = useState(INITIAL_SCHEDULES);
+  const { planner_id } = useAuth();
+
+  const [couples, setCouples] = useState([]);
+  const [schedules, setSchedules] = useState({}); // { [couple_id]: [...] }
+  const [loading, setLoading] = useState(true);
   const [searchText, setSearchText] = useState('');
   const [activeStage, setActiveStage] = useState(0);
 
@@ -394,12 +172,82 @@ export default function CoupleList() {
   const [isEditing, setIsEditing] = useState(false);
   const [editForm, setEditForm] = useState(EMPTY_FORM);
   const [editError, setEditError] = useState('');
-  const [editSchedules, setEditSchedules] = useState([]); // 수정 중 일정 사본
+  const [editSchedules, setEditSchedules] = useState([]);
 
-  // 일정 항목 추가 인라인 폼 표시 여부
+  // 일정 항목 추가 인라인 폼
   const [showSchedForm, setShowSchedForm] = useState(false);
   const [schedForm, setSchedForm] = useState(EMPTY_SCHED);
-  const [editingSchedId, setEditingSchedId] = useState(null); // null=추가, id=수정
+  const [editingSchedId, setEditingSchedId] = useState(null);
+
+  // ── 데이터 로드 + Realtime ─────────────────────────────
+  useEffect(() => {
+    if (!planner_id) return;
+    fetchCouples();
+
+    const couplesChannel = supabase
+      .channel(`couple-list-couples-${planner_id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'couples',
+          filter: `planner_id=eq.${planner_id}`,
+        },
+        fetchCouples,
+      )
+      .subscribe();
+
+    const schedulesChannel = supabase
+      .channel(`couple-list-schedules-${planner_id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'couple_schedules',
+          filter: `planner_id=eq.${planner_id}`,
+        },
+        fetchAllSchedules,
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(couplesChannel);
+      supabase.removeChannel(schedulesChannel);
+    };
+  }, [planner_id]);
+
+  const fetchCouples = async () => {
+    setLoading(true);
+    const { data, error } = await supabase
+      .from('couples')
+      .select('*')
+      .eq('planner_id', planner_id)
+      .order('wedding_date', { ascending: true });
+    if (!error && data) {
+      setCouples(data);
+      await fetchAllSchedules(data.map((c) => c.id));
+    }
+    setLoading(false);
+  };
+
+  const fetchAllSchedules = async (coupleIds) => {
+    const ids = coupleIds ?? couples.map((c) => c.id);
+    if (!ids.length) return;
+    const { data, error } = await supabase
+      .from('couple_schedules')
+      .select('*')
+      .in('couple_id', ids)
+      .order('scheduled_date', { ascending: true });
+    if (!error && data) {
+      const grouped = data.reduce((acc, s) => {
+        acc[s.couple_id] = acc[s.couple_id] ? [...acc[s.couple_id], s] : [s];
+        return acc;
+      }, {});
+      setSchedules(grouped);
+    }
+  };
 
   // ── 추가 모달 ──
   const openAdd = () => {
@@ -411,7 +259,7 @@ export default function CoupleList() {
     setAddVisible(false);
     setAddError('');
   };
-  const handleAdd = () => {
+  const handleAdd = async () => {
     if (!addForm.groom.trim() && !addForm.bride.trim()) {
       setAddError('신랑 또는 신부 이름을 입력해주세요.');
       return;
@@ -424,22 +272,21 @@ export default function CoupleList() {
       setAddError('웨딩홀을 입력해주세요.');
       return;
     }
-    const newId = Date.now().toString();
-    setCouples((prev) => [
-      {
-        id: newId,
-        name: `${addForm.groom.trim()} · ${addForm.bride.trim()}`,
-        date: `${addForm.year}년 ${addForm.month}월 ${addForm.day}일`,
-        venue: addForm.venue.trim(),
-        stage: addForm.stage,
-        phone: formatPhone(addForm.phone),
-        progress: 0,
-        avatarIdx: prev.length % AVATAR_POOL.length,
-      },
-      ...prev,
-    ]);
-    setSchedules((prev) => ({ ...prev, [newId]: [] }));
-    closeAdd();
+    const { error } = await supabase.from('couples').insert({
+      planner_id: planner_id,
+      groom_name: addForm.groom.trim(),
+      bride_name: addForm.bride.trim(),
+      wedding_date: formToDb(addForm.year, addForm.month, addForm.day),
+      venue: addForm.venue.trim(),
+      stage: addForm.stage,
+      phone: formatPhone(addForm.phone),
+      progress: 0,
+    });
+    if (error) {
+      setAddError('추가 중 오류가 발생했습니다.');
+      return;
+    }
+    closeAdd(); // Realtime이 fetchCouples 자동 트리거
   };
 
   // ── 상세 모달 ──
@@ -464,7 +311,7 @@ export default function CoupleList() {
     setIsEditing(true);
   };
 
-  const handleUpdate = () => {
+  const handleUpdate = async () => {
     if (!editForm.groom.trim() && !editForm.bride.trim()) {
       setEditError('신랑 또는 신부 이름을 입력해주세요.');
       return;
@@ -477,32 +324,92 @@ export default function CoupleList() {
       setEditError('웨딩홀을 입력해주세요.');
       return;
     }
-    const updated = {
-      ...selectedCouple,
-      name: `${editForm.groom.trim()} · ${editForm.bride.trim()}`,
-      date: `${editForm.year}년 ${editForm.month}월 ${editForm.day}일`,
-      venue: editForm.venue.trim(),
-      stage: editForm.stage,
-      phone: formatPhone(editForm.phone),
-    };
-    setCouples((prev) => prev.map((c) => (c.id === updated.id ? updated : c)));
-    setSchedules((prev) => ({ ...prev, [updated.id]: editSchedules }));
-    setSelectedCouple(updated);
+
+    // 커플 기본 정보 업데이트
+    const { error: coupleErr } = await supabase
+      .from('couples')
+      .update({
+        groom_name: editForm.groom.trim(),
+        bride_name: editForm.bride.trim(),
+        wedding_date: formToDb(editForm.year, editForm.month, editForm.day),
+        venue: editForm.venue.trim(),
+        stage: editForm.stage,
+        phone: formatPhone(editForm.phone),
+      })
+      .eq('id', selectedCouple.id);
+    if (coupleErr) {
+      setEditError('수정 중 오류가 발생했습니다.');
+      return;
+    }
+
+    // 일정 동기화: 삭제 → 추가/수정
+    const origIds = (schedules[selectedCouple.id] ?? []).map((s) => s.id);
+    const editIds = editSchedules.filter((s) => !s.id.startsWith('new-')).map((s) => s.id);
+    const deletedIds = origIds.filter((id) => !editIds.includes(id));
+
+    if (deletedIds.length) {
+      await supabase.from('couple_schedules').delete().in('id', deletedIds);
+    }
+    for (const s of editSchedules) {
+      const row = {
+        couple_id: selectedCouple.id,
+        planner_id: planner_id,
+        title: s.title,
+        scheduled_date: formToDb(s.year, s.month, s.day),
+        time: s.time,
+        category: s.category,
+        done: s.done ?? false,
+      };
+      if (s.id.startsWith('new-')) {
+        await supabase.from('couple_schedules').insert(row);
+      } else {
+        await supabase.from('couple_schedules').update(row).eq('id', s.id);
+      }
+    }
+
+    // ── 수정 완료 후 즉시 갱신 ──────────────────────────
+    // 1) 커플 목록 재조회 (progress 포함)
+    await fetchCouples();
+
+    // 2) selectedCouple state 갱신 (모달이 열려있는 동안 최신 데이터 반영)
+    const { data: updatedCouple } = await supabase
+      .from('couples')
+      .select('*')
+      .eq('id', selectedCouple.id)
+      .single();
+    if (updatedCouple) setSelectedCouple(updatedCouple);
+
+    // 3) 해당 커플 일정 재조회 (타임라인 즉시 반영)
+    const { data: updatedScheds } = await supabase
+      .from('couple_schedules')
+      .select('*')
+      .eq('couple_id', selectedCouple.id)
+      .order('scheduled_date', { ascending: true });
+    if (updatedScheds) {
+      setSchedules((prev) => ({ ...prev, [selectedCouple.id]: updatedScheds }));
+    }
+
     setIsEditing(false);
+    // 모달은 닫지 않음 — 수정 결과를 상세 보기 모드에서 바로 확인 가능
   };
 
   const handleDelete = () => {
-    Alert.alert('커플 삭제', `${selectedCouple.name} 커플을 삭제할까요?`, [
-      { text: '취소', style: 'cancel' },
-      {
-        text: '삭제',
-        style: 'destructive',
-        onPress: () => {
-          setCouples((p) => p.filter((c) => c.id !== selectedCouple.id));
-          closeDetail();
+    Alert.alert(
+      '커플 삭제',
+      `${selectedCouple.groom_name} · ${selectedCouple.bride_name} 커플을 삭제할까요?`,
+      [
+        { text: '취소', style: 'cancel' },
+        {
+          text: '삭제',
+          style: 'destructive',
+          onPress: async () => {
+            await supabase.from('couples').delete().eq('id', selectedCouple.id);
+            closeDetail();
+            // Realtime 자동 갱신
+          },
         },
-      },
-    ]);
+      ],
+    );
   };
 
   // ── 일정 편집 (수정 모드 내) ──
@@ -523,10 +430,6 @@ export default function CoupleList() {
 
   const saveSchedForm = () => {
     if (!schedForm.title.trim()) return;
-    const date =
-      schedForm.year && schedForm.month && schedForm.day
-        ? `${schedForm.year}년 ${schedForm.month}월 ${schedForm.day}일`
-        : '';
     if (editingSchedId) {
       setEditSchedules((prev) =>
         prev.map((s) =>
@@ -534,7 +437,9 @@ export default function CoupleList() {
             ? {
                 ...s,
                 title: schedForm.title.trim(),
-                date,
+                year: schedForm.year,
+                month: schedForm.month,
+                day: schedForm.day,
                 time: schedForm.time,
                 category: schedForm.category,
               }
@@ -545,9 +450,11 @@ export default function CoupleList() {
       setEditSchedules((prev) => [
         ...prev,
         {
-          id: `s${Date.now()}`,
+          id: `new-${Date.now()}`, // new- 접두사로 신규 구분
           title: schedForm.title.trim(),
-          date,
+          year: schedForm.year,
+          month: schedForm.month,
+          day: schedForm.day,
           time: schedForm.time,
           category: schedForm.category,
           done: false,
@@ -568,16 +475,34 @@ export default function CoupleList() {
     ]);
   };
 
+  // ── progress 동적 계산 (DB값이 0이면 일정 완료율로 대체) ──
+  const calcProgress = (coupleId) => {
+    const scheds = schedules[coupleId] ?? [];
+    if (!scheds.length) return 0;
+    const done = scheds.filter((s) => s.done).length;
+    return Math.round((done / scheds.length) * 100);
+  };
+
   // ── 필터링 & 정렬 ──
   const filtered = couples.filter((c) => {
+    const fullName = `${c.groom_name ?? ''} · ${c.bride_name ?? ''}`;
     const ms =
       searchText.trim() === '' ||
-      c.name.replace(/\s/g, '').includes(searchText.replace(/\s/g, '')) ||
-      c.venue.includes(searchText);
+      fullName.replace(/\s/g, '').includes(searchText.replace(/\s/g, '')) ||
+      (c.venue ?? '').includes(searchText);
     const mst = activeStage === 0 ? true : c.stage === STAGE_FILTERS[activeStage];
     return ms && mst;
   });
-  const sorted = [...filtered].sort((a, b) => calcDday(a.date) - calcDday(b.date));
+  const calcDdayDb = (dateStr) => {
+    if (!dateStr) return 999;
+    const target = new Date(dateStr);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return Math.ceil((target - today) / (1000 * 60 * 60 * 24));
+  };
+  const sorted = [...filtered].sort(
+    (a, b) => calcDdayDb(a.wedding_date) - calcDdayDb(b.wedding_date),
+  );
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -650,9 +575,9 @@ export default function CoupleList() {
           </View>
         ) : (
           sorted.map((c) => {
-            const av = AVATAR_POOL[c.avatarIdx % AVATAR_POOL.length];
-            const st = STAGE_STYLE[c.stage] ?? STAGE_STYLE['초기 상담'];
-            const dday = calcDday(c.date);
+            const av = AVATAR_POOL[sorted.indexOf(c) % AVATAR_POOL.length];
+            const st = STAGE_STYLE[c.stage] || STAGE_STYLE['초기상담'];
+            const dday = calcDdayDb(c.wedding_date);
             return (
               <TouchableOpacity
                 key={c.id}
@@ -663,19 +588,21 @@ export default function CoupleList() {
                 <View style={styles.cardTop}>
                   <View style={[styles.avatar, { backgroundColor: av.bg }]}>
                     <Text style={[styles.avatarText, { color: av.color }]}>
-                      {getInitials(c.name)}
+                      {(c.groom_name?.[0] ?? '') + (c.bride_name?.[0] ?? '')}
                     </Text>
                   </View>
                   <View style={styles.coupleInfo}>
                     <View style={styles.nameRow}>
-                      <Text style={styles.coupleName}>{c.name}</Text>
+                      <Text
+                        style={styles.coupleName}
+                      >{`${c.groom_name ?? ''} · ${c.bride_name ?? ''}`}</Text>
                       <View style={[styles.ddayBadge, { backgroundColor: st.badgeBg }]}>
                         <Text style={[styles.ddayText, { color: st.badgeColor }]}>
                           {dday > 0 ? `D-${dday}` : dday === 0 ? 'D-Day' : '완료'}
                         </Text>
                       </View>
                     </View>
-                    <Text style={styles.coupleDate}>{c.date}</Text>
+                    <Text style={styles.coupleDate}>{dbToDisplay(c.wedding_date)}</Text>
                     <Text style={styles.coupleVenue}>{c.venue}</Text>
                   </View>
                 </View>
@@ -683,13 +610,13 @@ export default function CoupleList() {
                   <View style={[styles.stagePill, { backgroundColor: st.stageBg }]}>
                     <Text style={[styles.stageText, { color: st.stageColor }]}>{c.stage}</Text>
                   </View>
-                  <Text style={styles.progressPct}>{c.progress}%</Text>
+                  <Text style={styles.progressPct}>{calcProgress(c.id)}%</Text>
                 </View>
                 <View style={styles.progressTrack}>
                   <View
                     style={[
                       styles.progressFill,
-                      { width: `${c.progress}%`, backgroundColor: st.barColor },
+                      { width: `${calcProgress(c.id)}%`, backgroundColor: st.barColor },
                     ]}
                   />
                 </View>
@@ -748,9 +675,9 @@ export default function CoupleList() {
             <View style={styles.modalHandle} />
             {selectedCouple &&
               (() => {
-                const av = AVATAR_POOL[selectedCouple.avatarIdx % AVATAR_POOL.length];
-                const st = STAGE_STYLE[selectedCouple.stage] ?? STAGE_STYLE['초기 상담'];
-                const dday = calcDday(selectedCouple.date);
+                const av = AVATAR_POOL[couples.indexOf(selectedCouple) % AVATAR_POOL.length];
+                const st = STAGE_STYLE[selectedCouple.stage] || STAGE_STYLE['초기상담'];
+                const dday = calcDdayDb(selectedCouple.wedding_date);
                 const coupleScheds = schedules[selectedCouple.id] ?? [];
                 return (
                   <>
@@ -839,7 +766,7 @@ export default function CoupleList() {
                                   <View style={{ flex: 1 }}>
                                     <Text style={styles.editSchedTitle}>{s.title}</Text>
                                     <Text style={styles.editSchedDate}>
-                                      {s.date}
+                                      {dbToDisplay(s.scheduled_date)}
                                       {s.time ? `  ${s.time}` : ''}
                                     </Text>
                                   </View>
@@ -1011,10 +938,13 @@ export default function CoupleList() {
                           <View style={styles.detailHero}>
                             <View style={[styles.detailAvatar, { backgroundColor: av.bg }]}>
                               <Text style={[styles.detailAvatarText, { color: av.color }]}>
-                                {getInitials(selectedCouple.name)}
+                                {(selectedCouple.groom_name?.[0] ?? '') +
+                                  (selectedCouple.bride_name?.[0] ?? '')}
                               </Text>
                             </View>
-                            <Text style={styles.detailName}>{selectedCouple.name}</Text>
+                            <Text
+                              style={styles.detailName}
+                            >{`${selectedCouple.groom_name ?? ''} · ${selectedCouple.bride_name ?? ''}`}</Text>
                             <View
                               style={[
                                 styles.ddayBadge,
@@ -1030,7 +960,7 @@ export default function CoupleList() {
                             <DetailRow
                               icon="calendar-outline"
                               label="결혼 예정일"
-                              value={selectedCouple.date}
+                              value={dbToDisplay(selectedCouple.wedding_date)}
                             />
                             <DetailRow
                               icon="location-outline"
@@ -1053,7 +983,7 @@ export default function CoupleList() {
                             <View style={styles.detailProgressHeader}>
                               <Text style={styles.detailProgressLabel}>준비율</Text>
                               <Text style={styles.detailProgressPct}>
-                                {selectedCouple.progress}%
+                                {calcProgress(selectedCouple.id)}%
                               </Text>
                             </View>
                             <View style={styles.progressTrack}>
@@ -1061,7 +991,7 @@ export default function CoupleList() {
                                 style={[
                                   styles.progressFill,
                                   {
-                                    width: `${selectedCouple.progress}%`,
+                                    width: `${calcProgress(selectedCouple.id)}%`,
                                     backgroundColor: st.barColor,
                                   },
                                 ]}
@@ -1116,7 +1046,7 @@ export default function CoupleList() {
                                           </View>
                                         </View>
                                         <Text style={styles.scheduleDate}>
-                                          {s.date}
+                                          {dbToDisplay(s.scheduled_date)}
                                           {s.time ? `  ${s.time}` : ''}
                                         </Text>
                                       </View>

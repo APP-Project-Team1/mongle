@@ -64,6 +64,11 @@ export const signOut = async () => {
   if (error) throw error;
 };
 
+export const getPostAuthRoute = (role) => {
+  if (role === 'planner') return '/(planner)/dashboard';
+  return '/(couple)';
+};
+
 // 로그인 유저의 역할 조회
 export const fetchUserRole = async (userId) => {
   try {
@@ -82,4 +87,54 @@ export const fetchUserRole = async (userId) => {
     if (err?.code === 'PGRST116') return null;
     throw err;
   }
+};
+
+export const resolveAuthRole = async (session, fallbackRole = null) => {
+  const metadataRole = session?.user?.user_metadata?.role ?? fallbackRole ?? null;
+  const userId = session?.user?.id;
+
+  if (!userId) {
+    return metadataRole;
+  }
+
+  try {
+    const profile = await fetchUserRole(userId);
+    return profile?.role ?? metadataRole;
+  } catch (_error) {
+    return metadataRole;
+  }
+};
+
+export const waitForResolvedAuth = async ({ expectedRole = null, timeoutMs = 3000, pollMs = 150 } = {}) => {
+  const startedAt = Date.now();
+
+  while (Date.now() - startedAt < timeoutMs) {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+
+    const resolvedRole = await resolveAuthRole(session, expectedRole);
+
+    if (session && resolvedRole) {
+      return {
+        session,
+        role: resolvedRole,
+        route: getPostAuthRoute(resolvedRole),
+      };
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, pollMs));
+  }
+
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  const resolvedRole = await resolveAuthRole(session, expectedRole);
+
+  return {
+    session,
+    role: resolvedRole,
+    route: getPostAuthRoute(resolvedRole ?? expectedRole),
+  };
 };

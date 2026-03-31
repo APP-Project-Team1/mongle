@@ -21,9 +21,12 @@ import { supabase } from '../../../../lib/supabase';
 
 // 6자리 랜덤 초대 코드 생성
 const generateInviteCode = () => Math.random().toString(36).substring(2, 8).toUpperCase();
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 export default function ChatRoomScreen() {
   const { id: chatId } = useLocalSearchParams();
+  const normalizedChatId = Array.isArray(chatId) ? chatId[0] : chatId;
+  const hasValidChatId = typeof normalizedChatId === 'string' && UUID_PATTERN.test(normalizedChatId);
 
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState([]);
@@ -57,7 +60,11 @@ export default function ChatRoomScreen() {
 
   // 채팅방 정보 & 메시지 & 멤버 초기 로드
   useEffect(() => {
-    if (!chatId) return;
+    if (!normalizedChatId) return;
+    if (!hasValidChatId) {
+      router.replace('/(couple)/chat');
+      return;
+    }
 
     const fetchChatData = async () => {
       setLoading(true);
@@ -72,7 +79,7 @@ export default function ChatRoomScreen() {
         const { data: chatData, error: chatError } = await supabase
           .from('chats')
           .select('title, invite_code')
-          .eq('id', chatId)
+          .eq('id', normalizedChatId)
           .single();
 
         if (chatError) console.error('채팅방 조회 오류:', chatError.message);
@@ -83,7 +90,7 @@ export default function ChatRoomScreen() {
         const { data: memberData, error: memberError } = await supabase
           .from('chat_members')
           .select('user_id, role')
-          .eq('chat_id', chatId);
+          .eq('chat_id', normalizedChatId);
 
         if (memberError) {
           console.error('멤버 조회 오류:', memberError.message);
@@ -97,7 +104,7 @@ export default function ChatRoomScreen() {
         const { data: msgData, error: msgError } = await supabase
           .from('messages')
           .select('*')
-          .eq('chat_id', chatId)
+          .eq('chat_id', normalizedChatId)
           .order('created_at', { ascending: false });
 
         if (msgError) {
@@ -113,17 +120,17 @@ export default function ChatRoomScreen() {
     };
 
     fetchChatData();
-  }, [chatId]);
+  }, [normalizedChatId, hasValidChatId]);
 
   // 실시간 구독: 새 메시지
   useEffect(() => {
-    if (!chatId) return;
+    if (!normalizedChatId || !hasValidChatId) return;
 
     const channel = supabase
-      .channel(`messages-${chatId}`)
+      .channel(`messages-${normalizedChatId}`)
       .on(
         'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'messages', filter: `chat_id=eq.${chatId}` },
+        { event: 'INSERT', schema: 'public', table: 'messages', filter: `chat_id=eq.${normalizedChatId}` },
         (payload) => {
           const newMsg = payload.new;
           setMessages((prev) => {
@@ -137,7 +144,7 @@ export default function ChatRoomScreen() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [chatId]);
+  }, [normalizedChatId, hasValidChatId]);
 
   // ── 메시지 전송 ──
   const handleSend = async () => {
@@ -153,7 +160,7 @@ export default function ChatRoomScreen() {
     try {
       const { data, error } = await supabase
         .from('messages')
-        .insert({ chat_id: chatId, sender: currentUserId || 'me', content })
+        .insert({ chat_id: normalizedChatId, sender: currentUserId || 'me', content })
         .select();
 
       if (error) throw error;
@@ -172,7 +179,7 @@ export default function ChatRoomScreen() {
     setGeneratingCode(true);
     const code = generateInviteCode();
 
-    const { error } = await supabase.from('chats').update({ invite_code: code }).eq('id', chatId);
+    const { error } = await supabase.from('chats').update({ invite_code: code }).eq('id', normalizedChatId);
 
     if (error) {
       Alert.alert('오류', '초대 코드 생성에 실패했습니다.');
@@ -208,7 +215,7 @@ export default function ChatRoomScreen() {
           const { error } = await supabase
             .from('chat_members')
             .delete()
-            .eq('chat_id', chatId)
+            .eq('chat_id', normalizedChatId)
             .eq('user_id', member.user_id);
 
           if (error) {
@@ -217,7 +224,7 @@ export default function ChatRoomScreen() {
           }
 
           await supabase.from('messages').insert({
-            chat_id: chatId,
+            chat_id: normalizedChatId,
             sender: 'system',
             content: '멤버가 채팅방에서 나갔습니다.',
           });

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -11,10 +11,13 @@ import {
   KeyboardAvoidingView,
   Platform,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useAuth } from '../../context/AuthContext';
+import { supabase } from '../../lib/supabase';
 
 // ── 상수 ─────────────────────────────────────────────────
 const VENDOR_TYPES = [
@@ -60,85 +63,11 @@ const EMPTY_FORM = {
   memo: '',
 };
 
-// ── 임시 데이터 ──────────────────────────────────────────
-const INITIAL_VENDORS = [
-  {
-    id: '1',
-    name: '일다스튜디오',
-    type: '스튜디오',
-    contact: '02-1234-5678',
-    manager: '김실장',
-    status: '계약 완료',
-    memo: '자연광 콘셉트 전문',
-  },
-  {
-    id: '2',
-    name: '르블랑 웨딩',
-    type: '드레스',
-    contact: '02-2345-6789',
-    manager: '박실장',
-    status: '피팅 조율',
-    memo: '머메이드·A라인 보유',
-  },
-  {
-    id: '3',
-    name: '뷰티스튜디오 K',
-    type: '메이크업',
-    contact: '010-3456-7890',
-    manager: '이원장',
-    status: '계약 완료',
-    memo: '청순·내추럴 스타일',
-  },
-  {
-    id: '4',
-    name: '더채플 청담',
-    type: '웨딩홀',
-    contact: '02-4567-8901',
-    manager: '최실장',
-    status: '잔금 미납',
-    memo: '300석 규모, 채플형',
-  },
-  {
-    id: '5',
-    name: '제이여행사',
-    type: '허니문',
-    contact: '02-5678-9012',
-    manager: '정실장',
-    status: '견적 협의',
-    memo: '몰디브·발리 패키지',
-  },
-  {
-    id: '6',
-    name: '페이퍼가든',
-    type: '청첩장',
-    contact: '02-6789-0123',
-    manager: '한대표',
-    status: '발주 완료',
-    memo: '모던·심플 디자인',
-  },
-  {
-    id: '7',
-    name: '모먼트 스냅',
-    type: '영상·스냅',
-    contact: '010-7890-1234',
-    manager: '강작가',
-    status: '계약 완료',
-    memo: '감성 필름 스냅 전문',
-  },
-  {
-    id: '8',
-    name: '롯데호텔 잠실',
-    type: '웨딩홀',
-    contact: '02-8901-2345',
-    manager: '송실장',
-    status: '계약 완료',
-    memo: '500석, 호텔 웨딩',
-  },
-];
-// ──────────────────────────────────────────────────────────
-
 export default function WeddingVendorPartners() {
-  const [vendors, setVendors] = useState(INITIAL_VENDORS);
+  const { planner_id } = useAuth();
+
+  const [vendors, setVendors] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [searchText, setSearchText] = useState('');
   const [activeType, setActiveType] = useState(0);
 
@@ -154,6 +83,39 @@ export default function WeddingVendorPartners() {
   const [editForm, setEditForm] = useState(EMPTY_FORM);
   const [editError, setEditError] = useState('');
 
+  // ── 데이터 로드 + Realtime ─────────────────────────────
+  useEffect(() => {
+    if (!planner_id) return;
+    fetchVendors();
+
+    const channel = supabase
+      .channel(`vendors-${planner_id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'planner_vendors',
+          filter: `planner_id=eq.${planner_id}`,
+        },
+        fetchVendors,
+      )
+      .subscribe();
+
+    return () => supabase.removeChannel(channel);
+  }, [planner_id]);
+
+  const fetchVendors = async () => {
+    setLoading(true);
+    const { data, error } = await supabase
+      .from('planner_vendors')
+      .select('id, name, type, contact, manager, status, memo')
+      .eq('planner_id', planner_id)
+      .order('created_at', { ascending: false });
+    if (!error && data) setVendors(data);
+    setLoading(false);
+  };
+
   // ── 추가 ──
   const openAdd = () => {
     setAddForm(EMPTY_FORM);
@@ -164,23 +126,25 @@ export default function WeddingVendorPartners() {
     setAddVisible(false);
     setAddError('');
   };
-  const handleAdd = () => {
+  const handleAdd = async () => {
     if (!addForm.name.trim()) {
       setAddError('업체명을 입력해주세요.');
       return;
     }
-    setVendors((prev) => [
-      {
-        id: Date.now().toString(),
-        ...addForm,
-        name: addForm.name.trim(),
-        contact: addForm.contact.trim(),
-        manager: addForm.manager.trim(),
-        memo: addForm.memo.trim(),
-      },
-      ...prev,
-    ]);
-    closeAdd();
+    const { error } = await supabase.from('planner_vendors').insert({
+      planner_id: planner_id,
+      name: addForm.name.trim(),
+      type: addForm.type,
+      contact: addForm.contact.trim(),
+      manager: addForm.manager.trim(),
+      status: addForm.status,
+      memo: addForm.memo.trim(),
+    });
+    if (error) {
+      setAddError('추가 중 오류가 발생했습니다.');
+      return;
+    }
+    closeAdd(); // Realtime이 자동 갱신
   };
 
   // ── 상세/수정 ──
@@ -206,15 +170,29 @@ export default function WeddingVendorPartners() {
     setEditError('');
     setIsEditing(true);
   };
-  const handleUpdate = () => {
+  const handleUpdate = async () => {
     if (!editForm.name.trim()) {
       setEditError('업체명을 입력해주세요.');
       return;
     }
-    const updated = { ...selected, ...editForm, name: editForm.name.trim() };
-    setVendors((prev) => prev.map((v) => (v.id === updated.id ? updated : v)));
-    setSelected(updated);
+    const { error } = await supabase
+      .from('planner_vendors')
+      .update({
+        name: editForm.name.trim(),
+        type: editForm.type,
+        contact: editForm.contact.trim(),
+        manager: editForm.manager.trim(),
+        status: editForm.status,
+        memo: editForm.memo.trim(),
+      })
+      .eq('id', selected.id);
+    if (error) {
+      setEditError('수정 중 오류가 발생했습니다.');
+      return;
+    }
+    setSelected((prev) => ({ ...prev, ...editForm, name: editForm.name.trim() }));
     setIsEditing(false);
+    // Realtime이 목록 자동 갱신
   };
   const handleDelete = () => {
     Alert.alert('업체 삭제', `${selected.name}을(를) 삭제할까요?`, [
@@ -222,9 +200,10 @@ export default function WeddingVendorPartners() {
       {
         text: '삭제',
         style: 'destructive',
-        onPress: () => {
-          setVendors((prev) => prev.filter((v) => v.id !== selected.id));
+        onPress: async () => {
+          await supabase.from('planner_vendors').delete().eq('id', selected.id);
           closeDetail();
+          // Realtime이 자동 갱신
         },
       },
     ]);
@@ -233,10 +212,20 @@ export default function WeddingVendorPartners() {
   // ── 필터링 ──
   const filtered = vendors.filter((v) => {
     const ms =
-      searchText.trim() === '' || v.name.includes(searchText) || v.manager.includes(searchText);
+      searchText.trim() === '' ||
+      (v.name ?? '').includes(searchText) ||
+      (v.manager ?? '').includes(searchText);
     const mt = activeType === 0 ? true : v.type === VENDOR_TYPES[activeType];
     return ms && mt;
   });
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <ActivityIndicator size="large" color="#c97b6e" style={{ marginTop: 120 }} />
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.safeArea}>

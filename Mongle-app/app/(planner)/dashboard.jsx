@@ -1,36 +1,51 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, StatusBar } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  StatusBar,
+  ActivityIndicator,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useNotifications } from '../../context/NotificationContext';
+import { useAuth } from '../../context/AuthContext';
+import { supabase } from '../../lib/supabase';
+import { LinearGradient } from 'expo-linear-gradient';
 
-// ── 임시 데이터 ──────────────────────────────────────────
+const fmt = (n) => (n / 10000).toLocaleString() + '만';
 
-const PLANNER_NAME = '수진';
-const TODAY = '2026년 3월 26일 목요일';
-const URGENT_TODO_COUNT = 2;
+// 커플 이름 앞글자 2자 추출
+const getInitials = (c) => (c.groom_name?.[0] ?? '') + (c.bride_name?.[0] ?? '');
 
-const KPI_DATA = [
-  { label: '담당 커플', value: '12', sub: '진행 8 · 완료 4', color: '#c39874', bg: '#f9f1ee' },
+// D-day 계산
+const calcDday = (dateStr) => {
+  if (!dateStr) return null;
+  const diff = Math.ceil((new Date(dateStr) - new Date()) / (1000 * 60 * 60 * 24));
+  return diff;
+};
+
+// 이번 달 여부
+const isThisMonth = (dateStr) => {
+  if (!dateStr) return false;
+  const d = new Date(dateStr);
+  const now = new Date();
+  return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
+};
+
+const TODAY_LABEL = new Date().toLocaleDateString('ko-KR', {
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric',
+  weekday: 'long',
+});
+
+// 커플마다 색상 팔레트 순환
+const PALETTES = [
   {
-    label: '이번 달 결혼식',
-    value: '3',
-    sub: '4월 5 · 12 · 26일',
-    color: '#c97b6e',
-    bg: '#f9eeee',
-  },
-];
-
-const COUPLES = [
-  {
-    id: '1',
-    initials: '박이',
-    name: '박지수 · 이현우',
-    date: '4월 5일',
-    venue: '더채플 청담',
-    dday: 11,
-    progress: 92,
     avatarBg: '#fbeaf0',
     avatarColor: '#993556',
     barColor: '#d4537e',
@@ -38,13 +53,6 @@ const COUPLES = [
     badgeColor: '#993556',
   },
   {
-    id: '2',
-    initials: '최강',
-    name: '최민정 · 강태준',
-    date: '4월 12일',
-    venue: '롯데호텔 잠실',
-    dday: 18,
-    progress: 78,
     avatarBg: '#f5ede8',
     avatarColor: '#8b5e52',
     barColor: '#b07858',
@@ -52,13 +60,6 @@ const COUPLES = [
     badgeColor: '#8b5e52',
   },
   {
-    id: '3',
-    initials: '윤오',
-    name: '윤서연 · 오민석',
-    date: '4월 26일',
-    venue: '그랜드 인터컨티',
-    dday: 32,
-    progress: 55,
     avatarBg: '#f0ede8',
     avatarColor: '#6e6058',
     barColor: '#a09080',
@@ -66,13 +67,6 @@ const COUPLES = [
     badgeColor: '#6e6058',
   },
   {
-    id: '4',
-    initials: '정김',
-    name: '정하린 · 김도윤',
-    date: '5월 31일',
-    venue: '더베뉴 한남',
-    dday: 67,
-    progress: 30,
     avatarBg: '#eeeae6',
     avatarColor: '#7a7068',
     barColor: '#c0b8b0',
@@ -81,105 +75,263 @@ const COUPLES = [
   },
 ];
 
-const TODOS = [
-  { id: '1', text: '청첩장 시안 최종 확인', couple: '박지수·이현우', done: true, urgent: false },
-  { id: '2', text: '드레스 피팅 일정 조율', couple: '최민정·강태준', done: false, urgent: true },
-  { id: '3', text: '스튜디오 계약서 검토', couple: '윤서연·오민석', done: false, urgent: true },
-  { id: '4', text: '웨딩홀 잔금 납부 확인', couple: '박지수·이현우', done: false, urgent: false },
-  { id: '5', text: '메이크업 미팅 메모 정리', couple: '최민정·강태준', done: true, urgent: false },
-];
-
-const VENDORS = [
-  { id: '1', type: '스튜디오', name: '일다스튜디오', status: '계약 완료', statusColor: '#5a8c3a' },
-  { id: '2', type: '드레스', name: '르블랑 웨딩', status: '피팅 조율', statusColor: '#b07840' },
-  { id: '3', type: '메이크업', name: '뷰티스튜디오K', status: '계약 완료', statusColor: '#5a8c3a' },
-  { id: '4', type: '웨딩홀', name: '더채플 청담', status: '잔금 미납', statusColor: '#c97b6e' },
-  { id: '5', type: '허니문', name: '제이여행사', status: '견적 협의', statusColor: '#8b7060' },
-  { id: '6', type: '청첩장', name: '페이퍼가든', status: '발주 완료', statusColor: '#5a8c3a' },
-];
-
-const VENDOR_CATEGORIES = [
-  '스튜디오',
-  '드레스',
-  '메이크업',
-  '웨딩홀',
-  '허니문',
-  '청첩장',
-  '영상·스냅',
-];
-
-const FINANCE = {
-  couples: [
-    {
-      id: '1',
-      name: '박지수 · 이현우',
-      total: 38000000,
-      received: 31500000,
-      due: '4월 1일',
-      vendorCosts: [
-        { vendor: '일다스튜디오', amount: 5000000, paid: true },
-        { vendor: '르블랑 웨딩', amount: 8000000, paid: false },
-        { vendor: '더채플 청담', amount: 9000000, paid: false },
-      ],
-    },
-    {
-      id: '2',
-      name: '최민정 · 강태준',
-      total: 42000000,
-      received: 21000000,
-      due: '4월 8일',
-      vendorCosts: [
-        { vendor: '일다스튜디오', amount: 5500000, paid: true },
-        { vendor: '뷰티스튜디오K', amount: 3000000, paid: false },
-        { vendor: '롯데호텔 잠실', amount: 12000000, paid: false },
-      ],
-    },
-    {
-      id: '3',
-      name: '윤서연 · 오민석',
-      total: 35000000,
-      received: 35000000,
-      due: null,
-      vendorCosts: [
-        { vendor: '모먼트 스냅', amount: 4000000, paid: true },
-        { vendor: '그랜드 인터컨티', amount: 10000000, paid: true },
-      ],
-    },
-    {
-      id: '4',
-      name: '정하린 · 김도윤',
-      total: 28000000,
-      received: 7000000,
-      due: '5월 10일',
-      vendorCosts: [
-        { vendor: '페이퍼가든', amount: 800000, paid: false },
-        { vendor: '더베뉴 한남', amount: 8000000, paid: false },
-      ],
-    },
-  ],
-};
-
-// 파생 계산
-const totalRevenue = FINANCE.couples.reduce((s, c) => s + c.received, 0);
-const totalUnpaid = FINANCE.couples.reduce((s, c) => s + (c.total - c.received), 0);
-const unpaidVendorAmt = FINANCE.couples.reduce(
-  (s, c) => s + c.vendorCosts.filter((v) => !v.paid).reduce((a, v) => a + v.amount, 0),
-  0,
-);
-const unpaidVendorCnt = FINANCE.couples.reduce(
-  (s, c) => s + c.vendorCosts.filter((v) => !v.paid).length,
-  0,
-);
-const fmt = (n) => (n / 10000).toLocaleString() + '만';
-// ──────────────────────────────────────────────────────────
-
 export default function PlannerDashboard() {
   const { unreadCount } = useNotifications();
-  const [todos, setTodos] = useState(TODOS);
+  const { planner_id } = useAuth(); // ← AuthContext에서 planner_id 꺼내기
 
-  const toggleTodo = (id) => {
-    setTodos((prev) => prev.map((t) => (t.id === id ? { ...t, done: !t.done } : t)));
+  const [plannerName, setPlannerName] = useState('');
+  const [couples, setCouples] = useState([]);
+  const [todos, setTodos] = useState([]);
+  const [vendors, setVendors] = useState([]);
+  const [payments, setPayments] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // 대시보드에 표시할 5개 ID를 고정 — 완료해도 자리 유지
+  const lockedTodoIds = useRef([]);
+
+  // ── 초기 로드 + Realtime 구독 ──────────────────────────
+  useEffect(() => {
+    if (!planner_id) return;
+
+    fetchAll();
+
+    const couplesChannel = supabase
+      .channel(`dashboard-couples-${planner_id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'couples',
+          filter: `planner_id=eq.${planner_id}`,
+        },
+        fetchCouples,
+      )
+      .subscribe();
+
+    const schedulesChannel = supabase
+      .channel(`dashboard-schedules-${planner_id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'couple_schedules',
+          filter: `planner_id=eq.${planner_id}`,
+        },
+        fetchTodos,
+      )
+      .subscribe();
+
+    const vendorsChannel = supabase
+      .channel(`dashboard-vendors-${planner_id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'planner_vendors',
+          filter: `planner_id=eq.${planner_id}`,
+        },
+        fetchVendors,
+      )
+      .subscribe();
+
+    const paymentsChannel = supabase
+      .channel(`dashboard-payments-${planner_id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'couple_payments',
+        },
+        fetchPayments,
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(couplesChannel);
+      supabase.removeChannel(schedulesChannel);
+      supabase.removeChannel(vendorsChannel);
+      supabase.removeChannel(paymentsChannel);
+    };
+  }, [planner_id]);
+
+  const fetchAll = async () => {
+    setLoading(true);
+    await Promise.all([
+      fetchPlannerName(),
+      fetchCouples(),
+      fetchTodos(),
+      fetchVendors(),
+      fetchPayments(),
+    ]);
+    setLoading(false);
   };
+
+  // 플래너 이름 조회
+  const fetchPlannerName = async () => {
+    const { data } = await supabase
+      .from('wedding_planners')
+      .select('name')
+      .eq('id', planner_id)
+      .single();
+    if (data) setPlannerName(data.name);
+  };
+
+  // 담당 커플 목록 조회
+  const fetchCouples = async () => {
+    const { data, error } = await supabase
+      .from('couples')
+      .select(
+        'id, groom_name, bride_name, wedding_date, venue, stage, progress, total_amount, received_amount, due_date',
+      )
+      .eq('planner_id', planner_id)
+      .order('wedding_date', { ascending: true });
+    if (!error && data) setCouples(data);
+  };
+
+  // 할 일(일정) 조회 — 커플 이름도 join
+  const fetchTodos = async () => {
+    const { data, error } = await supabase
+      .from('couple_schedules')
+      .select('id, title, done, scheduled_date, couples(groom_name, bride_name)')
+      .eq('planner_id', planner_id)
+      .order('scheduled_date', { ascending: true });
+    if (!error && data) {
+      setTodos(data);
+      // 처음 로드 시에만 대시보드 고정 목록 세팅
+      if (lockedTodoIds.current.length === 0) {
+        const todayStr = new Date().toISOString().split('T')[0];
+        const urgent = data.filter((t) => !t.done && t.scheduled_date === todayStr);
+        const upcoming = data
+          .filter((t) => !t.done && t.scheduled_date > todayStr)
+          .sort((a, b) => (a.scheduled_date ?? '').localeCompare(b.scheduled_date ?? ''));
+        lockedTodoIds.current = [...urgent, ...upcoming].slice(0, 5).map((t) => t.id);
+      }
+    }
+  };
+
+  // 협력 업체 조회
+  const fetchVendors = async () => {
+    const { data, error } = await supabase
+      .from('planner_vendors')
+      .select('id, name, type, status')
+      .eq('planner_id', planner_id)
+      .order('created_at', { ascending: false });
+    if (!error && data) setVendors(data);
+  };
+
+  // 수금 내역 조회
+  const fetchPayments = async () => {
+    const { data: coupleRows } = await supabase
+      .from('couples')
+      .select('id')
+      .eq('planner_id', planner_id);
+    if (!coupleRows?.length) return;
+    const coupleIds = coupleRows.map((c) => c.id);
+    const { data, error } = await supabase
+      .from('couple_payments')
+      .select('couple_id, amount, paid')
+      .in('couple_id', coupleIds);
+    if (!error && data) setPayments(data);
+  };
+
+  // 할 일 완료 토글 (낙관적 업데이트)
+  const toggleTodo = async (id, currentDone) => {
+    setTodos((prev) => prev.map((t) => (t.id === id ? { ...t, done: !currentDone } : t)));
+    const { error } = await supabase
+      .from('couple_schedules')
+      .update({ done: !currentDone })
+      .eq('id', id);
+    if (error) {
+      setTodos((prev) => prev.map((t) => (t.id === id ? { ...t, done: currentDone } : t)));
+    }
+  };
+
+  // ── 파생 계산 ───────────────────────────────────────────
+  const activeCount = couples.filter((c) => c.stage !== '완료').length;
+  const doneCount = couples.filter((c) => c.stage === '완료').length;
+  const thisMonthCouples = couples.filter((c) => isThisMonth(c.wedding_date));
+
+  const today = new Date().toISOString().split('T')[0];
+  const urgentTodos = todos.filter((t) => !t.done && t.scheduled_date === today);
+
+  // 1) 오늘 미완료(urgent) 먼저, 2) 이후 미완료 날짜순, 3) 완료 항목은 항상 뒤에
+  const upcomingTodosFiltered = todos
+    .filter((t) => !t.done && t.scheduled_date > today)
+    .sort((a, b) => (a.scheduled_date ?? '').localeCompare(b.scheduled_date ?? ''));
+  // dashboardTodos: 고정된 5개 ID 기준, todos에서 최신 done 상태만 반영
+  // → 완료해도 자리 유지, 취소선 표시
+  const dashboardTodos = lockedTodoIds.current
+    .map((id) => todos.find((t) => t.id === id))
+    .filter(Boolean);
+  const hasDoneInDashboard = dashboardTodos.some((t) => t.done);
+
+  const upcomingCouples = couples
+    .filter((c) => c.wedding_date)
+    .sort((a, b) => new Date(a.wedding_date) - new Date(b.wedding_date))
+    .slice(0, 4);
+
+  // 수금 계산 — couple_payments 기반 (total_amount가 0이면 payments 합계 사용)
+  const paymentsByCoupleId = payments.reduce((acc, p) => {
+    if (!acc[p.couple_id]) acc[p.couple_id] = { total: 0, received: 0 };
+    acc[p.couple_id].total += p.amount;
+    acc[p.couple_id].received += p.paid ? p.amount : 0;
+    return acc;
+  }, {});
+
+  const totalRevenue = Object.values(paymentsByCoupleId).reduce((s, p) => s + p.received, 0);
+  const totalUnpaid = Object.values(paymentsByCoupleId).reduce(
+    (s, p) => s + (p.total - p.received),
+    0,
+  );
+
+  // 커플별 수금 진행률 (progress 컬럼이 0이면 payments로 대체)
+  const coupleWithProgress = upcomingCouples.map((c) => {
+    const pm = paymentsByCoupleId[c.id];
+    const total = c.total_amount > 0 ? c.total_amount : (pm?.total ?? 0);
+    const received = c.received_amount > 0 ? c.received_amount : (pm?.received ?? 0);
+    const progress = total > 0 ? Math.round((received / total) * 100) : (c.progress ?? 0);
+    return { ...c, _total: total, _received: received, _progress: progress };
+  });
+
+  // 비용 현황용 미수금 커플 목록
+  const financeCouples = couples
+    .map((c) => {
+      const pm = paymentsByCoupleId[c.id];
+      const total = c.total_amount > 0 ? c.total_amount : (pm?.total ?? 0);
+      const received = c.received_amount > 0 ? c.received_amount : (pm?.received ?? 0);
+      return { ...c, _total: total, _received: received };
+    })
+    .filter((c) => c._received < c._total);
+
+  // 협력 업체 — 유형별 그룹 (최대 3개 유형, 유형당 최대 2개)
+  const STATUS_COLOR = {
+    '계약 완료': '#5a8c3a',
+    '촬영 완료': '#5a8c3a',
+    '발주 완료': '#5a8c3a',
+    '피팅 조율': '#b07840',
+    '견적 협의': '#b07840',
+    '계약 검토': '#b07840',
+    '미팅 예정': '#534AB7',
+    '잔금 미납': '#c97b6e',
+  };
+  const vendorByType = vendors.reduce((acc, v) => {
+    if (!acc[v.type]) acc[v.type] = [];
+    acc[v.type].push(v);
+    return acc;
+  }, {});
+  const vendorCategories = Object.entries(vendorByType).slice(0, 3);
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <ActivityIndicator size="large" color="#c97b6e" style={{ marginTop: 120 }} />
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -208,27 +360,47 @@ export default function PlannerDashboard() {
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* ── 인사말 ── */}
         <View style={styles.greetingBlock}>
-          <Text style={styles.greetingDate}>{TODAY}</Text>
+          <Text style={styles.greetingDate}>{TODAY_LABEL}</Text>
           <Text style={styles.greetingMain}>
-            안녕하세요, <Text style={styles.greetingName}>{PLANNER_NAME}</Text> 플래너님
+            안녕하세요, <Text style={styles.greetingName}>{plannerName}</Text> 플래너님
           </Text>
-          {URGENT_TODO_COUNT > 0 && (
+          {urgentTodos.length > 0 && (
             <View style={styles.urgentBadge}>
               <Ionicons name="alert-circle-outline" size={13} color="#ea806d" />
-              <Text style={styles.urgentText}>오늘 마감 할 일 {URGENT_TODO_COUNT}건이 있어요</Text>
+              <Text style={styles.urgentText}>오늘 마감 할 일 {urgentTodos.length}건이 있어요</Text>
             </View>
           )}
         </View>
 
         {/* ── KPI 카드 ── */}
         <View style={styles.kpiGrid}>
-          {KPI_DATA.map((k) => (
-            <View key={k.label} style={[styles.kpiCard, { backgroundColor: k.bg }]}>
-              <Text style={[styles.kpiValue, { color: k.color }]}>{k.value}</Text>
-              <Text style={styles.kpiLabel}>{k.label}</Text>
-              <Text style={styles.kpiSub}>{k.sub}</Text>
-            </View>
-          ))}
+          {/* 담당 커플 카드 */}
+          <LinearGradient
+            colors={['#fbf5f3', '#fbf4db']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.kpiCard}
+          >
+            <Text style={[styles.kpiValue, { color: '#c39874' }]}>{activeCount + doneCount}</Text>
+            <Text style={styles.kpiLabel}>담당 커플</Text>
+            <Text style={styles.kpiSub}>
+              진행 {activeCount} · 완료 {doneCount}
+            </Text>
+          </LinearGradient>
+
+          {/* 이번 달 결혼식 카드 */}
+          <LinearGradient
+            colors={['#f9f3f3', '#fce8e8']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.kpiCard}
+          >
+            <Text style={[styles.kpiValue, { color: '#c97b6e' }]}>{thisMonthCouples.length}</Text>
+            <Text style={styles.kpiLabel}>이번 달 결혼식</Text>
+            <Text style={styles.kpiSub}>
+              {thisMonthCouples.map((c) => new Date(c.wedding_date).getDate() + '일').join(' · ')}
+            </Text>
+          </LinearGradient>
         </View>
 
         {/* ── 구분선 ── */}
@@ -238,36 +410,64 @@ export default function PlannerDashboard() {
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>오늘 할 일</Text>
-
-            <TouchableOpacity
-              onPress={() => router.push('/(planner)/planner_todo_list')}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.sectionMore}>전체 보기</Text>
-            </TouchableOpacity>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+              {hasDoneInDashboard && (
+                <TouchableOpacity
+                  activeOpacity={0.7}
+                  onPress={() => {
+                    setTodos((prev) => prev.filter((t) => !t.done));
+                    lockedTodoIds.current = []; // 고정 목록 초기화 → fetchTodos에서 새로 5개 고정
+                    fetchTodos();
+                  }}
+                >
+                  <Text style={styles.clearDoneBtnText}>완료 지우기</Text>
+                </TouchableOpacity>
+              )}
+              <TouchableOpacity
+                onPress={() => router.push('/(planner)/planner_todo_list')}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.sectionMore}>전체 보기</Text>
+              </TouchableOpacity>
+            </View>
           </View>
 
           <View style={styles.todoCard}>
-            {todos.map((t, idx) => (
-              <TouchableOpacity
-                key={t.id}
-                style={[styles.todoItem, idx === todos.length - 1 && { borderBottomWidth: 0 }]}
-                activeOpacity={0.7}
-                onPress={() => toggleTodo(t.id)}
-              >
-                <View style={[styles.checkbox, t.done && styles.checkboxDone]}>
-                  {t.done && <Ionicons name="checkmark" size={11} color="#7aaa50" />}
-                </View>
-                <View style={styles.todoContent}>
-                  <Text style={[styles.todoText, t.done && styles.todoTextDone]}>{t.text}</Text>
-                  <Text style={[styles.todoTag, t.urgent && !t.done && styles.todoTagUrgent]}>
-                    {t.couple}
-                    {t.urgent && !t.done ? ' · 오늘 마감' : ''}
-                  </Text>
-                </View>
-                {t.urgent && !t.done && <View style={styles.urgentDot} />}
-              </TouchableOpacity>
-            ))}
+            {dashboardTodos.map((t, idx) => {
+              const coupleName = t.couples
+                ? `${t.couples.groom_name ?? ''}·${t.couples.bride_name ?? ''}`
+                : '';
+              const isUrgent = t.scheduled_date === today && !t.done;
+              const isLast = idx === dashboardTodos.length - 1 && !hasDoneInDashboard;
+              return (
+                <TouchableOpacity
+                  key={t.id}
+                  style={[
+                    styles.todoItem,
+                    (isLast || (t.done && idx === dashboardTodos.length - 1)) && {
+                      borderBottomWidth: 0,
+                    },
+                  ]}
+                  activeOpacity={0.7}
+                  onPress={() => toggleTodo(t.id, t.done)}
+                >
+                  <View style={[styles.checkbox, t.done && styles.checkboxDone]}>
+                    {t.done && <Ionicons name="checkmark" size={11} color="#7aaa50" />}
+                  </View>
+                  <View style={styles.todoContent}>
+                    <Text style={[styles.todoText, t.done && styles.todoTextDone]}>{t.title}</Text>
+                    <Text style={[styles.todoTag, isUrgent && styles.todoTagUrgent]}>
+                      {coupleName}
+                      {isUrgent ? ' · 오늘 마감' : ''}
+                    </Text>
+                  </View>
+                  {isUrgent && <View style={styles.urgentDot} />}
+                </TouchableOpacity>
+              );
+            })}
+            {dashboardTodos.length === 0 && (
+              <Text style={{ padding: 16, color: '#b8aca8', fontSize: 13 }}>할 일이 없어요 🎉</Text>
+            )}
           </View>
         </View>
 
@@ -285,40 +485,56 @@ export default function PlannerDashboard() {
             </TouchableOpacity>
           </View>
 
-          {COUPLES.map((c) => (
-            <TouchableOpacity
-              key={c.id}
-              style={styles.coupleCard}
-              activeOpacity={0.85}
-              onPress={() => router.push(`/(planner)/customer/${c.id}`)}
-            >
-              <View style={styles.coupleRow}>
-                <View style={[styles.avatar, { backgroundColor: c.avatarBg }]}>
-                  <Text style={[styles.avatarText, { color: c.avatarColor }]}>{c.initials}</Text>
+          {coupleWithProgress.map((c, i) => {
+            const pal = PALETTES[i % PALETTES.length];
+            const dday = calcDday(c.wedding_date);
+            const wDate = c.wedding_date
+              ? new Date(c.wedding_date).toLocaleDateString('ko-KR', {
+                  month: 'long',
+                  day: 'numeric',
+                })
+              : '날짜 미정';
+            return (
+              <TouchableOpacity
+                key={c.id}
+                style={styles.coupleCard}
+                activeOpacity={0.85}
+                onPress={() => router.push(`/(planner)/customer/${c.id}`)}
+              >
+                <View style={styles.coupleRow}>
+                  <View style={[styles.avatar, { backgroundColor: pal.avatarBg }]}>
+                    <Text style={[styles.avatarText, { color: pal.avatarColor }]}>
+                      {getInitials(c)}
+                    </Text>
+                  </View>
+                  <View style={styles.coupleInfo}>
+                    <Text style={styles.coupleName}>
+                      {c.groom_name} · {c.bride_name}
+                    </Text>
+                    <Text style={styles.coupleVenue}>
+                      {wDate} · {c.venue ?? '장소 미정'}
+                    </Text>
+                  </View>
+                  {dday !== null && (
+                    <View style={[styles.ddayBadge, { backgroundColor: pal.badgeBg }]}>
+                      <Text style={[styles.ddayText, { color: pal.badgeColor }]}>D-{dday}</Text>
+                    </View>
+                  )}
                 </View>
-                <View style={styles.coupleInfo}>
-                  <Text style={styles.coupleName}>{c.name}</Text>
-                  <Text style={styles.coupleVenue}>
-                    {c.date} · {c.venue}
-                  </Text>
+                <View style={styles.progressWrap}>
+                  <View style={styles.progressTrack}>
+                    <View
+                      style={[
+                        styles.progressFill,
+                        { width: `${c._progress}%`, backgroundColor: pal.barColor },
+                      ]}
+                    />
+                  </View>
+                  <Text style={styles.progressPct}>{c._progress}%</Text>
                 </View>
-                <View style={[styles.ddayBadge, { backgroundColor: c.badgeBg }]}>
-                  <Text style={[styles.ddayText, { color: c.badgeColor }]}>D-{c.dday}</Text>
-                </View>
-              </View>
-              <View style={styles.progressWrap}>
-                <View style={styles.progressTrack}>
-                  <View
-                    style={[
-                      styles.progressFill,
-                      { width: `${c.progress}%`, backgroundColor: c.barColor },
-                    ]}
-                  />
-                </View>
-                <Text style={styles.progressPct}>{c.progress}%</Text>
-              </View>
-            </TouchableOpacity>
-          ))}
+              </TouchableOpacity>
+            );
+          })}
         </View>
 
         <View style={styles.divider} />
@@ -334,18 +550,16 @@ export default function PlannerDashboard() {
               <Text style={styles.sectionMore}>전체 보기</Text>
             </TouchableOpacity>
           </View>
-
-          <View style={styles.vendorGrid}>
-            {VENDOR_CATEGORIES.map((category) => ({
-              category,
-              items: VENDORS.filter((v) => v.type === category),
-            }))
-              .filter(({ items }) => items.length > 0)
-              .slice(0, 3)
-              .map(({ category, items }) => (
-                <View key={category} style={styles.vendorCategoryBlock}>
-                  <Text style={styles.vendorCategoryTitle}>{category}</Text>
-                  {items.slice(0, 3).map((v, idx, arr) => (
+          {vendorCategories.length === 0 ? (
+            <View style={{ paddingVertical: 12, alignItems: 'center' }}>
+              <Text style={{ color: '#b8aca8', fontSize: 13 }}>등록된 업체가 없어요</Text>
+            </View>
+          ) : (
+            <View style={styles.vendorGrid}>
+              {vendorCategories.map(([type, items]) => (
+                <View key={type} style={styles.vendorCategoryBlock}>
+                  <Text style={styles.vendorCategoryTitle}>{type}</Text>
+                  {items.slice(0, 2).map((v, idx, arr) => (
                     <View
                       key={v.id}
                       style={[styles.vendorRow, idx === arr.length - 1 && { borderBottomWidth: 0 }]}
@@ -353,14 +567,20 @@ export default function PlannerDashboard() {
                       <Text style={styles.vendorName} numberOfLines={1}>
                         {v.name}
                       </Text>
-                      <Text style={[styles.vendorStatus, { color: v.statusColor }]}>
+                      <Text
+                        style={[
+                          styles.vendorStatus,
+                          { color: STATUS_COLOR[v.status] ?? '#8a7870' },
+                        ]}
+                      >
                         {v.status}
                       </Text>
                     </View>
                   ))}
                 </View>
               ))}
-          </View>
+            </View>
+          )}
         </View>
 
         <View style={styles.divider} />
@@ -377,7 +597,7 @@ export default function PlannerDashboard() {
             </TouchableOpacity>
           </View>
 
-          {/* 요약 KPI 3칸 */}
+          {/* 요약 KPI */}
           <View style={styles.financeKpiRow}>
             <View style={styles.financeKpi}>
               <Text style={styles.financeKpiLabel}>수금 총액</Text>
@@ -390,22 +610,18 @@ export default function PlannerDashboard() {
                 {fmt(totalUnpaid)}원
               </Text>
             </View>
-            <View style={styles.financeKpiDivider} />
-            <View style={styles.financeKpi}>
-              <Text style={styles.financeKpiLabel}>미지급 업체</Text>
-              <Text style={[styles.financeKpiValue, { color: '#b07840' }]}>
-                {unpaidVendorCnt}건
-              </Text>
-            </View>
           </View>
 
-          {/* 커플별 수금 현황 */}
+          {/* 미수금 커플 목록 */}
           <View style={styles.financeList}>
-            {FINANCE.couples
-              .filter((c) => c.received < c.total)
-              .map((c, idx, arr) => {
-                const unpaid = c.total - c.received;
-                const p = Math.round((c.received / c.total) * 100);
+            {financeCouples.length === 0 ? (
+              <Text style={{ padding: 16, color: '#b8aca8', fontSize: 13 }}>
+                미수금이 없어요 🎉
+              </Text>
+            ) : (
+              financeCouples.map((c, idx, arr) => {
+                const unpaid = c._total - c._received;
+                const p = c._total > 0 ? Math.round((c._received / c._total) * 100) : 0;
                 return (
                   <View
                     key={c.id}
@@ -413,7 +629,9 @@ export default function PlannerDashboard() {
                   >
                     <View style={{ flex: 1 }}>
                       <View style={styles.financeRowTop}>
-                        <Text style={styles.financeCoupleName}>{c.name}</Text>
+                        <Text style={styles.financeCoupleName}>
+                          {c.groom_name} · {c.bride_name}
+                        </Text>
                         <Text style={styles.financeUnpaid}>-{fmt(unpaid)}원</Text>
                       </View>
                       <View style={styles.financeProgWrap}>
@@ -422,22 +640,21 @@ export default function PlannerDashboard() {
                         </View>
                         <Text style={styles.financeProgPct}>{p}%</Text>
                       </View>
-                      {c.due && <Text style={styles.financeDue}>{c.due}까지</Text>}
+                      {c.due_date && (
+                        <Text style={styles.financeDue}>
+                          {new Date(c.due_date).toLocaleDateString('ko-KR', {
+                            month: 'long',
+                            day: 'numeric',
+                          })}
+                          까지
+                        </Text>
+                      )}
                     </View>
                   </View>
                 );
-              })}
+              })
+            )}
           </View>
-
-          {/* 미지급 업체 요약 */}
-          {unpaidVendorCnt > 0 && (
-            <View style={styles.vendorCostSummary}>
-              <Ionicons name="alert-circle-outline" size={14} color="#b07840" />
-              <Text style={styles.vendorCostSummaryText}>
-                미지급 업체 {unpaidVendorCnt}건 · 총 {fmt(unpaidVendorAmt)}원
-              </Text>
-            </View>
-          )}
         </View>
 
         <View style={{ height: 32 }} />
@@ -478,6 +695,7 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
     color: '#917878',
     letterSpacing: 1,
+    marginLeft: -20,
   },
   notifBtn: {
     width: 40,
@@ -733,7 +951,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   todoTagUrgent: {
-    color: '#b07840',
+    color: '#d87777',
     fontWeight: '500',
   },
   urgentDot: {
@@ -741,6 +959,11 @@ const styles = StyleSheet.create({
     height: 7,
     borderRadius: 4,
     backgroundColor: '#e87070',
+  },
+  clearDoneBtnText: {
+    fontSize: 12,
+    color: '#9aba7a',
+    fontWeight: '500',
   },
 
   // 협력 업체 그리드
@@ -882,5 +1105,27 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#b07840',
     fontWeight: '500',
+  },
+
+  kpiGrid: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 12,
+    paddingHorizontal: 16,
+    marginBottom: 16,
+  },
+  kpiCard: {
+    flex: 1,
+    padding: 20,
+    borderRadius: 16,
+    overflow: 'hidden', // 중요!
+    // 그림자를 살짝 추가하면 더 입체적입니다.
+    elevation: 2,
+    shadowColor: '#9d7272',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    borderWidth: 0.5,
+    borderColor: '#eed3bb',
   },
 });

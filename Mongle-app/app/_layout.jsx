@@ -1,4 +1,3 @@
-// app/_layout.jsx
 import { useEffect, useState } from 'react';
 import { Slot, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
@@ -7,21 +6,31 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { NotificationProvider } from '../context/NotificationContext';
 import { supabase } from '../lib/supabase';
 import { fetchUserRole } from '../lib/auth';
+import { resolveCoupleContext } from '../lib/coupleIdentity';
 import { View, ActivityIndicator, StyleSheet } from 'react-native';
 import { AuthContext } from '../context/AuthContext';
 import { useNotifications } from '../context/NotificationContext';
 
-
-
-// QueryClient 인스턴스 생성
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 1000 * 60 * 5, // 5분
-      gcTime: 1000 * 60 * 10, // 10분
+      staleTime: 1000 * 60 * 5,
+      gcTime: 1000 * 60 * 10,
     },
   },
 });
+
+async function resolveProfileWithFallback(sessionUserId, sessionEmail = null) {
+  const profile = await fetchUserRole(sessionUserId);
+  if (!profile || profile.role !== 'couple') return profile;
+
+  const coupleContext = await resolveCoupleContext(sessionUserId, profile.couple_id ?? null, sessionEmail);
+  return {
+    ...profile,
+    couple_id: coupleContext.coupleId ?? profile.couple_id ?? null,
+    planner_id: profile.planner_id ?? coupleContext.plannerId ?? null,
+  };
+}
 
 function AuthGate() {
   const router = useRouter();
@@ -31,22 +40,24 @@ function AuthGate() {
   const [isReady, setIsReady] = useState(false);
   const [registrationPending, setRegistrationPending] = useState(false);
   const { setUserId } = useNotifications();
+  const [profile, setProfile] = useState(null);
 
   useEffect(() => {
     const initialize = async () => {
       try {
-        // 1. 세션 가져오기
-        const { data: { session } } = await supabase.auth.getSession();
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
         setSession(session);
 
         if (session) {
-          // 2. 로그인된 경우 역할 확인
-          const profile = await fetchUserRole(session.user.id);
-          setRole(profile?.role || null);
+          const resolvedProfile = await resolveProfileWithFallback(session.user.id, session.user.email ?? null);
+          setRole(resolvedProfile?.role || null);
           setUserId(session.user.id);
+          setProfile(resolvedProfile);
         }
       } catch (e) {
-        console.error("초기화 에러:", e);
+        console.error('초기화 오류:', e);
       } finally {
         setIsReady(true);
       }
@@ -54,18 +65,27 @@ function AuthGate() {
 
     initialize();
 
-    // 인증 상태 변경 감시
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setSession(session);
-      if (session) {
-        const profile = await fetchUserRole(session.user.id);
-        setRole(profile?.role || null);
-        setUserId(session.user.id);
-      } else {
+      try {
+        if (session) {
+          const resolvedProfile = await resolveProfileWithFallback(session.user.id, session.user.email ?? null);
+          setProfile(resolvedProfile);
+          setRole(resolvedProfile?.role || null);
+          setUserId(session.user.id);
+        } else {
+          setProfile(null);
+          setRole(null);
+          setUserId(null);
+        }
+      } catch (e) {
+        console.error('onAuthStateChange fetchUserRole 오류:', e);
         setRole(null);
-        setUserId(null);
+      } finally {
+        setIsReady(true);
       }
-      setIsReady(true);
     });
 
     return () => subscription.unsubscribe();
@@ -79,42 +99,45 @@ function AuthGate() {
     const inAuthGroup = rootSegment === '(auth)';
     const inPlannerGroup = rootSegment === '(planner)';
     const inCoupleGroup = rootSegment === '(couple)';
+    const inSettingsGroup = rootSegment === 'settings';
 
-    // A. 비로그인 상태
     if (!session) {
       if (!inAuthGroup && !inCoupleGroup) {
         router.replace('/(couple)');
       }
-    }
-    // B. 로그인 상태
-    else {
-      // 프로필이 없으면(회원가입 OTP 인증 중 임시 세션 등) 리디렉션하지 않음
+    } else {
       if (role === null) return;
+      if (inSettingsGroup) return;
 
       if (role === 'planner') {
-        // 플래너인데 플래너 그룹에 없으면 대시보드로!
         if (!inPlannerGroup) {
           router.replace('/(planner)/dashboard');
         }
-      } else {
-        // 커플인데 커플 그룹에 없으면 커플 메인으로!
-        if (!inCoupleGroup) {
-          router.replace('/(couple)');
-        }
+      } else if (!inCoupleGroup) {
+        router.replace('/(couple)');
       }
     }
-  }, [session, role, isReady, segments]);
+  }, [session, role, isReady, segments, registrationPending]);
 
   if (!isReady) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+      <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#FF6B6B" />
       </View>
     );
   }
 
   return (
-    <AuthContext.Provider value={{ session, role, registrationPending, setRegistrationPending }}>
+    <AuthContext.Provider
+      value={{
+        session,
+        role,
+        registrationPending,
+        setRegistrationPending,
+        planner_id: profile?.planner_id ?? null,
+        couple_id: profile?.couple_id ?? null,
+      }}
+    >
       <Slot />
     </AuthContext.Provider>
   );
@@ -138,6 +161,6 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF', // 앱 배경색과 맞추면 더 자연스럽습니다.
+    backgroundColor: '#FFFFFF',
   },
 });

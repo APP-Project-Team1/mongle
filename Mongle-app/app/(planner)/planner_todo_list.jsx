@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -11,146 +11,128 @@ import {
   KeyboardAvoidingView,
   Platform,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useAuth } from '../../context/AuthContext';
+import { supabase } from '../../lib/supabase';
 
 // ── 유틸 ──────────────────────────────────────────────────
-const formatDueDate = (raw) => {
-  if (!raw || raw.length !== 8) return '';
-  const y = raw.slice(0, 4);
-  const m = parseInt(raw.slice(4, 6), 10);
-  const d = parseInt(raw.slice(6, 8), 10);
-  return `${y}년 ${m}월 ${d}일까지`;
-};
+// DB: YYYY-MM-DD  /  입력 폼: YYYYMMDD 8자리
+const todayDb = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+const todayStr = todayDb.replace(/-/g, ''); // YYYYMMDD (폼용)
 
 const sanitizeDateInput = (raw) => raw.replace(/\D/g, '').slice(0, 8);
 
-const dueSortKey = (todo) => {
-  if (todo.urgent) return 0;
-  if (!todo.dueDate || todo.dueDate.length !== 8) return 99999999;
-  return parseInt(todo.dueDate, 10);
+// YYYYMMDD → YYYY-MM-DD
+const formToDb = (raw) => {
+  if (!raw || raw.length !== 8) return null;
+  return `${raw.slice(0, 4)}-${raw.slice(4, 6)}-${raw.slice(6, 8)}`;
+};
+// YYYY-MM-DD → YYYYMMDD (폼 표시용)
+const dbToForm = (dateStr) => {
+  if (!dateStr) return '';
+  return dateStr.replace(/-/g, '');
+};
+// YYYYMMDD → "YYYY년 M월 D일까지" 표시
+const formatDueDate = (raw) => {
+  if (!raw || raw.length !== 8) return '';
+  return `${raw.slice(0, 4)}년 ${parseInt(raw.slice(4, 6))}월 ${parseInt(raw.slice(6, 8))}일까지`;
 };
 
-const todayStr = (() => {
-  const d = new Date();
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  return `${y}${m}${day}`;
-})();
-
-// ── 임시 데이터 ──────────────────────────────────────────
-const ALL_TODOS = [
-  {
-    id: '1',
-    text: '드레스 피팅 일정 조율',
-    couple: '최민정·강태준',
-    done: false,
-    urgent: true,
-    dueDate: todayStr,
-  },
-  {
-    id: '2',
-    text: '스튜디오 계약서 검토',
-    couple: '윤서연·오민석',
-    done: false,
-    urgent: true,
-    dueDate: todayStr,
-  },
-  {
-    id: '3',
-    text: '웨딩홀 잔금 납부 확인',
-    couple: '박지수·이현우',
-    done: false,
-    urgent: false,
-    dueDate: '20260401',
-  },
-  {
-    id: '4',
-    text: '허니문 항공권 비교 견적 전달',
-    couple: '정하린·김도윤',
-    done: false,
-    urgent: false,
-    dueDate: '20260403',
-  },
-  {
-    id: '5',
-    text: '청첩장 봉투 주소 목록 취합',
-    couple: '최민정·강태준',
-    done: false,
-    urgent: false,
-    dueDate: '20260405',
-  },
-  {
-    id: '6',
-    text: '본식 스냅 작가 최종 확정',
-    couple: '윤서연·오민석',
-    done: false,
-    urgent: false,
-    dueDate: '20260407',
-  },
-  {
-    id: '7',
-    text: '메이크업 리허설 일정 조율',
-    couple: '박지수·이현우',
-    done: false,
-    urgent: false,
-    dueDate: '20260408',
-  },
-  {
-    id: '8',
-    text: '청첩장 시안 최종 확인',
-    couple: '박지수·이현우',
-    done: true,
-    urgent: false,
-    dueDate: '',
-  },
-  {
-    id: '9',
-    text: '메이크업 미팅 메모 정리',
-    couple: '최민정·강태준',
-    done: true,
-    urgent: false,
-    dueDate: '',
-  },
-  {
-    id: '10',
-    text: '웨딩홀 좌석 배치도 수령',
-    couple: '박지수·이현우',
-    done: true,
-    urgent: false,
-    dueDate: '',
-  },
-];
+const dueSortKey = (todo) => {
+  if (todo.scheduled_date === todayDb) return 0;
+  if (!todo.scheduled_date) return 99999999;
+  return parseInt(todo.scheduled_date.replace(/-/g, ''), 10);
+};
 
 const FILTER_TABS = ['전체', '미완료', '완료'];
-const COUPLE_OPTIONS = ['박지수·이현우', '최민정·강태준', '윤서연·오민석', '정하린·김도윤'];
-const COUPLE_FILTERS = ['전체 커플', ...COUPLE_OPTIONS];
-const EMPTY_FORM = { text: '', couple: COUPLE_OPTIONS[0], dueDate: '', urgent: false };
-// ──────────────────────────────────────────────────────────
+const EMPTY_FORM = { text: '', couple_id: null, dueDate: '', urgent: false };
 
 export default function PlannerTodoList() {
-  const [todos, setTodos] = useState(ALL_TODOS);
+  const { planner_id } = useAuth();
+
+  const [todos, setTodos] = useState([]);
+  const [couples, setCouples] = useState([]); // 담당 커플 목록 (동적)
+  const [loading, setLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState(0);
-  const [coupleFilter, setCoupleFilter] = useState(0);
+  const [coupleFilter, setCoupleFilter] = useState(0); // 0 = 전체
 
   // 모달 상태
   const [modalVisible, setModalVisible] = useState(false);
-  const [editTarget, setEditTarget] = useState(null); // null=추가, object=수정
+  const [editTarget, setEditTarget] = useState(null);
   const [form, setForm] = useState(EMPTY_FORM);
+
+  // ── 데이터 로드 + Realtime ─────────────────────────────
+  useEffect(() => {
+    if (!planner_id) return;
+    fetchAll();
+
+    const todoChannel = supabase
+      .channel(`todo-list-${planner_id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'couple_schedules',
+          filter: `planner_id=eq.${planner_id}`,
+        },
+        fetchTodos,
+      )
+      .subscribe();
+
+    return () => supabase.removeChannel(todoChannel);
+  }, [planner_id]);
+
+  const fetchAll = async () => {
+    setLoading(true);
+    await Promise.all([fetchTodos(), fetchCouples()]);
+    setLoading(false);
+  };
+
+  const fetchTodos = async () => {
+    const { data, error } = await supabase
+      .from('couple_schedules')
+      .select('*, couples(id, groom_name, bride_name)')
+      .eq('planner_id', planner_id)
+      .order('scheduled_date', { ascending: true });
+    if (!error && data) setTodos(data);
+  };
+
+  const fetchCouples = async () => {
+    const { data, error } = await supabase
+      .from('couples')
+      .select('id, groom_name, bride_name')
+      .eq('planner_id', planner_id)
+      .order('wedding_date', { ascending: true });
+    if (!error && data) setCouples(data);
+  };
+
+  // 커플 표시명 헬퍼
+  const coupleName = (t) => {
+    const c = t.couples;
+    if (!c) return '';
+    return `${c.groom_name ?? ''}·${c.bride_name ?? ''}`;
+  };
 
   // ── 모달 열기/닫기 ──
   const openAdd = () => {
     setEditTarget(null);
-    setForm(EMPTY_FORM);
+    setForm({ ...EMPTY_FORM, couple_id: couples[0]?.id ?? null });
     setModalVisible(true);
   };
 
   const openEdit = (item) => {
     setEditTarget(item);
-    setForm({ text: item.text, couple: item.couple, dueDate: item.dueDate, urgent: item.urgent });
+    setForm({
+      text: item.title,
+      couple_id: item.couple_id,
+      dueDate: dbToForm(item.scheduled_date),
+      urgent: item.scheduled_date === todayDb && !item.done,
+    });
     setModalVisible(true);
   };
 
@@ -160,19 +142,21 @@ export default function PlannerTodoList() {
   };
 
   // ── CRUD ──
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!form.text.trim()) return;
+    const row = {
+      planner_id,
+      couple_id: form.couple_id,
+      title: form.text.trim(),
+      scheduled_date: formToDb(form.dueDate) ?? null,
+      done: false,
+    };
     if (editTarget) {
-      setTodos((prev) =>
-        prev.map((t) => (t.id === editTarget.id ? { ...t, ...form, text: form.text.trim() } : t)),
-      );
+      await supabase.from('couple_schedules').update(row).eq('id', editTarget.id);
     } else {
-      setTodos((prev) => [
-        { id: Date.now().toString(), ...form, text: form.text.trim(), done: false },
-        ...prev,
-      ]);
+      await supabase.from('couple_schedules').insert(row);
     }
-    closeModal();
+    closeModal(); // Realtime이 자동 갱신
   };
 
   const handleDelete = () => {
@@ -181,32 +165,51 @@ export default function PlannerTodoList() {
       {
         text: '삭제',
         style: 'destructive',
-        onPress: () => {
-          setTodos((prev) => prev.filter((t) => t.id !== editTarget.id));
+        onPress: async () => {
+          await supabase.from('couple_schedules').delete().eq('id', editTarget.id);
           closeModal();
         },
       },
     ]);
   };
 
-  const toggleTodo = (id) => {
-    setTodos((prev) => prev.map((t) => (t.id === id ? { ...t, done: !t.done } : t)));
+  const toggleTodo = async (id, currentDone) => {
+    // 낙관적 업데이트
+    setTodos((prev) => prev.map((t) => (t.id === id ? { ...t, done: !currentDone } : t)));
+    const { error } = await supabase
+      .from('couple_schedules')
+      .update({ done: !currentDone })
+      .eq('id', id);
+    if (error) {
+      setTodos((prev) => prev.map((t) => (t.id === id ? { ...t, done: currentDone } : t)));
+    }
   };
 
   // ── 필터링 ──
+  const coupleFilters = ['전체 커플', ...couples.map((c) => `${c.groom_name}·${c.bride_name}`)];
+  const selectedCoupleId = coupleFilter === 0 ? null : couples[coupleFilter - 1]?.id;
+
   const filtered = todos.filter((t) => {
     const matchStatus = activeFilter === 0 ? true : activeFilter === 1 ? !t.done : t.done;
-    const matchCouple = coupleFilter === 0 ? true : t.couple === COUPLE_FILTERS[coupleFilter];
+    const matchCouple = !selectedCoupleId || t.couple_id === selectedCoupleId;
     return matchStatus && matchCouple;
   });
 
-  const urgent = filtered.filter((t) => !t.done && t.urgent);
+  const urgent = filtered.filter((t) => !t.done && t.scheduled_date === todayDb);
   const inProgress = filtered
-    .filter((t) => !t.done && !t.urgent)
+    .filter((t) => !t.done && t.scheduled_date !== todayDb)
     .sort((a, b) => dueSortKey(a) - dueSortKey(b));
   const done = filtered.filter((t) => t.done);
   const undoneCount = todos.filter((t) => !t.done).length;
-  const urgentCount = todos.filter((t) => !t.done && t.urgent).length;
+  const urgentCount = urgent.length;
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <ActivityIndicator size="large" color="#c97b6e" style={{ marginTop: 120 }} />
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -261,7 +264,7 @@ export default function PlannerTodoList() {
         style={{ flexGrow: 0 }}
         contentContainerStyle={styles.coupleFilterRow}
       >
-        {COUPLE_FILTERS.map((name, i) => (
+        {coupleFilters.map((name, i) => (
           <TouchableOpacity
             key={name}
             style={[styles.coupleChip, i === coupleFilter && styles.coupleChipActive]}
@@ -290,8 +293,9 @@ export default function PlannerTodoList() {
                 <TodoItem
                   key={t.id}
                   item={t}
+                  coupleName={coupleName(t)}
                   isLast={idx === urgent.length - 1}
-                  onToggle={() => toggleTodo(t.id)}
+                  onToggle={() => toggleTodo(t.id, t.done)}
                   onEdit={() => openEdit(t)}
                 />
               ))}
@@ -309,8 +313,9 @@ export default function PlannerTodoList() {
                 <TodoItem
                   key={t.id}
                   item={t}
+                  coupleName={coupleName(t)}
                   isLast={idx === inProgress.length - 1}
-                  onToggle={() => toggleTodo(t.id)}
+                  onToggle={() => toggleTodo(t.id, t.done)}
                   onEdit={() => openEdit(t)}
                 />
               ))}
@@ -328,8 +333,9 @@ export default function PlannerTodoList() {
                 <TodoItem
                   key={t.id}
                   item={t}
+                  coupleName={coupleName(t)}
                   isLast={idx === done.length - 1}
-                  onToggle={() => toggleTodo(t.id)}
+                  onToggle={() => toggleTodo(t.id, t.done)}
                   onEdit={() => openEdit(t)}
                 />
               ))}
@@ -393,23 +399,26 @@ export default function PlannerTodoList() {
               style={{ flexGrow: 0 }}
               contentContainerStyle={styles.coupleSelectRow}
             >
-              {COUPLE_OPTIONS.map((name) => (
-                <TouchableOpacity
-                  key={name}
-                  style={[styles.coupleChip, form.couple === name && styles.coupleChipActive]}
-                  onPress={() => setForm((f) => ({ ...f, couple: name }))}
-                  activeOpacity={0.7}
-                >
-                  <Text
-                    style={[
-                      styles.coupleChipText,
-                      form.couple === name && styles.coupleChipTextActive,
-                    ]}
+              {couples.map((c) => {
+                const name = `${c.groom_name}·${c.bride_name}`;
+                return (
+                  <TouchableOpacity
+                    key={c.id}
+                    style={[styles.coupleChip, form.couple_id === c.id && styles.coupleChipActive]}
+                    onPress={() => setForm((f) => ({ ...f, couple_id: c.id }))}
+                    activeOpacity={0.7}
                   >
-                    {name}
-                  </Text>
-                </TouchableOpacity>
-              ))}
+                    <Text
+                      style={[
+                        styles.coupleChipText,
+                        form.couple_id === c.id && styles.coupleChipTextActive,
+                      ]}
+                    >
+                      {name}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
             </ScrollView>
 
             {/* 마감일 */}
@@ -471,7 +480,7 @@ export default function PlannerTodoList() {
 }
 
 // ── 할 일 아이템 컴포넌트 ────────────────────────────────
-function TodoItem({ item, isLast, onToggle, onEdit }) {
+function TodoItem({ item, coupleName, isLast, onToggle, onEdit }) {
   return (
     <TouchableOpacity
       style={[styles.todoItem, isLast && { borderBottomWidth: 0 }]}
@@ -482,14 +491,18 @@ function TodoItem({ item, isLast, onToggle, onEdit }) {
         {item.done && <Ionicons name="checkmark" size={11} color="#7aaa50" />}
       </View>
       <View style={styles.todoContent}>
-        <Text style={[styles.todoText, item.done && styles.todoTextDone]}>{item.text}</Text>
+        <Text style={[styles.todoText, item.done && styles.todoTextDone]}>{item.title}</Text>
         <View style={styles.todoMeta}>
-          <Text style={styles.todoCouple}>{item.couple}</Text>
-          {!item.done && (item.urgent || (item.dueDate && item.dueDate.length === 8)) && (
+          <Text style={styles.todoCouple}>{coupleName}</Text>
+          {!item.done && (item.scheduled_date === todayDb || item.scheduled_date) && (
             <>
               <Text style={styles.metaDot}>·</Text>
-              <Text style={[styles.todoDue, item.urgent && styles.todoDueUrgent]}>
-                {item.urgent ? '오늘 마감' : formatDueDate(item.dueDate)}
+              <Text
+                style={[styles.todoDue, item.scheduled_date === todayDb && styles.todoDueUrgent]}
+              >
+                {item.scheduled_date === todayDb
+                  ? '오늘 마감'
+                  : formatDueDate(dbToForm(item.scheduled_date))}
               </Text>
             </>
           )}

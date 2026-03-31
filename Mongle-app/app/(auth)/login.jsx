@@ -90,7 +90,12 @@ export default function LoginScreen() {
         return;
       }
 
-      // AuthGate의 onAuthStateChange가 자동으로 화면 전환
+      // 명시적 네비게이션 (_layout.jsx의 role 로딩 타이밍에 의존하지 않음)
+      if (userRole === 'planner') {
+        router.replace('/(planner)/dashboard');
+      } else {
+        router.replace('/(couple)');
+      }
     } catch (e) {
       showAlert('이메일 또는 비밀번호가 올바르지 않습니다.');
     } finally {

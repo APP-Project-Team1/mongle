@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+﻿import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 
 const KpiContext = createContext();
@@ -19,15 +19,14 @@ export function KpiProvider({ children }) {
     try {
       setLoading(true);
 
-      // 담당 커플 수 (진행 중인 프로젝트 수)
+      // 전체 프로젝트 수
       const { data: projects, error: projectsError } = await supabase
         .from('projects')
-        .select('id, status')
-        .eq('status', 'active');
+        .select('id');
 
       if (projectsError) throw projectsError;
 
-      const activeProjectsCount = projects?.length || 0;
+      const totalProjectsCount = projects?.length || 0;
 
       // 이번 달 결혼식 수
       const now = new Date();
@@ -36,52 +35,50 @@ export function KpiProvider({ children }) {
 
       const { data: weddings, error: weddingsError } = await supabase
         .from('projects')
-        .select('wedding_date')
-        .not('wedding_date', 'is', null);
+        .select('event_date')
+        .not('event_date', 'is', null);
 
       if (weddingsError) throw weddingsError;
 
-      const currentMonthWeddings = weddings?.filter(project => {
-        if (!project.wedding_date) return false;
-        const weddingDate = new Date(project.wedding_date);
-        return weddingDate.getMonth() + 1 === currentMonth && weddingDate.getFullYear() === currentYear;
+      const currentMonthWeddings = weddings?.filter((project) => {
+        if (!project.event_date) return false;
+        const weddingDate = new Date(project.event_date);
+        return (
+          weddingDate.getMonth() + 1 === currentMonth &&
+          weddingDate.getFullYear() === currentYear
+        );
       }) || [];
 
       const weddingDates = currentMonthWeddings
-        .map(project => {
-          const date = new Date(project.wedding_date);
+        .map((project) => {
+          const date = new Date(project.event_date);
           return `${date.getMonth() + 1}월 ${date.getDate()}일`;
         })
-        .sort((a, b) => {
-          const dateA = new Date(`${currentYear}-${a.replace('월 ', '-').replace('일', '')}`);
-          const dateB = new Date(`${currentYear}-${b.replace('월 ', '-').replace('일', '')}`);
-          return dateA - dateB;
-        });
+        .sort();
 
       const kpiData = [
         {
           label: '담당 커플',
-          value: activeProjectsCount.toString(),
-          sub: `진행 ${activeProjectsCount}`,
+          value: totalProjectsCount.toString(),
+          sub: `진행 ${totalProjectsCount}`,
           color: 'var(--accent-secondary)',
-          bg: 'var(--stage-1-bg)'
+          bg: 'var(--stage-1-bg)',
         },
         {
           label: '이번 달 결혼식',
           value: currentMonthWeddings.length.toString(),
-          sub: weddingDates.length > 0 ? weddingDates.join(' · ') : '없음',
+          sub: weddingDates.length > 0 ? weddingDates.join('  ') : '없음',
           color: 'var(--accent-secondary)',
-          bg: 'var(--stage-1-bg)'
-        }
+          bg: 'var(--stage-1-bg)',
+        },
       ];
 
       setKpis(kpiData);
     } catch (error) {
       console.error('Error fetching KPIs:', error);
-      // Fallback to mock data if Supabase fails
       setKpis([
         { label: '담당 커플', value: '0', sub: '진행 0', color: 'var(--accent-secondary)', bg: 'var(--stage-1-bg)' },
-        { label: '이번 달 결혼식', value: '0', sub: '없음', color: 'var(--accent-secondary)', bg: 'var(--stage-1-bg)' }
+        { label: '이번 달 결혼식', value: '0', sub: '없음', color: 'var(--accent-secondary)', bg: 'var(--stage-1-bg)' },
       ]);
     } finally {
       setLoading(false);

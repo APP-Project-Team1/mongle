@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+﻿import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 
 const VendorContext = createContext();
@@ -22,32 +22,25 @@ export function VendorProvider({ children }) {
 
       const { data, error } = await supabase
         .from('vendors')
-        .select('id, name, category, rating, contact_info')
-        .order('category', { ascending: true })
-        .order('rating', { ascending: false });
+        .select('id, name, category, project_id')
+        .order('category', { ascending: true });
 
       if (error) throw error;
 
-      // Transform data to match expected format
-      const transformedVendors = data?.map(vendor => ({
+      const transformedVendors = data?.map((vendor, index) => ({
         id: vendor.id,
-        type: vendor.category,
-        name: vendor.name,
-        status: vendor.rating > 0 ? `평점 ${vendor.rating}` : '정보 없음',
-        statusColor: vendor.rating >= 4.5 ? 'var(--stage-4-color)' :
-                    vendor.rating >= 4.0 ? 'var(--stage-3-color)' :
-                    vendor.rating >= 3.0 ? 'var(--stage-2-color)' : 'var(--stage-1-color)'
+        type: vendor.category || '기타',
+        name: vendor.name || '업체명 없음',
+        status: '등록됨',
+        statusColor: `var(--stage-${(index % 4) + 1}-color)`,
       })) || [];
 
       setVendors(transformedVendors);
 
-      // Extract unique categories
-      const categories = [...new Set(transformedVendors.map(v => v.type))];
+      const categories = [...new Set(transformedVendors.map((v) => v.type))];
       setVendorCategories(categories);
-
     } catch (error) {
       console.error('Error fetching vendors:', error);
-      // Fallback to empty arrays if Supabase fails
       setVendors([]);
       setVendorCategories([]);
     } finally {

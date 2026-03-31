@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -14,6 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNotifications } from '../../context/NotificationContext';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
+import { LinearGradient } from 'expo-linear-gradient';
 
 const fmt = (n) => (n / 10000).toLocaleString() + '만';
 
@@ -81,7 +82,12 @@ export default function PlannerDashboard() {
   const [plannerName, setPlannerName] = useState('');
   const [couples, setCouples] = useState([]);
   const [todos, setTodos] = useState([]);
+  const [vendors, setVendors] = useState([]);
+  const [payments, setPayments] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  // 대시보드에 표시할 5개 ID를 고정 — 완료해도 자리 유지
+  const lockedTodoIds = useRef([]);
 
   // ── 초기 로드 + Realtime 구독 ──────────────────────────
   useEffect(() => {
@@ -117,15 +123,50 @@ export default function PlannerDashboard() {
       )
       .subscribe();
 
+    const vendorsChannel = supabase
+      .channel(`dashboard-vendors-${planner_id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'planner_vendors',
+          filter: `planner_id=eq.${planner_id}`,
+        },
+        fetchVendors,
+      )
+      .subscribe();
+
+    const paymentsChannel = supabase
+      .channel(`dashboard-payments-${planner_id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'couple_payments',
+        },
+        fetchPayments,
+      )
+      .subscribe();
+
     return () => {
       supabase.removeChannel(couplesChannel);
       supabase.removeChannel(schedulesChannel);
+      supabase.removeChannel(vendorsChannel);
+      supabase.removeChannel(paymentsChannel);
     };
   }, [planner_id]);
 
   const fetchAll = async () => {
     setLoading(true);
-    await Promise.all([fetchPlannerName(), fetchCouples(), fetchTodos()]);
+    await Promise.all([
+      fetchPlannerName(),
+      fetchCouples(),
+      fetchTodos(),
+      fetchVendors(),
+      fetchPayments(),
+    ]);
     setLoading(false);
   };
 
@@ -158,7 +199,43 @@ export default function PlannerDashboard() {
       .select('id, title, done, scheduled_date, couples(groom_name, bride_name)')
       .eq('planner_id', planner_id)
       .order('scheduled_date', { ascending: true });
-    if (!error && data) setTodos(data);
+    if (!error && data) {
+      setTodos(data);
+      // 처음 로드 시에만 대시보드 고정 목록 세팅
+      if (lockedTodoIds.current.length === 0) {
+        const todayStr = new Date().toISOString().split('T')[0];
+        const urgent = data.filter((t) => !t.done && t.scheduled_date === todayStr);
+        const upcoming = data
+          .filter((t) => !t.done && t.scheduled_date > todayStr)
+          .sort((a, b) => (a.scheduled_date ?? '').localeCompare(b.scheduled_date ?? ''));
+        lockedTodoIds.current = [...urgent, ...upcoming].slice(0, 5).map((t) => t.id);
+      }
+    }
+  };
+
+  // 협력 업체 조회
+  const fetchVendors = async () => {
+    const { data, error } = await supabase
+      .from('planner_vendors')
+      .select('id, name, type, status')
+      .eq('planner_id', planner_id)
+      .order('created_at', { ascending: false });
+    if (!error && data) setVendors(data);
+  };
+
+  // 수금 내역 조회
+  const fetchPayments = async () => {
+    const { data: coupleRows } = await supabase
+      .from('couples')
+      .select('id')
+      .eq('planner_id', planner_id);
+    if (!coupleRows?.length) return;
+    const coupleIds = coupleRows.map((c) => c.id);
+    const { data, error } = await supabase
+      .from('couple_payments')
+      .select('couple_id, amount, paid')
+      .in('couple_id', coupleIds);
+    if (!error && data) setPayments(data);
   };
 
   // 할 일 완료 토글 (낙관적 업데이트)
@@ -180,16 +257,73 @@ export default function PlannerDashboard() {
 
   const today = new Date().toISOString().split('T')[0];
   const urgentTodos = todos.filter((t) => !t.done && t.scheduled_date === today);
+
+  // 1) 오늘 미완료(urgent) 먼저, 2) 이후 미완료 날짜순, 3) 완료 항목은 항상 뒤에
+  const upcomingTodosFiltered = todos
+    .filter((t) => !t.done && t.scheduled_date > today)
+    .sort((a, b) => (a.scheduled_date ?? '').localeCompare(b.scheduled_date ?? ''));
+  // dashboardTodos: 고정된 5개 ID 기준, todos에서 최신 done 상태만 반영
+  // → 완료해도 자리 유지, 취소선 표시
+  const dashboardTodos = lockedTodoIds.current
+    .map((id) => todos.find((t) => t.id === id))
+    .filter(Boolean);
+  const hasDoneInDashboard = dashboardTodos.some((t) => t.done);
+
   const upcomingCouples = couples
     .filter((c) => c.wedding_date)
     .sort((a, b) => new Date(a.wedding_date) - new Date(b.wedding_date))
     .slice(0, 4);
 
-  const totalRevenue = couples.reduce((s, c) => s + (c.received_amount ?? 0), 0);
-  const totalUnpaid = couples.reduce(
-    (s, c) => s + ((c.total_amount ?? 0) - (c.received_amount ?? 0)),
+  // 수금 계산 — couple_payments 기반 (total_amount가 0이면 payments 합계 사용)
+  const paymentsByCoupleId = payments.reduce((acc, p) => {
+    if (!acc[p.couple_id]) acc[p.couple_id] = { total: 0, received: 0 };
+    acc[p.couple_id].total += p.amount;
+    acc[p.couple_id].received += p.paid ? p.amount : 0;
+    return acc;
+  }, {});
+
+  const totalRevenue = Object.values(paymentsByCoupleId).reduce((s, p) => s + p.received, 0);
+  const totalUnpaid = Object.values(paymentsByCoupleId).reduce(
+    (s, p) => s + (p.total - p.received),
     0,
   );
+
+  // 커플별 수금 진행률 (progress 컬럼이 0이면 payments로 대체)
+  const coupleWithProgress = upcomingCouples.map((c) => {
+    const pm = paymentsByCoupleId[c.id];
+    const total = c.total_amount > 0 ? c.total_amount : (pm?.total ?? 0);
+    const received = c.received_amount > 0 ? c.received_amount : (pm?.received ?? 0);
+    const progress = total > 0 ? Math.round((received / total) * 100) : (c.progress ?? 0);
+    return { ...c, _total: total, _received: received, _progress: progress };
+  });
+
+  // 비용 현황용 미수금 커플 목록
+  const financeCouples = couples
+    .map((c) => {
+      const pm = paymentsByCoupleId[c.id];
+      const total = c.total_amount > 0 ? c.total_amount : (pm?.total ?? 0);
+      const received = c.received_amount > 0 ? c.received_amount : (pm?.received ?? 0);
+      return { ...c, _total: total, _received: received };
+    })
+    .filter((c) => c._received < c._total);
+
+  // 협력 업체 — 유형별 그룹 (최대 3개 유형, 유형당 최대 2개)
+  const STATUS_COLOR = {
+    '계약 완료': '#5a8c3a',
+    '촬영 완료': '#5a8c3a',
+    '발주 완료': '#5a8c3a',
+    '피팅 조율': '#b07840',
+    '견적 협의': '#b07840',
+    '계약 검토': '#b07840',
+    '미팅 예정': '#534AB7',
+    '잔금 미납': '#c97b6e',
+  };
+  const vendorByType = vendors.reduce((acc, v) => {
+    if (!acc[v.type]) acc[v.type] = [];
+    acc[v.type].push(v);
+    return acc;
+  }, {});
+  const vendorCategories = Object.entries(vendorByType).slice(0, 3);
 
   if (loading) {
     return (
@@ -240,20 +374,33 @@ export default function PlannerDashboard() {
 
         {/* ── KPI 카드 ── */}
         <View style={styles.kpiGrid}>
-          <View style={[styles.kpiCard, { backgroundColor: '#f9f1ee' }]}>
+          {/* 담당 커플 카드 */}
+          <LinearGradient
+            colors={['#fbf5f3', '#fbf4db']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.kpiCard}
+          >
             <Text style={[styles.kpiValue, { color: '#c39874' }]}>{activeCount + doneCount}</Text>
             <Text style={styles.kpiLabel}>담당 커플</Text>
             <Text style={styles.kpiSub}>
               진행 {activeCount} · 완료 {doneCount}
             </Text>
-          </View>
-          <View style={[styles.kpiCard, { backgroundColor: '#f9eeee' }]}>
+          </LinearGradient>
+
+          {/* 이번 달 결혼식 카드 */}
+          <LinearGradient
+            colors={['#f9f3f3', '#fce8e8']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.kpiCard}
+          >
             <Text style={[styles.kpiValue, { color: '#c97b6e' }]}>{thisMonthCouples.length}</Text>
             <Text style={styles.kpiLabel}>이번 달 결혼식</Text>
             <Text style={styles.kpiSub}>
               {thisMonthCouples.map((c) => new Date(c.wedding_date).getDate() + '일').join(' · ')}
             </Text>
-          </View>
+          </LinearGradient>
         </View>
 
         {/* ── 구분선 ── */}
@@ -263,26 +410,43 @@ export default function PlannerDashboard() {
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>오늘 할 일</Text>
-            <TouchableOpacity
-              onPress={() => router.push('/(planner)/planner_todo_list')}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.sectionMore}>전체 보기</Text>
-            </TouchableOpacity>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+              {hasDoneInDashboard && (
+                <TouchableOpacity
+                  activeOpacity={0.7}
+                  onPress={() => {
+                    setTodos((prev) => prev.filter((t) => !t.done));
+                    lockedTodoIds.current = []; // 고정 목록 초기화 → fetchTodos에서 새로 5개 고정
+                    fetchTodos();
+                  }}
+                >
+                  <Text style={styles.clearDoneBtnText}>완료 지우기</Text>
+                </TouchableOpacity>
+              )}
+              <TouchableOpacity
+                onPress={() => router.push('/(planner)/planner_todo_list')}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.sectionMore}>전체 보기</Text>
+              </TouchableOpacity>
+            </View>
           </View>
 
           <View style={styles.todoCard}>
-            {todos.slice(0, 5).map((t, idx) => {
+            {dashboardTodos.map((t, idx) => {
               const coupleName = t.couples
                 ? `${t.couples.groom_name ?? ''}·${t.couples.bride_name ?? ''}`
                 : '';
               const isUrgent = t.scheduled_date === today && !t.done;
+              const isLast = idx === dashboardTodos.length - 1 && !hasDoneInDashboard;
               return (
                 <TouchableOpacity
                   key={t.id}
                   style={[
                     styles.todoItem,
-                    idx === Math.min(todos.length, 5) - 1 && { borderBottomWidth: 0 },
+                    (isLast || (t.done && idx === dashboardTodos.length - 1)) && {
+                      borderBottomWidth: 0,
+                    },
                   ]}
                   activeOpacity={0.7}
                   onPress={() => toggleTodo(t.id, t.done)}
@@ -301,7 +465,7 @@ export default function PlannerDashboard() {
                 </TouchableOpacity>
               );
             })}
-            {todos.length === 0 && (
+            {dashboardTodos.length === 0 && (
               <Text style={{ padding: 16, color: '#b8aca8', fontSize: 13 }}>할 일이 없어요 🎉</Text>
             )}
           </View>
@@ -321,7 +485,7 @@ export default function PlannerDashboard() {
             </TouchableOpacity>
           </View>
 
-          {upcomingCouples.map((c, i) => {
+          {coupleWithProgress.map((c, i) => {
             const pal = PALETTES[i % PALETTES.length];
             const dday = calcDday(c.wedding_date);
             const wDate = c.wedding_date
@@ -362,11 +526,11 @@ export default function PlannerDashboard() {
                     <View
                       style={[
                         styles.progressFill,
-                        { width: `${c.progress ?? 0}%`, backgroundColor: pal.barColor },
+                        { width: `${c._progress}%`, backgroundColor: pal.barColor },
                       ]}
                     />
                   </View>
-                  <Text style={styles.progressPct}>{c.progress ?? 0}%</Text>
+                  <Text style={styles.progressPct}>{c._progress}%</Text>
                 </View>
               </TouchableOpacity>
             );
@@ -386,10 +550,37 @@ export default function PlannerDashboard() {
               <Text style={styles.sectionMore}>전체 보기</Text>
             </TouchableOpacity>
           </View>
-          {/* 업체 데이터는 별도 테이블 연동 시 추가 예정 */}
-          <View style={[styles.vendorGrid, { paddingVertical: 12, alignItems: 'center' }]}>
-            <Text style={{ color: '#b8aca8', fontSize: 13 }}>업체 현황을 불러오는 중...</Text>
-          </View>
+          {vendorCategories.length === 0 ? (
+            <View style={{ paddingVertical: 12, alignItems: 'center' }}>
+              <Text style={{ color: '#b8aca8', fontSize: 13 }}>등록된 업체가 없어요</Text>
+            </View>
+          ) : (
+            <View style={styles.vendorGrid}>
+              {vendorCategories.map(([type, items]) => (
+                <View key={type} style={styles.vendorCategoryBlock}>
+                  <Text style={styles.vendorCategoryTitle}>{type}</Text>
+                  {items.slice(0, 2).map((v, idx, arr) => (
+                    <View
+                      key={v.id}
+                      style={[styles.vendorRow, idx === arr.length - 1 && { borderBottomWidth: 0 }]}
+                    >
+                      <Text style={styles.vendorName} numberOfLines={1}>
+                        {v.name}
+                      </Text>
+                      <Text
+                        style={[
+                          styles.vendorStatus,
+                          { color: STATUS_COLOR[v.status] ?? '#8a7870' },
+                        ]}
+                      >
+                        {v.status}
+                      </Text>
+                    </View>
+                  ))}
+                </View>
+              ))}
+            </View>
+          )}
         </View>
 
         <View style={styles.divider} />
@@ -423,13 +614,14 @@ export default function PlannerDashboard() {
 
           {/* 미수금 커플 목록 */}
           <View style={styles.financeList}>
-            {couples
-              .filter((c) => (c.received_amount ?? 0) < (c.total_amount ?? 0))
-              .map((c, idx, arr) => {
-                const unpaid = (c.total_amount ?? 0) - (c.received_amount ?? 0);
-                const p = c.total_amount
-                  ? Math.round(((c.received_amount ?? 0) / c.total_amount) * 100)
-                  : 0;
+            {financeCouples.length === 0 ? (
+              <Text style={{ padding: 16, color: '#b8aca8', fontSize: 13 }}>
+                미수금이 없어요 🎉
+              </Text>
+            ) : (
+              financeCouples.map((c, idx, arr) => {
+                const unpaid = c._total - c._received;
+                const p = c._total > 0 ? Math.round((c._received / c._total) * 100) : 0;
                 return (
                   <View
                     key={c.id}
@@ -460,7 +652,8 @@ export default function PlannerDashboard() {
                     </View>
                   </View>
                 );
-              })}
+              })
+            )}
           </View>
         </View>
 
@@ -502,6 +695,7 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
     color: '#917878',
     letterSpacing: 1,
+    marginLeft: -20,
   },
   notifBtn: {
     width: 40,
@@ -757,7 +951,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   todoTagUrgent: {
-    color: '#b07840',
+    color: '#d87777',
     fontWeight: '500',
   },
   urgentDot: {
@@ -765,6 +959,11 @@ const styles = StyleSheet.create({
     height: 7,
     borderRadius: 4,
     backgroundColor: '#e87070',
+  },
+  clearDoneBtnText: {
+    fontSize: 12,
+    color: '#9aba7a',
+    fontWeight: '500',
   },
 
   // 협력 업체 그리드
@@ -906,5 +1105,27 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#b07840',
     fontWeight: '500',
+  },
+
+  kpiGrid: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 12,
+    paddingHorizontal: 16,
+    marginBottom: 16,
+  },
+  kpiCard: {
+    flex: 1,
+    padding: 20,
+    borderRadius: 16,
+    overflow: 'hidden', // 중요!
+    // 그림자를 살짝 추가하면 더 입체적입니다.
+    elevation: 2,
+    shadowColor: '#9d7272',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    borderWidth: 0.5,
+    borderColor: '#eed3bb',
   },
 });

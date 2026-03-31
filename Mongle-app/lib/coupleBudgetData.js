@@ -1,15 +1,30 @@
 import { supabase } from './supabase';
 
-export async function fetchLatestProjectForCouple(coupleId) {
+const settle = async (promise, fallback) => {
+  try {
+    return await promise;
+  } catch {
+    return fallback;
+  }
+};
+
+export async function fetchCoupleById(coupleId) {
   if (!coupleId) return null;
 
-  const { data: couple, error: coupleError } = await supabase
+  const { data, error } = await supabase
     .from('couples')
-    .select('id, user_id')
+    .select('id, planner_id, user_id')
     .eq('id', coupleId)
     .maybeSingle();
 
-  if (coupleError) throw coupleError;
+  if (error) throw error;
+  return data;
+}
+
+export async function fetchLatestProjectForCouple(coupleId) {
+  if (!coupleId) return null;
+
+  const couple = await fetchCoupleById(coupleId);
   if (!couple?.user_id) return null;
 
   const { data, error } = await supabase
@@ -52,14 +67,53 @@ export async function fetchBudgetItemsForBudget(budgetId) {
   return data || [];
 }
 
+export async function fetchCouplePayments(coupleId) {
+  if (!coupleId) return [];
+
+  const { data, error } = await supabase
+    .from('couple_payments')
+    .select('*')
+    .eq('couple_id', coupleId)
+    .order('due_date', { ascending: true })
+    .order('created_at', { ascending: true });
+
+  if (error) throw error;
+  return data || [];
+}
+
+export async function fetchCoupleVendorCosts(coupleId) {
+  if (!coupleId) return [];
+
+  const { data, error } = await supabase
+    .from('couple_vendor_costs')
+    .select('*')
+    .eq('couple_id', coupleId)
+    .order('created_at', { ascending: true });
+
+  if (error) throw error;
+  return data || [];
+}
+
 export async function fetchCoupleBudgetBundle(coupleId) {
-  const project = await fetchLatestProjectForCouple(coupleId);
-  const budget = await fetchBudgetForProject(project?.id);
-  const items = await fetchBudgetItemsForBudget(budget?.id);
+  const couple = await settle(fetchCoupleById(coupleId), null);
+  const paymentsPromise = settle(fetchCouplePayments(coupleId), []);
+  const vendorCostsPromise = settle(fetchCoupleVendorCosts(coupleId), []);
+  const project = await settle(fetchLatestProjectForCouple(coupleId), null);
+  const budget = await settle(fetchBudgetForProject(project?.id), null);
+  const itemsPromise = settle(fetchBudgetItemsForBudget(budget?.id), []);
+
+  const [payments, vendorCosts, items] = await Promise.all([
+    paymentsPromise,
+    vendorCostsPromise,
+    itemsPromise,
+  ]);
 
   return {
+    couple,
     project,
     budget,
     items,
+    payments,
+    vendorCosts,
   };
 }

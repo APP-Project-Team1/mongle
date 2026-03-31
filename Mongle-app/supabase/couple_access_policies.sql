@@ -225,13 +225,16 @@ create policy "couple_payments read shared or own plus planner"
 on public.couple_payments
 for select
 using (
-  (
-    couple_id in (
-      select up.couple_id
-      from public.user_profiles up
-      where up.id = auth.uid()
-    )
-    and (owner_user_id is null or owner_user_id = auth.uid())
+  couple_id in (
+    select up.couple_id
+    from public.user_profiles up
+    where up.id = auth.uid()
+  )
+  or couple_id in (
+    select c.id
+    from public.couples c
+    where c.user_id = auth.uid()
+       or lower(coalesce(c.email, '')) = lower(coalesce(auth.jwt() ->> 'email', ''))
   )
   or couple_id in (
     select c.id
@@ -251,7 +254,12 @@ with check (
     from public.user_profiles up
     where up.id = auth.uid()
   )
-  and owner_user_id = auth.uid()
+  or couple_id in (
+    select c.id
+    from public.couples c
+    where c.user_id = auth.uid()
+       or lower(coalesce(c.email, '')) = lower(coalesce(auth.jwt() ->> 'email', ''))
+  )
 );
 
 drop policy if exists "couple_payments update own couple rows" on public.couple_payments;
@@ -264,7 +272,12 @@ using (
     from public.user_profiles up
     where up.id = auth.uid()
   )
-  and owner_user_id = auth.uid()
+  or couple_id in (
+    select c.id
+    from public.couples c
+    where c.user_id = auth.uid()
+       or lower(coalesce(c.email, '')) = lower(coalesce(auth.jwt() ->> 'email', ''))
+  )
 )
 with check (
   couple_id in (
@@ -272,7 +285,12 @@ with check (
     from public.user_profiles up
     where up.id = auth.uid()
   )
-  and owner_user_id = auth.uid()
+  or couple_id in (
+    select c.id
+    from public.couples c
+    where c.user_id = auth.uid()
+       or lower(coalesce(c.email, '')) = lower(coalesce(auth.jwt() ->> 'email', ''))
+  )
 );
 
 drop policy if exists "couple_payments delete own couple rows" on public.couple_payments;
@@ -285,7 +303,12 @@ using (
     from public.user_profiles up
     where up.id = auth.uid()
   )
-  and owner_user_id = auth.uid()
+  or couple_id in (
+    select c.id
+    from public.couples c
+    where c.user_id = auth.uid()
+       or lower(coalesce(c.email, '')) = lower(coalesce(auth.jwt() ->> 'email', ''))
+  )
 );
 
 drop policy if exists "couple_vendor_costs read shared or own plus planner" on public.couple_vendor_costs;
@@ -293,13 +316,16 @@ create policy "couple_vendor_costs read shared or own plus planner"
 on public.couple_vendor_costs
 for select
 using (
-  (
-    couple_id in (
-      select up.couple_id
-      from public.user_profiles up
-      where up.id = auth.uid()
-    )
-    and (owner_user_id is null or owner_user_id = auth.uid())
+  couple_id in (
+    select up.couple_id
+    from public.user_profiles up
+    where up.id = auth.uid()
+  )
+  or couple_id in (
+    select c.id
+    from public.couples c
+    where c.user_id = auth.uid()
+       or lower(coalesce(c.email, '')) = lower(coalesce(auth.jwt() ->> 'email', ''))
   )
   or planner_id in (
     select up.planner_id
@@ -318,7 +344,12 @@ with check (
     from public.user_profiles up
     where up.id = auth.uid()
   )
-  and owner_user_id = auth.uid()
+  or couple_id in (
+    select c.id
+    from public.couples c
+    where c.user_id = auth.uid()
+       or lower(coalesce(c.email, '')) = lower(coalesce(auth.jwt() ->> 'email', ''))
+  )
 );
 
 drop policy if exists "couple_vendor_costs update own couple rows" on public.couple_vendor_costs;
@@ -331,7 +362,12 @@ using (
     from public.user_profiles up
     where up.id = auth.uid()
   )
-  and owner_user_id = auth.uid()
+  or couple_id in (
+    select c.id
+    from public.couples c
+    where c.user_id = auth.uid()
+       or lower(coalesce(c.email, '')) = lower(coalesce(auth.jwt() ->> 'email', ''))
+  )
 )
 with check (
   couple_id in (
@@ -339,7 +375,12 @@ with check (
     from public.user_profiles up
     where up.id = auth.uid()
   )
-  and owner_user_id = auth.uid()
+  or couple_id in (
+    select c.id
+    from public.couples c
+    where c.user_id = auth.uid()
+       or lower(coalesce(c.email, '')) = lower(coalesce(auth.jwt() ->> 'email', ''))
+  )
 );
 
 drop policy if exists "couple_vendor_costs delete own couple rows" on public.couple_vendor_costs;
@@ -352,5 +393,10 @@ using (
     from public.user_profiles up
     where up.id = auth.uid()
   )
-  and owner_user_id = auth.uid()
+  or couple_id in (
+    select c.id
+    from public.couples c
+    where c.user_id = auth.uid()
+       or lower(coalesce(c.email, '')) = lower(coalesce(auth.jwt() ->> 'email', ''))
+  )
 );

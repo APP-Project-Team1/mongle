@@ -3,6 +3,10 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider } from './context/ThemeContext';
 import { AuthProvider } from './context/AuthContext';
 import { TodoProvider } from './context/TodoContext';
+import { KpiProvider } from './context/KpiContext';
+import { CoupleProvider } from './context/CoupleContext';
+import { VendorProvider } from './context/VendorContext';
+import { FinanceProvider } from './context/FinanceContext';
 import { NotificationsProvider } from './context/NotificationsContext';
 import ProtectedRoute from './components/common/ProtectedRoute';
 import AdminLayout from './layouts/AdminLayout';
@@ -28,7 +32,11 @@ export default function App() {
       <AuthProvider>
         <NotificationsProvider>
           <TodoProvider>
-            <BrowserRouter>
+            <KpiProvider>
+              <CoupleProvider>
+                <VendorProvider>
+                  <FinanceProvider>
+                    <BrowserRouter>
               {bypassDashboard ? (
                 <Routes>
                   <Route path="*" element={<Dashboard />} />
@@ -58,6 +66,10 @@ export default function App() {
                 </Routes>
               )}
             </BrowserRouter>
+                  </FinanceProvider>
+                </VendorProvider>
+              </CoupleProvider>
+            </KpiProvider>
           </TodoProvider>
         </NotificationsProvider>
       </AuthProvider>

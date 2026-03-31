@@ -5,7 +5,20 @@ import { useTodo } from '../../context/TodoContext';
 
 export default function TodoWidget() {
   const navigate = useNavigate();
-  const { todos, toggleTodo } = useTodo();
+  const { todos, loading, toggleTodo } = useTodo();
+
+  if (loading) {
+    return (
+      <section className="dash-section">
+        <div className="section-header">
+          <h3 className="section-title">오늘 할 일</h3>
+        </div>
+        <div className="card-box">
+          <p>로딩 중...</p>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="dash-section">
@@ -14,20 +27,24 @@ export default function TodoWidget() {
         <button className="section-more" onClick={() => navigate('/todos')}>전체 보기</button>
       </div>
       <div className="card-box">
-        {todos.map((t, idx) => (
-          <div key={t.id} className={`todo-item ${idx === todos.length - 1 ? 'last' : ''}`} onClick={() => toggleTodo(t.id)}>
-            <div className={`checkbox ${t.done ? 'checked' : ''}`}>
-              {t.done && <IoCheckmark size={14} color="var(--checkbox-done-border)" />}
+        {todos.length === 0 ? (
+          <p>할 일이 없습니다.</p>
+        ) : (
+          todos.slice(0, 3).map((t, idx) => (
+            <div key={t.id} className={`todo-item ${idx === todos.length - 1 ? 'last' : ''}`} onClick={() => toggleTodo(t.id)}>
+              <div className={`checkbox ${t.done ? 'checked' : ''}`}>
+                {t.done && <IoCheckmark size={14} color="var(--checkbox-done-border)" />}
+              </div>
+              <div className="todo-content">
+                <p className={`todo-text ${t.done ? 'done' : ''}`}>{t.text}</p>
+                <p className={`todo-tag ${t.urgent && !t.done ? 'urgent' : ''}`}>
+                  {t.couple} {t.urgent && !t.done ? '· 오늘 마감' : ''}
+                </p>
+              </div>
+              {t.urgent && !t.done && <div className="urgent-dot" />}
             </div>
-            <div className="todo-content">
-              <p className={`todo-text ${t.done ? 'done' : ''}`}>{t.text}</p>
-              <p className={`todo-tag ${t.urgent && !t.done ? 'urgent' : ''}`}>
-                {t.couple} {t.urgent && !t.done ? '· 오늘 마감' : ''}
-              </p>
-            </div>
-            {t.urgent && !t.done && <div className="urgent-dot" />}
-          </div>
-        ))}
+          ))
+        )}
       </div>
     </section>
   );

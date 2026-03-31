@@ -17,37 +17,46 @@ import VendorPartners from './pages/VendorPartners';
 import Budget from './pages/Budget';
 import Notifications from './pages/Notifications';
 
-function App() {
+export default function App() {
+  const bypassDashboard =
+    import.meta.env.VITE_BYPASS_DASHBOARD === 'true' ||
+    (typeof window !== 'undefined' &&
+      localStorage.getItem('BYPASS_DASHBOARD') === 'true');
+
   return (
     <ThemeProvider>
       <AuthProvider>
         <NotificationsProvider>
           <TodoProvider>
             <BrowserRouter>
-              <Routes>
-                {/* Public auth routes */}
-                <Route path="/login" element={<Login />} />
-                <Route path="/register" element={<Register />} />
-                <Route path="/forgot-password" element={<ForgotPassword />} />
+              {bypassDashboard ? (
+                <Routes>
+                  <Route path="*" element={<Dashboard />} />
+                </Routes>
+              ) : (
+                <Routes>
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/register" element={<Register />} />
+                  <Route path="/forgot-password" element={<ForgotPassword />} />
 
-                {/* Protected admin routes */}
-                <Route
-                  path="/"
-                  element={
-                    <ProtectedRoute>
-                      <AdminLayout />
-                    </ProtectedRoute>
-                  }
-                >
-                  <Route index element={<Dashboard />} />
-                  <Route path="couples" element={<CoupleList />} />
-                  <Route path="todos" element={<TodoList />} />
-                  <Route path="vendors" element={<VendorPartners />} />
-                  <Route path="budget" element={<Budget />} />
-                  <Route path="notifications" element={<Notifications />} />
-                  <Route path="*" element={<Navigate to="/" replace />} />
-                </Route>
-              </Routes>
+                  <Route
+                    path="/"
+                    element={
+                      <ProtectedRoute>
+                        <AdminLayout />
+                      </ProtectedRoute>
+                    }
+                  >
+                    <Route index element={<Dashboard />} />
+                    <Route path="couples" element={<CoupleList />} />
+                    <Route path="todos" element={<TodoList />} />
+                    <Route path="vendors" element={<VendorPartners />} />
+                    <Route path="budget" element={<Budget />} />
+                    <Route path="notifications" element={<Notifications />} />
+                    <Route path="*" element={<Navigate to="/" replace />} />
+                  </Route>
+                </Routes>
+              )}
             </BrowserRouter>
           </TodoProvider>
         </NotificationsProvider>
@@ -55,5 +64,3 @@ function App() {
     </ThemeProvider>
   );
 }
-
-export default App;

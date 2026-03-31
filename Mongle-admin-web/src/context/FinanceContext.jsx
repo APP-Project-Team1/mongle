@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+﻿import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 
 const FinanceContext = createContext();
@@ -19,43 +19,52 @@ export function FinanceProvider({ children }) {
     try {
       setLoading(true);
 
-      // Get budgets with project info
+      // budgets 테이블 실제 컬럼: id, project_id, total_amount, spent, category, notes
       const { data: budgets, error } = await supabase
         .from('budgets')
         .select(`
           id,
-          total_budget,
-          project_id,
-          projects (
-            id,
-            name,
-            wedding_date
-          )
+          total_amount,
+          spent,
+          project_id
         `);
 
       if (error) throw error;
 
-      // Transform data to match expected format
-      const transformedCouples = budgets?.map(budget => ({
-        id: budget.project_id,
-        name: budget.projects?.name || '이름 없음',
-        total: budget.total_budget,
-        received: Math.floor(budget.total_budget * 0.8), // Mock received amount (80% of total)
-        due: null, // No due date in current schema
-        vendorCosts: [] // No vendor cost details in current schema
-      })) || [];
+      // project 정보는 별도 조회
+      const projectIds = [...new Set(budgets?.map((b) => b.project_id).filter(Boolean))];
+
+      let projectMap = {};
+      if (projectIds.length > 0) {
+        const { data: projects } = await supabase
+          .from('projects')
+          .select('id, title, event_date')
+          .in('id', projectIds);
+
+        projectMap = Object.fromEntries((projects || []).map((p) => [p.id, p]));
+      }
+
+      const transformedCouples = budgets?.map((budget) => {
+        const project = projectMap[budget.project_id];
+        return {
+          id: budget.project_id,
+          name: project?.title || '이름 없음',
+          total: budget.total_amount || 0,
+          received: budget.spent || 0,
+          due: project?.event_date || null,
+          vendorCosts: [],
+        };
+      }) || [];
 
       setFinance({ couples: transformedCouples });
     } catch (error) {
       console.error('Error fetching finance:', error);
-      // Fallback to empty data if Supabase fails
       setFinance({ couples: [] });
     } finally {
       setLoading(false);
     }
   };
 
-  // Helper function for formatting money
   const formatMoney = (amount) => {
     return new Intl.NumberFormat('ko-KR').format(amount);
   };

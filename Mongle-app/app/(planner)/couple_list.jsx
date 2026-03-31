@@ -20,28 +20,28 @@ import { supabase } from '../../lib/supabase';
 
 // ── 상수 ─────────────────────────────────────────────────
 const STAGE_STYLE = {
-  '최종 점검': {
+  최종점검: {
     stageColor: '#c97b6e',
     stageBg: '#fff5f3',
     barColor: '#d4537e',
     badgeBg: '#fbeaf0',
     badgeColor: '#993556',
   },
-  '준비 중': {
+  준비중: {
     stageColor: '#b07840',
     stageBg: '#fdf6ee',
     barColor: '#b07858',
     badgeBg: '#f5ede8',
     badgeColor: '#8b5e52',
   },
-  '초기 상담': {
+  초기상담: {
     stageColor: '#8a7870',
     stageBg: '#f5f0f0',
     barColor: '#c0b8b0',
     badgeBg: '#eeeae6',
     badgeColor: '#7a7068',
   },
-  '계약 완료': {
+  계약완료: {
     stageColor: '#5a8c3a',
     stageBg: '#f0f8f2',
     barColor: '#6aaa80',
@@ -57,8 +57,8 @@ const AVATAR_POOL = [
   { bg: '#eaf0f8', color: '#4a6e94' },
   { bg: '#eaf5ee', color: '#3a7a50' },
 ];
-const STAGE_FILTERS = ['전체', '최종 점검', '준비 중', '초기 상담', '계약 완료'];
-const STAGE_OPTIONS = ['최종 점검', '준비 중', '초기 상담', '계약 완료'];
+const STAGE_FILTERS = ['전체', '최종점검', '준비중', '초기상담', '계약완료'];
+const STAGE_OPTIONS = ['최종점검', '준비중', '초기상담', '계약완료'];
 const CATEGORY_OPTIONS = [
   '웨딩홀',
   '드레스',
@@ -88,7 +88,7 @@ const EMPTY_FORM = {
   month: '',
   day: '',
   venue: '',
-  stage: '초기 상담',
+  stage: '초기상담',
   phone: '',
 };
 const EMPTY_SCHED = { title: '', year: '', month: '', day: '', time: '', category: '예식' };
@@ -135,7 +135,7 @@ const coupleToForm = (c) => {
     month: df[1] ? String(parseInt(df[1])) : '',
     day: df[2] ? String(parseInt(df[2])) : '',
     venue: c.venue ?? '',
-    stage: c.stage ?? '초기 상담',
+    stage: c.stage ?? '초기상담',
     phone: (c.phone ?? '').replace(/-/g, ''),
   };
 };
@@ -342,7 +342,7 @@ export default function CoupleList() {
       return;
     }
 
-    // 일정 동기화: 삭제된 것 제거, 새 것 추가, 기존 것 업데이트
+    // 일정 동기화: 삭제 → 추가/수정
     const origIds = (schedules[selectedCouple.id] ?? []).map((s) => s.id);
     const editIds = editSchedules.filter((s) => !s.id.startsWith('new-')).map((s) => s.id);
     const deletedIds = origIds.filter((id) => !editIds.includes(id));
@@ -367,9 +367,30 @@ export default function CoupleList() {
       }
     }
 
+    // ── 수정 완료 후 즉시 갱신 ──────────────────────────
+    // 1) 커플 목록 재조회 (progress 포함)
+    await fetchCouples();
+
+    // 2) selectedCouple state 갱신 (모달이 열려있는 동안 최신 데이터 반영)
+    const { data: updatedCouple } = await supabase
+      .from('couples')
+      .select('*')
+      .eq('id', selectedCouple.id)
+      .single();
+    if (updatedCouple) setSelectedCouple(updatedCouple);
+
+    // 3) 해당 커플 일정 재조회 (타임라인 즉시 반영)
+    const { data: updatedScheds } = await supabase
+      .from('couple_schedules')
+      .select('*')
+      .eq('couple_id', selectedCouple.id)
+      .order('scheduled_date', { ascending: true });
+    if (updatedScheds) {
+      setSchedules((prev) => ({ ...prev, [selectedCouple.id]: updatedScheds }));
+    }
+
     setIsEditing(false);
-    closeDetail();
-    // Realtime이 fetchCouples / fetchAllSchedules 자동 트리거
+    // 모달은 닫지 않음 — 수정 결과를 상세 보기 모드에서 바로 확인 가능
   };
 
   const handleDelete = () => {
@@ -452,6 +473,14 @@ export default function CoupleList() {
         onPress: () => setEditSchedules((prev) => prev.filter((s) => s.id !== id)),
       },
     ]);
+  };
+
+  // ── progress 동적 계산 (DB값이 0이면 일정 완료율로 대체) ──
+  const calcProgress = (coupleId) => {
+    const scheds = schedules[coupleId] ?? [];
+    if (!scheds.length) return 0;
+    const done = scheds.filter((s) => s.done).length;
+    return Math.round((done / scheds.length) * 100);
   };
 
   // ── 필터링 & 정렬 ──
@@ -547,7 +576,7 @@ export default function CoupleList() {
         ) : (
           sorted.map((c) => {
             const av = AVATAR_POOL[sorted.indexOf(c) % AVATAR_POOL.length];
-            const st = STAGE_STYLE[c.stage] ?? STAGE_STYLE['초기 상담'];
+            const st = STAGE_STYLE[c.stage] || STAGE_STYLE['초기상담'];
             const dday = calcDdayDb(c.wedding_date);
             return (
               <TouchableOpacity
@@ -581,13 +610,13 @@ export default function CoupleList() {
                   <View style={[styles.stagePill, { backgroundColor: st.stageBg }]}>
                     <Text style={[styles.stageText, { color: st.stageColor }]}>{c.stage}</Text>
                   </View>
-                  <Text style={styles.progressPct}>{c.progress}%</Text>
+                  <Text style={styles.progressPct}>{calcProgress(c.id)}%</Text>
                 </View>
                 <View style={styles.progressTrack}>
                   <View
                     style={[
                       styles.progressFill,
-                      { width: `${c.progress}%`, backgroundColor: st.barColor },
+                      { width: `${calcProgress(c.id)}%`, backgroundColor: st.barColor },
                     ]}
                   />
                 </View>
@@ -646,8 +675,8 @@ export default function CoupleList() {
             <View style={styles.modalHandle} />
             {selectedCouple &&
               (() => {
-                const av = AVATAR_POOL[selectedCouple.avatarIdx % AVATAR_POOL.length];
-                const st = STAGE_STYLE[selectedCouple.stage] ?? STAGE_STYLE['초기 상담'];
+                const av = AVATAR_POOL[couples.indexOf(selectedCouple) % AVATAR_POOL.length];
+                const st = STAGE_STYLE[selectedCouple.stage] || STAGE_STYLE['초기상담'];
                 const dday = calcDdayDb(selectedCouple.wedding_date);
                 const coupleScheds = schedules[selectedCouple.id] ?? [];
                 return (
@@ -954,7 +983,7 @@ export default function CoupleList() {
                             <View style={styles.detailProgressHeader}>
                               <Text style={styles.detailProgressLabel}>준비율</Text>
                               <Text style={styles.detailProgressPct}>
-                                {selectedCouple.progress}%
+                                {calcProgress(selectedCouple.id)}%
                               </Text>
                             </View>
                             <View style={styles.progressTrack}>
@@ -962,7 +991,7 @@ export default function CoupleList() {
                                 style={[
                                   styles.progressFill,
                                   {
-                                    width: `${selectedCouple.progress}%`,
+                                    width: `${calcProgress(selectedCouple.id)}%`,
                                     backgroundColor: st.barColor,
                                   },
                                 ]}

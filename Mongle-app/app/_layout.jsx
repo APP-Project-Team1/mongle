@@ -61,17 +61,23 @@ function AuthGate() {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setSession(session);
-      if (session) {
-        const profile = await fetchUserRole(session.user.id);
-        setProfile(profile);
-        setRole(profile?.role || null);
-        setUserId(session.user.id);
-      } else {
-        setProfile(null);
+      try {
+        if (session) {
+          const profile = await fetchUserRole(session.user.id);
+          setProfile(profile);
+          setRole(profile?.role || null);
+          setUserId(session.user.id);
+        } else {
+          setProfile(null);
+          setRole(null);
+          setUserId(null);
+        }
+      } catch (e) {
+        console.error('onAuthStateChange fetchUserRole 에러:', e);
         setRole(null);
-        setUserId(null);
+      } finally {
+        setIsReady(true);
       }
-      setIsReady(true);
     });
 
     return () => subscription.unsubscribe();
@@ -109,7 +115,7 @@ function AuthGate() {
         }
       }
     }
-  }, [session, role, isReady, segments]);
+  }, [session, role, isReady, segments, registrationPending]);
 
   if (!isReady) {
     return (

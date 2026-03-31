@@ -34,6 +34,26 @@ const createDraftItem = (label = '') => ({
   _isNew: true,
 });
 
+const toManwon = (amount) => Math.round((Number(amount) || 0) / 10000);
+
+const normalizeVendorCostItem = (item) => ({
+  id: item.id,
+  label: item.vendor_name || item.label || '',
+  value: toManwon(item.amount ?? item.value),
+  paid: !!item.paid,
+  owner_user_id: item.owner_user_id ?? null,
+});
+
+const normalizePaymentItem = (item) => ({
+  id: item.id,
+  label: item.label || '',
+  balance_due: item.due_date || item.balance_due || '',
+  balance_amount: toManwon(item.amount ?? item.balance_amount),
+  paid: !!item.paid,
+  owner_user_id: item.owner_user_id ?? null,
+  isUrgent: checkUrgent(item.due_date || item.balance_due),
+});
+
 const formatBalanceSub = (dueDateStr) => {
   if (!dueDateStr) return '일정 미지정';
   const due = new Date(dueDateStr);
@@ -96,28 +116,55 @@ export default function BudgetHubScreen() {
     return () => { active = false; };
   }, [couple_id, userId]);
 
-  const { data, isLoading, refetch } = useQuery({
+  const { data, error, isLoading, refetch } = useQuery({
     queryKey: ['couple-budget-bundle', effectiveCoupleId],
     queryFn: () => fetchCoupleBudgetBundle(effectiveCoupleId),
     enabled: !!effectiveCoupleId,
   });
 
   useEffect(() => {
+    if (error) {
+      console.error('커플 비용 탭 조회 오류:', error);
+    }
+  }, [error]);
+
+  useEffect(() => {
+    if (!effectiveCoupleId) return undefined;
+
     const channels = [
-      supabase.channel('budgets-live').on('postgres_changes', { event: '*', schema: 'public', table: 'budgets' }, () => refetch()).subscribe(),
-      supabase.channel('budget-items-live').on('postgres_changes', { event: '*', schema: 'public', table: 'budget_items' }, () => refetch()).subscribe(),
-      supabase.channel('projects-live').on('postgres_changes', { event: '*', schema: 'public', table: 'projects' }, () => refetch()).subscribe(),
+      supabase.channel(`budgets-live-${effectiveCoupleId}`).on('postgres_changes', { event: '*', schema: 'public', table: 'budgets' }, () => refetch()).subscribe(),
+      supabase.channel(`budget-items-live-${effectiveCoupleId}`).on('postgres_changes', { event: '*', schema: 'public', table: 'budget_items' }, () => refetch()).subscribe(),
+      supabase.channel(`projects-live-${effectiveCoupleId}`).on('postgres_changes', { event: '*', schema: 'public', table: 'projects' }, () => refetch()).subscribe(),
+      supabase.channel(`couple-payments-live-${effectiveCoupleId}`).on('postgres_changes', { event: '*', schema: 'public', table: 'couple_payments', filter: `couple_id=eq.${effectiveCoupleId}` }, () => refetch()).subscribe(),
+      supabase.channel(`vendor-costs-live-${effectiveCoupleId}`).on('postgres_changes', { event: '*', schema: 'public', table: 'couple_vendor_costs', filter: `couple_id=eq.${effectiveCoupleId}` }, () => refetch()).subscribe(),
     ];
     return () => channels.forEach((channel) => supabase.removeChannel(channel));
-  }, [refetch]);
+  }, [effectiveCoupleId, refetch]);
 
   const activeProject = data?.project || null;
   const budgetData = data?.budget || null;
-  const costItems = data?.items || [];
-  const usedAmount = budgetData?.spent || 0;
-  const budgetTotal = budgetData?.total_amount || 0;
+  const plannerCouple = data?.couple || null;
+  const plannerPayments = useMemo(() => (data?.payments || []).map(normalizePaymentItem), [data?.payments]);
+  const plannerVendorCosts = useMemo(() => (data?.vendorCosts || []).map(normalizeVendorCostItem), [data?.vendorCosts]);
+  const hasPlannerBudgetData = plannerPayments.length > 0 || plannerVendorCosts.length > 0;
+  const costItems = hasPlannerBudgetData ? plannerVendorCosts : (data?.items || []);
+  const usedAmount = hasPlannerBudgetData
+    ? plannerVendorCosts.reduce((sum, item) => sum + (Number(item.value) || 0), 0)
+    : (budgetData?.spent || 0);
+  const budgetTotal = hasPlannerBudgetData
+    ? Math.max(
+      plannerPayments.reduce((sum, item) => sum + (Number(item.balance_amount) || 0), 0),
+      usedAmount,
+    )
+    : (budgetData?.total_amount || 0);
   const progress = Math.min(100, Math.round((usedAmount / (budgetTotal || 1)) * 100));
-  const balanceItems = useMemo(() => costItems.filter((item) => item.has_balance).map((item) => ({ ...item, isUrgent: checkUrgent(item.balance_due) })), [costItems]);
+  const balanceItems = useMemo(() => (
+    hasPlannerBudgetData
+      ? plannerPayments
+      : costItems
+        .filter((item) => item.has_balance)
+        .map((item) => ({ ...item, isUrgent: checkUrgent(item.balance_due) }))
+  ), [costItems, hasPlannerBudgetData, plannerPayments]);
 
   const handleExportPDF = async () => {
     try {
@@ -232,7 +279,11 @@ export default function BudgetHubScreen() {
         project={activeProject}
         budget={budgetData}
         items={costItems}
-        couple={resolvedCouple}
+        payments={plannerPayments}
+        vendorCosts={plannerVendorCosts}
+        couple={resolvedCouple || plannerCouple}
+        effectiveCoupleId={effectiveCoupleId}
+        usePlannerData={hasPlannerBudgetData}
         sessionUserId={userId}
         onClose={() => setCostEditModalVisible(false)}
         onSaved={async () => {
@@ -256,31 +307,117 @@ export default function BudgetHubScreen() {
   );
 }
 
-function CostEditModal({ visible, project, budget, items, couple, sessionUserId, onClose, onSaved }) {
+function CostEditModal({ visible, project, budget, items, payments, vendorCosts, couple, effectiveCoupleId, usePlannerData, sessionUserId, onClose, onSaved }) {
   const [activeTab, setActiveTab] = useState('cost');
   const [draftBudget, setDraftBudget] = useState('0');
-  const [draftItems, setDraftItems] = useState([]);
+  const [draftVendorCosts, setDraftVendorCosts] = useState([]);
+  const [draftPayments, setDraftPayments] = useState([]);
   const [saving, setSaving] = useState(false);
   const [datePickerVisible, setDatePickerVisible] = useState(false);
   const [datePickerTargetId, setDatePickerTargetId] = useState(null);
 
   useEffect(() => {
     if (!visible) return;
-    setDraftBudget((budget?.total_amount || 0).toString());
-    setDraftItems((items || []).map((item) => ({ ...item, value: String(item.value || ''), balance_amount: String(item.balance_amount || '') })));
+    const nextVendorCosts = (vendorCosts?.length ? vendorCosts : items || []).map((item) => ({
+      ...item,
+      value: String(item.value || ''),
+      has_balance: !!item.paid,
+    }));
+    const nextPayments = (payments || []).map((item) => ({
+      ...item,
+      balance_amount: String(item.balance_amount || ''),
+      balance_due: item.balance_due || '',
+    }));
+    setDraftBudget(String(
+      budget?.total_amount
+      || nextPayments.reduce((sum, item) => sum + (parseInt(item.balance_amount, 10) || 0), 0)
+      || 0,
+    ));
+    setDraftVendorCosts(nextVendorCosts);
+    setDraftPayments(nextPayments);
     setActiveTab('cost');
-  }, [visible, budget, items]);
+  }, [visible, budget, items, payments, vendorCosts]);
 
-  const updateField = (id, field, value) => setDraftItems((prev) => prev.map((item) => item.id === id ? { ...item, [field]: value } : item));
-  const addCostItem = () => setDraftItems((prev) => [createDraftItem(), ...prev]);
-  const addPresetItem = (label) => setDraftItems((prev) => [createDraftItem(label), ...prev]);
-  const removeItem = (id) => setDraftItems((prev) => prev.filter((item) => item.id !== id));
-  const balanceDraftItems = draftItems.filter((item) => item.has_balance);
+  const updateVendorField = (id, field, value) => setDraftVendorCosts((prev) => prev.map((item) => item.id === id ? { ...item, [field]: value } : item));
+  const updatePaymentField = (id, field, value) => setDraftPayments((prev) => prev.map((item) => item.id === id ? { ...item, [field]: value } : item));
+  const addCostItem = () => setDraftVendorCosts((prev) => [createDraftItem(), ...prev]);
+  const addPresetItem = (label) => setDraftVendorCosts((prev) => [createDraftItem(label), ...prev]);
+  const addPaymentItem = () => setDraftPayments((prev) => [createDraftItem(), ...prev]);
+  const removeVendorItem = (id) => setDraftVendorCosts((prev) => prev.filter((item) => item.id !== id));
+  const removePaymentItem = (id) => setDraftPayments((prev) => prev.filter((item) => item.id !== id));
+  const updateField = (id, field, value) => {
+    if (field === 'balance_amount' || field === 'balance_due') {
+      updatePaymentField(id, field, value);
+      return;
+    }
+    updateVendorField(id, field, value);
+  };
+  const removeItem = (id) => {
+    removeVendorItem(id);
+    removePaymentItem(id);
+  };
+  const balanceDraftItems = draftPayments;
 
   const handleSave = async () => {
     if (!sessionUserId) return Alert.alert('저장 불가', '로그인 정보를 확인해 주세요.');
+    if (!effectiveCoupleId) return Alert.alert('???遺덇?', '而ㅽ뵆 ?뺣낫瑜??뺤씤??二쇱꽭??');
     setSaving(true);
     try {
+      if (usePlannerData || vendorCosts?.length || payments?.length) {
+        const plannerId = couple?.planner_id || null;
+        const existingVendorIds = new Set((vendorCosts || []).map((item) => item.id));
+        const nextVendorIds = new Set(draftVendorCosts.filter((item) => !item._isNew && !String(item.id).startsWith('new-')).map((item) => item.id));
+        for (const id of [...existingVendorIds].filter((itemId) => !nextVendorIds.has(itemId))) {
+          const { error } = await supabase.from('couple_vendor_costs').delete().eq('id', id);
+          if (error) throw error;
+        }
+        for (const item of draftVendorCosts) {
+          if (!item.label?.trim() && !item.value) continue;
+          const payload = {
+            planner_id: plannerId,
+            couple_id: effectiveCoupleId,
+            vendor_name: item.label?.trim() || '기타',
+            amount: (parseInt(item.value, 10) || 0) * 10000,
+            paid: !!item.has_balance,
+            owner_user_id: sessionUserId,
+          };
+          if (item._isNew || String(item.id).startsWith('new-')) {
+            const { error } = await supabase.from('couple_vendor_costs').insert(payload);
+            if (error) throw error;
+          } else {
+            const { error } = await supabase.from('couple_vendor_costs').update(payload).eq('id', item.id);
+            if (error) throw error;
+          }
+        }
+
+        const existingPaymentIds = new Set((payments || []).map((item) => item.id));
+        const nextPaymentIds = new Set(draftPayments.filter((item) => !item._isNew && !String(item.id).startsWith('new-')).map((item) => item.id));
+        for (const id of [...existingPaymentIds].filter((itemId) => !nextPaymentIds.has(itemId))) {
+          const { error } = await supabase.from('couple_payments').delete().eq('id', id);
+          if (error) throw error;
+        }
+        for (const item of draftPayments) {
+          if (!item.label?.trim() && !item.balance_amount) continue;
+          const payload = {
+            couple_id: effectiveCoupleId,
+            label: item.label?.trim() || '기타',
+            amount: (parseInt(item.balance_amount, 10) || 0) * 10000,
+            due_date: item.balance_due || null,
+            paid: !!item.paid,
+            owner_user_id: sessionUserId,
+          };
+          if (item._isNew || String(item.id).startsWith('new-')) {
+            const { error } = await supabase.from('couple_payments').insert(payload);
+            if (error) throw error;
+          } else {
+            const { error } = await supabase.from('couple_payments').update(payload).eq('id', item.id);
+            if (error) throw error;
+          }
+        }
+
+        await onSaved();
+        return;
+      }
       let projectId = project?.id;
       if (!projectId) {
         const { data, error } = await supabase.from('projects').insert({ user_id: couple?.user_id || sessionUserId, title: '웨딩 예산', event_date: couple?.wedding_date || null }).select('id').maybeSingle();
@@ -288,7 +425,7 @@ function CostEditModal({ visible, project, budget, items, couple, sessionUserId,
         projectId = data?.id;
       }
       let budgetId = budget?.id;
-      const spent = draftItems.reduce((sum, item) => sum + (parseInt(item.value, 10) || 0), 0);
+      const spent = draftVendorCosts.reduce((sum, item) => sum + (parseInt(item.value, 10) || 0), 0);
       if (!budgetId) {
         const { data, error } = await supabase.from('budgets').insert({ project_id: projectId, total_amount: parseInt(draftBudget, 10) || 0, spent }).select('id').maybeSingle();
         if (error) throw error;
@@ -298,12 +435,12 @@ function CostEditModal({ visible, project, budget, items, couple, sessionUserId,
         if (error) throw error;
       }
       const existingIds = new Set((items || []).map((item) => item.id));
-      const nextIds = new Set(draftItems.filter((item) => !item._isNew && !String(item.id).startsWith('new-')).map((item) => item.id));
+      const nextIds = new Set(draftVendorCosts.filter((item) => !item._isNew && !String(item.id).startsWith('new-')).map((item) => item.id));
       for (const id of [...existingIds].filter((id) => !nextIds.has(id))) {
         const { error } = await supabase.from('budget_items').delete().eq('id', id);
         if (error) throw error;
       }
-      for (const item of draftItems) {
+      for (const item of draftVendorCosts) {
         if (!item.label?.trim() && !item.value) continue;
         const payload = { budget_id: budgetId, label: item.label?.trim() || '기타', value: parseInt(item.value, 10) || 0, spent: parseInt(item.value, 10) || 0, has_balance: !!item.has_balance, balance_due: item.balance_due || null, balance_amount: parseInt(item.balance_amount, 10) || 0 };
         if (item._isNew || String(item.id).startsWith('new-')) {
@@ -360,7 +497,7 @@ function CostEditModal({ visible, project, budget, items, couple, sessionUserId,
                   <Text style={modalStyles.addBtnText}>기타 항목 추가하기</Text>
                 </TouchableOpacity>
                 <View style={{ height: 20 }} />
-                {draftItems.map((item) => (
+                {draftVendorCosts.map((item) => (
                   <View key={item.id} style={modalStyles.itemBoxExpanded}>
                     <View style={modalStyles.expandedHeader}>
                       <TextInput style={modalStyles.labelInput} value={item.label} onChangeText={(v) => updateField(item.id, 'label', v)} placeholder="항목명" placeholderTextColor="#B8A9A5" />
@@ -380,6 +517,11 @@ function CostEditModal({ visible, project, budget, items, couple, sessionUserId,
               </>
             ) : (
               <View style={{ paddingBottom: 20 }}>
+                <TouchableOpacity style={modalStyles.addBtn} onPress={addPaymentItem}>
+                  <Ionicons name="add-circle-outline" size={20} color="#C9716A" />
+                  <Text style={modalStyles.addBtnText}>잔금 일정 추가하기</Text>
+                </TouchableOpacity>
+                <View style={{ height: 12 }} />
                 {balanceDraftItems.length > 0 ? balanceDraftItems.map((item) => (
                   <View key={item.id} style={costModalStyles.balanceEditCard}>
                     <View style={costModalStyles.balanceEditHeader}>

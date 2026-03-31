@@ -26,7 +26,8 @@ const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3
 export default function ChatRoomScreen() {
   const { id: chatId } = useLocalSearchParams();
   const normalizedChatId = Array.isArray(chatId) ? chatId[0] : chatId;
-  const hasValidChatId = typeof normalizedChatId === 'string' && UUID_PATTERN.test(normalizedChatId);
+  const hasValidChatId =
+    typeof normalizedChatId === 'string' && UUID_PATTERN.test(normalizedChatId);
 
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState([]);
@@ -130,7 +131,12 @@ export default function ChatRoomScreen() {
       .channel(`messages-${normalizedChatId}`)
       .on(
         'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'messages', filter: `chat_id=eq.${normalizedChatId}` },
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'messages',
+          filter: `chat_id=eq.${normalizedChatId}`,
+        },
         (payload) => {
           const newMsg = payload.new;
           setMessages((prev) => {
@@ -179,7 +185,10 @@ export default function ChatRoomScreen() {
     setGeneratingCode(true);
     const code = generateInviteCode();
 
-    const { error } = await supabase.from('chats').update({ invite_code: code }).eq('id', normalizedChatId);
+    const { error } = await supabase
+      .from('chats')
+      .update({ invite_code: code })
+      .eq('id', normalizedChatId);
 
     if (error) {
       Alert.alert('오류', '초대 코드 생성에 실패했습니다.');
@@ -324,6 +333,14 @@ export default function ChatRoomScreen() {
             onChangeText={setMessage}
             multiline
           />
+          {/* AI Button */}
+          <TouchableOpacity
+            style={styles.aiBtn}
+            onPress={() => router.push('/(couple)/(tabs)/chat/ai')}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="sparkles" size={20} color="#c9a98e" />
+          </TouchableOpacity>
           <TouchableOpacity
             style={[styles.sendBtn, message.trim() ? styles.sendBtnActive : {}]}
             onPress={handleSend}
@@ -564,6 +581,14 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
   sendBtnActive: { backgroundColor: '#c9a98e' },
+
+  aiBtn: {
+    width: 36,
+    height: 36,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: 4,
+  },
 
   // Menu Modal
   menuOverlay: {

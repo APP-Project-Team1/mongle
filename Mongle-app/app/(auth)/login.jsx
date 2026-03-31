@@ -72,7 +72,13 @@ export default function LoginScreen() {
 
       // ✅ user_metadata 대신 user_profiles 테이블에서 직접 role 확인
       const profile = await fetchUserRole(data.user.id);
-      const userRole = profile.role; // 'planner' | 'couple'
+      const userRole = profile?.role ?? data.user.user_metadata?.role;
+
+      if (!userRole) {
+        await signOut();
+        showAlert('계정 정보를 불러올 수 없습니다.\n잠시 후 다시 시도해주세요.');
+        return;
+      }
 
       // 선택한 탭과 실제 role이 다를 경우 안내 후 로그아웃
       if (userRole === 'planner' && !isPlanner) {

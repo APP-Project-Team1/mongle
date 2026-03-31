@@ -77,11 +77,36 @@ function TimelineEditModal({ visible, items, onClose, onSave, onDelete, onToggle
   };
 
   const handleSave = async () => {
-    const normalized = draft.filter((item) => item.title?.trim() && toDbDate(item.scheduled_date)).sort((a, b) => `${a.scheduled_date}`.localeCompare(`${b.scheduled_date}`));
-    for (const item of normalized) {
-      await onSave({ ...item, title: item.title.trim(), scheduled_date: toDbDate(item.scheduled_date) });
-    }
+    const normalized = draft
+      .filter((item) => item.title?.trim() && toDbDate(item.scheduled_date))
+      .sort((a, b) => `${a.scheduled_date}`.localeCompare(`${b.scheduled_date}`));
+
+    const originalById = new Map(items.map((item) => [String(item.id), item]));
+    const changedItems = normalized.filter((item) => {
+      if (item.isNew || String(item.id).startsWith('new-')) return true;
+      const original = originalById.get(String(item.id));
+      if (!original) return true;
+      const nextDate = toDbDate(item.scheduled_date);
+      const nextTitle = item.title.trim();
+      const nextDone = item.done ?? false;
+      const nextCategory = item.category || COLOR_TO_CATEGORY[item.color] || '기타';
+      return (
+        original.title !== nextTitle ||
+        original.scheduled_date !== nextDate ||
+        (original.done ?? false) !== nextDone ||
+        (original.category || '기타') !== nextCategory
+      );
+    });
+
     onClose();
+
+    for (const item of changedItems) {
+      await onSave({
+        ...item,
+        title: item.title.trim(),
+        scheduled_date: toDbDate(item.scheduled_date),
+      });
+    }
   };
 
   return (
@@ -267,7 +292,7 @@ export default function TimelineScreen() {
         return;
       }
       try {
-        const resolved = await resolveCoupleContext(userId, couple_id ?? null);
+        const resolved = await resolveCoupleContext(userId, couple_id ?? null, session?.user?.email ?? null);
         if (!active) return;
         setResolvedCoupleId(resolved.coupleId ?? null);
         setResolvedPlannerId(planner_id ?? resolved.plannerId ?? null);
@@ -427,7 +452,7 @@ export default function TimelineScreen() {
                 <Text style={styles.onlineText}>● 실시간 연동</Text>
               </View>
             </View>
-            <TouchableOpacity style={styles.chatBtn} onPress={() => router.push('/(couple)/chat/1')}>
+            <TouchableOpacity style={styles.chatBtn} onPress={() => router.push('/(couple)/chat')}>
               <Ionicons name="chatbubble-ellipses" size={18} color="#fff" />
               <Text style={styles.chatBtnText}>문의하기</Text>
             </TouchableOpacity>

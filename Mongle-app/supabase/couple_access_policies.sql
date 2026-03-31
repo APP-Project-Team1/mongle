@@ -34,6 +34,8 @@ using (
     from public.user_profiles up
     where up.id = auth.uid()
   )
+  or user_id = auth.uid()
+  or lower(coalesce(email, '')) = lower(coalesce(auth.jwt() ->> 'email', ''))
   or planner_id in (
     select up.planner_id
     from public.user_profiles up
@@ -47,6 +49,12 @@ on public.projects
 for select
 using (
   user_id = auth.uid()
+  or user_id in (
+    select c.user_id
+    from public.couples c
+    where c.user_id = auth.uid()
+       or lower(coalesce(c.email, '')) = lower(coalesce(auth.jwt() ->> 'email', ''))
+  )
   or user_id in (
     select c.user_id
     from public.couples c
@@ -65,6 +73,12 @@ using (
     select p.id
     from public.projects p
     where p.user_id = auth.uid()
+    or p.user_id in (
+      select c.user_id
+      from public.couples c
+      where c.user_id = auth.uid()
+         or lower(coalesce(c.email, '')) = lower(coalesce(auth.jwt() ->> 'email', ''))
+    )
     or p.user_id in (
       select c.user_id
       from public.couples c
@@ -88,6 +102,12 @@ using (
     or p.user_id in (
       select c.user_id
       from public.couples c
+      where c.user_id = auth.uid()
+         or lower(coalesce(c.email, '')) = lower(coalesce(auth.jwt() ->> 'email', ''))
+    )
+    or p.user_id in (
+      select c.user_id
+      from public.couples c
       join public.user_profiles up on up.planner_id = c.planner_id
       where up.id = auth.uid()
         and c.user_id is not null
@@ -104,6 +124,12 @@ using (
     select up.couple_id
     from public.user_profiles up
     where up.id = auth.uid()
+  )
+  or couple_id in (
+    select c.id
+    from public.couples c
+    where c.user_id = auth.uid()
+       or lower(coalesce(c.email, '')) = lower(coalesce(auth.jwt() ->> 'email', ''))
   )
   or planner_id in (
     select up.planner_id
@@ -122,6 +148,12 @@ with check (
     from public.user_profiles up
     where up.id = auth.uid()
   )
+  or couple_id in (
+    select c.id
+    from public.couples c
+    where c.user_id = auth.uid()
+       or lower(coalesce(c.email, '')) = lower(coalesce(auth.jwt() ->> 'email', ''))
+  )
 );
 
 drop policy if exists "couple_schedules update by linked couple" on public.couple_schedules;
@@ -134,6 +166,12 @@ using (
     from public.user_profiles up
     where up.id = auth.uid()
   )
+  or couple_id in (
+    select c.id
+    from public.couples c
+    where c.user_id = auth.uid()
+       or lower(coalesce(c.email, '')) = lower(coalesce(auth.jwt() ->> 'email', ''))
+  )
   or planner_id in (
     select up.planner_id
     from public.user_profiles up
@@ -145,6 +183,12 @@ with check (
     select up.couple_id
     from public.user_profiles up
     where up.id = auth.uid()
+  )
+  or couple_id in (
+    select c.id
+    from public.couples c
+    where c.user_id = auth.uid()
+       or lower(coalesce(c.email, '')) = lower(coalesce(auth.jwt() ->> 'email', ''))
   )
   or planner_id in (
     select up.planner_id
@@ -162,6 +206,12 @@ using (
     select up.couple_id
     from public.user_profiles up
     where up.id = auth.uid()
+  )
+  or couple_id in (
+    select c.id
+    from public.couples c
+    where c.user_id = auth.uid()
+       or lower(coalesce(c.email, '')) = lower(coalesce(auth.jwt() ->> 'email', ''))
   )
   or planner_id in (
     select up.planner_id

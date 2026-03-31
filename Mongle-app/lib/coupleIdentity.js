@@ -1,6 +1,6 @@
 import { supabase } from './supabase';
 
-export async function resolveCoupleContext(sessionUserId, profileCoupleId = null) {
+export async function resolveCoupleContext(sessionUserId, profileCoupleId = null, userEmail = null) {
   if (!sessionUserId) {
     return { coupleId: null, plannerId: null, couple: null };
   }
@@ -30,6 +30,24 @@ export async function resolveCoupleContext(sessionUserId, profileCoupleId = null
     .maybeSingle();
 
   if (error) throw error;
+
+  if (!data?.id && userEmail) {
+    const { data: emailData, error: emailError } = await supabase
+      .from('couples')
+      .select('id, planner_id, groom_name, bride_name, wedding_date, user_id, email')
+      .eq('email', userEmail)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (emailError) throw emailError;
+
+    return {
+      coupleId: emailData?.id ?? null,
+      plannerId: emailData?.planner_id ?? null,
+      couple: emailData ?? null,
+    };
+  }
 
   return {
     coupleId: data?.id ?? null,

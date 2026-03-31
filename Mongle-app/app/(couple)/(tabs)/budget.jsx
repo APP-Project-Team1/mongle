@@ -84,7 +84,7 @@ export default function BudgetHubScreen() {
     const load = async () => {
       if (!userId) return;
       try {
-        const resolved = await resolveCoupleContext(userId, couple_id ?? null);
+        const resolved = await resolveCoupleContext(userId, couple_id ?? null, session?.user?.email ?? null);
         if (!active) return;
         setEffectiveCoupleId(resolved.coupleId ?? couple_id ?? null);
         setResolvedCouple(resolved.couple ?? null);

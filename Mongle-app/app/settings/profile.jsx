@@ -23,6 +23,7 @@ export default function ProfileSettingsScreen() {
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [role, setRole] = useState(null);
 
   // 폼 상태
   const [name, setName] = useState('');
@@ -52,22 +53,31 @@ export default function ProfileSettingsScreen() {
     try {
       const { data, error } = await supabase
         .from('user_profiles')
-        .select('name, profile_image_url')
+        .select('name, profile_image_url, role')
         .eq('id', userId)
         .limit(1);
 
       if (error) throw error;
       if (data && data.length > 0) {
-        const { name: fetchedName, profile_image_url } = data[0];
+        const { name: fetchedName, profile_image_url, role: userRole } = data[0];
         setName(fetchedName || '');
         setImageUri(profile_image_url || null);
         setOriginalImage(profile_image_url || null);
+        setRole(userRole);
       }
     } catch (error) {
       console.error('프로필 로드 에러:', error);
       Alert.alert('오류', '프로필 정보를 불러오는데 실패했습니다.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleGoBack = () => {
+    if (role === 'planner') {
+      router.replace('/(planner)/mypage');
+    } else {
+      router.replace('/(couple)/(tabs)/mypage');
     }
   };
 
@@ -156,7 +166,7 @@ export default function ProfileSettingsScreen() {
       if (error) throw error;
 
       Alert.alert('완료', '프로필이 성공적으로 업데이트되었습니다.', [
-        { text: '확인', onPress: () => router.back() },
+        { text: '확인', onPress: handleGoBack },
       ]);
     } catch (e) {
       Alert.alert('저장 실패', e.message);
@@ -181,7 +191,7 @@ export default function ProfileSettingsScreen() {
 
       {/* 헤더 */}
       <View style={styles.header}>
-        <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
+        <TouchableOpacity style={styles.backBtn} onPress={handleGoBack}>
           <Ionicons name="chevron-back" size={24} color="#3a2e2a" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>프로필 설정</Text>
@@ -234,7 +244,7 @@ export default function ProfileSettingsScreen() {
           <TouchableOpacity
             style={styles.cancelBtn}
             activeOpacity={0.8}
-            onPress={() => router.back()}
+            onPress={handleGoBack}
             disabled={saving}
           >
             <Text style={styles.cancelBtnText}>취소</Text>

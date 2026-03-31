@@ -6,5 +6,7 @@ export const AuthContext = createContext({
   loading: true,
   registrationPending: false,
   setRegistrationPending: () => {},
+  planner_id: null,
+  couple_id: null,
 });
 export const useAuth = () => useContext(AuthContext);

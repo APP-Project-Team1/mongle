@@ -11,8 +11,6 @@ import { View, ActivityIndicator, StyleSheet } from 'react-native';
 import { AuthContext } from '../context/AuthContext';
 import { useNotifications } from '../context/NotificationContext';
 
-
-
 // QueryClient 인스턴스 생성
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -31,12 +29,15 @@ function AuthGate() {
   const [isReady, setIsReady] = useState(false);
   const [registrationPending, setRegistrationPending] = useState(false);
   const { setUserId } = useNotifications();
+  const [profile, setProfile] = useState(null);
 
   useEffect(() => {
     const initialize = async () => {
       try {
         // 1. 세션 가져오기
-        const { data: { session } } = await supabase.auth.getSession();
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
         setSession(session);
 
         if (session) {
@@ -44,9 +45,10 @@ function AuthGate() {
           const profile = await fetchUserRole(session.user.id);
           setRole(profile?.role || null);
           setUserId(session.user.id);
+          setProfile(profile);
         }
       } catch (e) {
-        console.error("초기화 에러:", e);
+        console.error('초기화 에러:', e);
       } finally {
         setIsReady(true);
       }
@@ -55,13 +57,17 @@ function AuthGate() {
     initialize();
 
     // 인증 상태 변경 감시
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setSession(session);
       if (session) {
         const profile = await fetchUserRole(session.user.id);
+        setProfile(profile);
         setRole(profile?.role || null);
         setUserId(session.user.id);
       } else {
+        setProfile(null);
         setRole(null);
         setUserId(null);
       }
@@ -114,7 +120,16 @@ function AuthGate() {
   }
 
   return (
-    <AuthContext.Provider value={{ session, role, registrationPending, setRegistrationPending }}>
+    <AuthContext.Provider
+      value={{
+        session,
+        role,
+        registrationPending,
+        setRegistrationPending,
+        planner_id: profile?.planner_id ?? null,
+        couple_id: profile?.couple_id ?? null,
+      }}
+    >
       <Slot />
     </AuthContext.Provider>
   );
@@ -138,6 +153,6 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF', // 앱 배경색과 맞추면 더 자연스럽습니다.
+    backgroundColor: '#FFFFFF',
   },
 });

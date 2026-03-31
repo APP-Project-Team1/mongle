@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -13,6 +13,8 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useNotifications } from '../../../context/NotificationContext';
+import { useAuth } from '../../../context/AuthContext';
 
 const { width } = Dimensions.get('window');
 
@@ -36,12 +38,13 @@ const mapVendor = (v) => ({
 });
 
 const mapPlanner = (p) => ({
-  id: p.name, // Using name as ID for planners
+  id: p.name,
   name: p.name,
   tag: p.specialties?.[0] || '동행',
   rating: 4.8,
   image: p.profile_image_url,
 });
+
 const CATEGORY_TABS = ['스튜디오', '드레스', '메이크업', '패키지'];
 const CATEGORY_IDS = ['studio', 'dress', 'makeup', 'package'];
 const SUB_TABS = ['웨딩홀', '영상·스냅', '웨딩플래너'];
@@ -53,7 +56,6 @@ const BANNER_DATA = [
   { id: '3', label: '드레스 할인전', image: require('../../../assets/images/banner_03.jpg') },
 ];
 
-// 카테고리 탭별 업체 데이터
 const CATEGORY_VENDOR_DATA = {
   0: studioData.slice(0, 6).map(mapVendor),
   1: dressData.slice(0, 6).map(mapVendor),
@@ -71,7 +73,7 @@ const SUB_VENDOR_DATA = {
 const CARD_WIDTH = width * 0.38;
 const MAX_VISIBLE = 5;
 
-// Persist tab state across re-mounts within the same session
+// 탭 상태 세션 유지
 let persistedCategoryTab = 0;
 let persistedSubTab = 0;
 let persistedSearchText = '';
@@ -82,6 +84,23 @@ export default function HomeScreen() {
   const [activeBanner, setActiveBanner] = useState(0);
   const [searchText, setSearchTextState] = useState(persistedSearchText);
   const bannerRef = useRef(null);
+
+  // ── 알림 연동 ─────────────────────────────────────────
+  const { unreadCount, setUserId } = useNotifications();
+  // couple_id를 AuthContext에서 가져옴
+  // AuthContext가 user_id / couple_id 등 다른 키를 쓸 경우 아래 변수명을 맞춰주세요
+  const auth = useAuth();
+  const coupleUserId = auth?.couple_id ?? auth?.user_id ?? null;
+
+  useEffect(() => {
+    // couple 유저의 ID를 Context에 등록 → notifications 테이블 fetch + 실시간 구독 시작
+    if (coupleUserId) {
+      setUserId(coupleUserId);
+    }
+    // 화면 언마운트 시 ID를 초기화하지 않음:
+    // 탭 이동 후 돌아와도 알림 상태가 유지되어야 하므로 의도적으로 cleanup 생략
+  }, [coupleUserId]);
+  // ──────────────────────────────────────────────────────
 
   const setActiveCategoryTab = (index) => {
     persistedCategoryTab = index;
@@ -103,11 +122,8 @@ export default function HomeScreen() {
     setActiveBanner(index);
   };
 
-  // 카테고리 탭 데이터
   const categoryVendors = (CATEGORY_VENDOR_DATA[activeCategoryTab] ?? []).slice(0, MAX_VISIBLE);
   const categoryHasMore = (CATEGORY_VENDOR_DATA[activeCategoryTab] ?? []).length > MAX_VISIBLE;
-
-  // 서브 탭 데이터
   const subVendors = (SUB_VENDOR_DATA[activeSubTab] ?? []).slice(0, MAX_VISIBLE);
   const subHasMore = (SUB_VENDOR_DATA[activeSubTab] ?? []).length > MAX_VISIBLE;
 
@@ -118,9 +134,15 @@ export default function HomeScreen() {
       {/* ── 헤더 ── */}
       <View style={styles.header}>
         <Text style={styles.logo}>Mongle</Text>
-        <TouchableOpacity style={styles.notifBtn} activeOpacity={0.7}>
+
+        {/* 알림 버튼 — unreadCount 기반 dot + 알림 화면 라우팅 */}
+        <TouchableOpacity
+          style={styles.notifBtn}
+          activeOpacity={0.7}
+          onPress={() => router.push('/(couple)/notifications')}
+        >
           <Ionicons name="notifications-outline" size={20} color="#3a2e2a" />
-          <View style={styles.notifDot} />
+          {unreadCount > 0 && <View style={styles.notifDot} />}
         </TouchableOpacity>
       </View>
 
@@ -156,8 +178,6 @@ export default function HomeScreen() {
               </View>
             ))}
           </ScrollView>
-
-          {/* 배너 인디케이터 */}
           <View style={styles.dotsWrap}>
             {BANNER_DATA.map((_, i) => (
               <View key={i} style={[styles.dot, i === activeBanner && styles.dotActive]} />
@@ -327,7 +347,7 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
     color: '#917878',
     letterSpacing: 1,
-    marginLeft: 40, // 중앙 정렬 보정
+    marginLeft: 40,
   },
   notifBtn: {
     width: 40,
@@ -474,7 +494,7 @@ const styles = StyleSheet.create({
   // 더보기 카드
   moreCard: {
     width: CARD_WIDTH * 0.6,
-    height: 120 + 10 + 19 + 5 + 15 + 10, // 이미지 + 패딩 + 이름 + gap + 메타 + 패딩
+    height: 120 + 10 + 19 + 5 + 15 + 10,
     backgroundColor: '#faf5f2',
     borderRadius: 14,
     borderWidth: 1.5,

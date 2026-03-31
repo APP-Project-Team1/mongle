@@ -15,7 +15,7 @@ import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import LottieView from 'lottie-react-native';
-import { signIn, signOut } from '../../lib/auth';
+import { getPostAuthRoute, signIn, signOut, waitForResolvedAuth } from '../../lib/auth';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
@@ -105,6 +105,12 @@ export default function LoginScreen() {
       // 로그인이 성공적으로 완료되면 전역 상태(_layout.jsx의 AuthGate)에서
       // session 변경을 감지하고 자동으로 role에 맞는 화면으로 전환함.
       // 직접 router.replace를 호출하면 Expo Router 컴포넌트 라우팅 충돌로 멈춤(Freeze) 발생
+      if (Platform.OS === 'ios') {
+        const { route } = await waitForResolvedAuth({ expectedRole: userRole });
+        setLoading(false);
+        router.replace(route || getPostAuthRoute(userRole));
+        return;
+      }
     } catch (e) {
       setLoading(false);
       showAlert('이메일 또는 비밀번호가 올바르지 않습니다.');

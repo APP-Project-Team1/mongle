@@ -16,7 +16,14 @@ import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { supabase } from '../../lib/supabase';
-import { signUpPlanner, signUpCouple, verifySignupOtp, checkEmailAvailable } from '../../lib/auth';
+import {
+  checkEmailAvailable,
+  getPostAuthRoute,
+  signUpCouple,
+  signUpPlanner,
+  verifySignupOtp,
+  waitForResolvedAuth,
+} from '../../lib/auth';
 import { useAuth } from '../../context/AuthContext';
 
 export default function RegisterScreen() {
@@ -157,6 +164,14 @@ export default function RegisterScreen() {
       // _layout.jsx의 AuthGate에서 자동으로 role에 맞게 라우팅(화면 이동)함.
       // 직접 router.replace를 호출하면 Expo Router 내비게이션 충돌로 멈춤(Freezing) 발생
       setRegistrationPending(false);
+
+      if (Platform.OS === 'ios') {
+        const expectedRole = isPlanner ? 'planner' : 'couple';
+        const { route } = await waitForResolvedAuth({ expectedRole });
+        setFinalLoading(false);
+        router.replace(route || getPostAuthRoute(expectedRole));
+        return;
+      }
 
       // 버튼을 '처리 중...' 상태로 둔 채 화면이 자동으로 넘어갈 때까지 대기
     } catch (e) {

@@ -29,7 +29,11 @@ export default function BudgetDashboard() {
       const userId = session?.user?.id;
       if (!userId) return;
       try {
-        const resolved = await resolveCoupleContext(userId, couple_id ?? null, session?.user?.email ?? null);
+        const resolved = await resolveCoupleContext(
+          userId,
+          couple_id ?? null,
+          session?.user?.email ?? null,
+        );
         if (active) setEffectiveCoupleId(resolved.coupleId ?? couple_id ?? null);
       } catch {
         if (active) setEffectiveCoupleId(couple_id ?? null);
@@ -162,7 +166,9 @@ export default function BudgetDashboard() {
           <TouchableOpacity
             key={item.id}
             style={styles.menuCard}
-            onPress={() => (item.action ? item.action() : item.route ? router.push(item.route) : null)}
+            onPress={() =>
+              item.action ? item.action() : item.route ? router.push(item.route) : null
+            }
             activeOpacity={0.7}
           >
             <View style={[styles.iconWrap, { backgroundColor: `${item.color}20` }]}>
@@ -175,13 +181,6 @@ export default function BudgetDashboard() {
             <Ionicons name="chevron-forward" size={20} color="#DDD" />
           </TouchableOpacity>
         ))}
-
-        <View style={styles.tipBox}>
-          <Ionicons name="bulb-outline" size={20} color="#c9a98e" />
-          <Text style={styles.tipText}>
-            이 화면은 Supabase `budgets`, `budget_items` 테이블을 직접 읽습니다.
-          </Text>
-        </View>
       </ScrollView>
     </SafeAreaView>
   );

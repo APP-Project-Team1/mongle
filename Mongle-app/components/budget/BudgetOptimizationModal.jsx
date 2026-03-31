@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   ScrollView,
   ActivityIndicator,
-  Animated,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { formatNumber, CATEGORY_MAP, CATEGORY_LABEL } from '../../lib/utils';
@@ -35,6 +34,7 @@ export default function BudgetOptimizationModal({
         const cat = CATEGORY_MAP[item.label] || item.label;
         initialPrios[cat] = 'mid';
       });
+      setLockedCategories([]);
       setPriorities(initialPrios);
       setStep('settings');
       setResult(null);
@@ -66,6 +66,7 @@ export default function BudgetOptimizationModal({
     });
 
     try {
+      setStep('results');
       await optimize({
         totalBudget: parseInt(totalBudget),
         selectedVendors,
@@ -230,9 +231,23 @@ export default function BudgetOptimizationModal({
             )}
           </ScrollView>
 
-          {step === 'settings' && !loading && (
-            <TouchableOpacity style={styles.mainBtn} onPress={handleOptimize}>
-              <Text style={styles.mainBtnText}>분석 시작하기</Text>
+          {step === 'settings' && (
+            <TouchableOpacity
+              style={[styles.mainBtn, loading && styles.mainBtnDisabled]}
+              onPress={handleOptimize}
+              disabled={loading}
+            >
+              {loading ? (
+                <View style={styles.mainBtnContent}>
+                  <ActivityIndicator size="small" color="#fff" />
+                  <Text style={styles.mainBtnText}>분석 로딩중...</Text>
+                </View>
+              ) : (
+                <View style={styles.mainBtnContent}>
+                  <Ionicons name="sparkles" size={18} color="#fff" />
+                  <Text style={styles.mainBtnText}>AI 예산 최적화하기</Text>
+                </View>
+              )}
             </TouchableOpacity>
           )}
 
@@ -534,6 +549,15 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 8,
     elevation: 5,
+  },
+  mainBtnDisabled: {
+    opacity: 0.85,
+  },
+  mainBtnContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
   },
   mainBtnText: {
     color: '#fff',

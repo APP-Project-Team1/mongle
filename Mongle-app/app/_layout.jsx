@@ -20,11 +20,11 @@ const queryClient = new QueryClient({
   },
 });
 
-async function resolveProfileWithFallback(sessionUserId) {
+async function resolveProfileWithFallback(sessionUserId, sessionEmail = null) {
   const profile = await fetchUserRole(sessionUserId);
   if (!profile || profile.role !== 'couple') return profile;
 
-  const coupleContext = await resolveCoupleContext(sessionUserId, profile.couple_id ?? null);
+  const coupleContext = await resolveCoupleContext(sessionUserId, profile.couple_id ?? null, sessionEmail);
   return {
     ...profile,
     couple_id: coupleContext.coupleId ?? profile.couple_id ?? null,
@@ -51,7 +51,7 @@ function AuthGate() {
         setSession(session);
 
         if (session) {
-          const resolvedProfile = await resolveProfileWithFallback(session.user.id);
+          const resolvedProfile = await resolveProfileWithFallback(session.user.id, session.user.email ?? null);
           setRole(resolvedProfile?.role || null);
           setUserId(session.user.id);
           setProfile(resolvedProfile);
@@ -71,7 +71,7 @@ function AuthGate() {
       setSession(session);
       try {
         if (session) {
-          const resolvedProfile = await resolveProfileWithFallback(session.user.id);
+          const resolvedProfile = await resolveProfileWithFallback(session.user.id, session.user.email ?? null);
           setProfile(resolvedProfile);
           setRole(resolvedProfile?.role || null);
           setUserId(session.user.id);

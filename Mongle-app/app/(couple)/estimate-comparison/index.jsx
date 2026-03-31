@@ -30,7 +30,7 @@ export default function EstimateComparisonScreen() {
       const userId = session?.user?.id;
       if (!userId) return;
       try {
-        const resolved = await resolveCoupleContext(userId, couple_id ?? null);
+        const resolved = await resolveCoupleContext(userId, couple_id ?? null, session?.user?.email ?? null);
         if (active) setEffectiveCoupleId(resolved.coupleId ?? couple_id ?? null);
       } catch {
         if (active) setEffectiveCoupleId(couple_id ?? null);

@@ -15,6 +15,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { supabase } from '../../lib/supabase';
+import { Image } from 'react-native';
 
 // ─────────────────────────────────────────────────────────────────
 //  MyPage — role: 'planner' | 'couple'
@@ -66,13 +67,15 @@ export default function MyPage() {
             // 1단계
             const { data: profileRow, error: profileError } = await supabase
                 .from('user_profiles')
-                .select('role, planner_id, couple_id')
+                .select('role, planner_id, couple_id, name, profile_image_url')
                 .eq('id', userId)
                 .single();
             if (profileError) throw profileError;
 
-            const { role, planner_id, couple_id } = profileRow;
+            const { role, planner_id, couple_id, name: userProfileName, profile_image_url: userProfileImage } = profileRow;
             setRole(role);
+
+            const baseProfile = { userProfileName, userProfileImage };
 
             // 2단계
             if (role === 'planner' && planner_id) {
@@ -84,7 +87,7 @@ export default function MyPage() {
                     .eq('id', planner_id)
                     .single();
                 if (error) throw error;
-                setProfile(data);
+                setProfile({ ...baseProfile, ...data });
             } else if (role === 'couple' && couple_id) {
                 const { data, error } = await supabase
                     .from('couples')
@@ -92,7 +95,9 @@ export default function MyPage() {
                     .eq('id', couple_id)
                     .single();
                 if (error) throw error;
-                setProfile(data);
+                setProfile({ ...baseProfile, ...data });
+            } else {
+                setProfile(baseProfile);
             }
         } catch (e) {
             console.error('프로필 로드 실패:', e.message);
@@ -116,15 +121,22 @@ export default function MyPage() {
         ]);
     };
 
-    // ── 4. 회원 탈퇴 ─────────────────────────────────────────────
     const handleDeleteAccount = async () => {
         if (confirmText !== '탈퇴합니다') {
             Alert.alert('확인 문구를 정확히 입력해주세요.');
             return;
         }
         try {
-            const { error } = await supabase.from('user_profiles').delete().eq('id', session.user.id);
-            if (error) throw error;
+            // 1. Supabase RPC 'delete_user' 호출 (auth.users 데이터 완전히 삭제)
+            const { error: rpcError } = await supabase.rpc('delete_user');
+
+            if (rpcError) {
+                // RPC가 없거나 에러가 난 경우 fallback으로 user_profiles만 삭제
+                console.warn('delete_user RPC failed or missing, falling back to manual profile delete:', rpcError);
+                const { error: profileError } = await supabase.from('user_profiles').delete().eq('id', session.user.id);
+                if (profileError) throw profileError;
+            }
+
             await supabase.auth.signOut();
             setDeleteModalVisible(false);
             Alert.alert('탈퇴 완료', '그동안 Mongle을 이용해주셔서 감사했습니다.', [
@@ -165,9 +177,16 @@ export default function MyPage() {
                 {/* ── 프로필 카드 (공통) ── */}
                 <View style={styles.profileCard}>
                     <View style={styles.avatarWrap}>
-                        <View style={styles.avatar}>
-                            <Ionicons name="person" size={36} color="#917878" />
-                        </View>
+                        {profile?.userProfileImage || profile?.profile_image_url ? (
+                            <Image
+                                source={{ uri: profile?.userProfileImage || profile?.profile_image_url }}
+                                style={{ width: 84, height: 84, borderRadius: 42 }}
+                            />
+                        ) : (
+                            <View style={styles.avatar}>
+                                <Ionicons name="person" size={36} color="#917878" />
+                            </View>
+                        )}
                     </View>
 
                     <View
@@ -188,7 +207,7 @@ export default function MyPage() {
                         </Text>
                     </View>
 
-                    <Text style={styles.profileName}>{profile?.name ?? '-'}</Text>
+                    <Text style={styles.profileName}>{profile?.userProfileName || profile?.name || '-'}</Text>
                     {isPlanner && profile?.brand_name ? (
                         <Text style={styles.profileBrand}>{profile.brand_name}</Text>
                     ) : null}
@@ -277,9 +296,9 @@ export default function MyPage() {
                             <Text style={styles.sectionTitle}>설정</Text>
                             <View style={styles.menuCard}>
                                 <MenuRow
-                                    icon="create-outline"
-                                    label="프로필 편집"
-                                    onPress={() => router.push('/(planner)/edit-profile')}
+                                    icon="person-circle-outline"
+                                    label="프로필 설정"
+                                    onPress={() => router.push('/settings/profile')}
                                 />
                                 <Divider />
                                 <MenuRow
@@ -334,7 +353,7 @@ export default function MyPage() {
                                     </>
                                 ) : (
                                     <>
-                                        <InfoRow icon="person-outline" label="이름" value={profile?.name ?? '-'} />
+                                        <InfoRow icon="person-outline" label="이름" value={profile?.userProfileName || profile?.name || '-'} />
                                         <Divider />
                                     </>
                                 )}

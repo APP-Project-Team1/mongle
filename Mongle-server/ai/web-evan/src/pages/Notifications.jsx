@@ -1,11 +1,24 @@
 import React, { useState } from 'react';
-import { IoCheckmarkDoneOutline, IoTrashOutline, IoDocumentTextOutline, IoNotificationsOutline, IoChevronForward } from 'react-icons/io5';
+import {
+  IoCheckmarkDoneOutline,
+  IoChevronForward,
+  IoDocumentTextOutline,
+  IoNotificationsOutline,
+  IoTrashOutline,
+} from 'react-icons/io5';
+import Seo from '../components/common/Seo';
 import { useNotifications } from '../context/NotificationsContext';
 import './Notifications.css';
 
 function iconForType(type) {
-  if (type === 'doc') return <IoDocumentTextOutline size={18} color="var(--stage-4-color)" />;
-  if (type === 'check') return <IoCheckmarkDoneOutline size={18} color="var(--text-muted)" />;
+  if (type === 'doc') {
+    return <IoDocumentTextOutline size={18} color="var(--stage-4-color)" />;
+  }
+
+  if (type === 'check') {
+    return <IoCheckmarkDoneOutline size={18} color="var(--text-muted)" />;
+  }
+
   return <IoNotificationsOutline size={18} color="var(--stage-2-color)" />;
 }
 
@@ -14,10 +27,15 @@ export default function Notifications() {
 
   return (
     <div className="page-container notif-page">
+      <Seo
+        title="알림 | 몽글 플래너 관리자"
+        description="읽지 않은 알림과 지난 알림을 구분해 확인하고 정리하세요."
+      />
+
       <div className="page-header flex-row justify-between items-center" style={{ marginBottom: 16 }}>
-        <h2 className="page-title">알림</h2>
+        <h1 className="page-title">알림</h1>
         {unreadCount > 0 && (
-          <button className="mark-all-btn" onClick={markAllRead}>
+          <button className="mark-all-btn" onClick={markAllRead} type="button">
             모두 읽음
           </button>
         )}
@@ -31,30 +49,39 @@ export default function Notifications() {
           </div>
         ) : (
           <div className="notif-list">
-            {notifications.some(n => !n.isRead) && (
-              <div className="notif-section">
-                <div className="notif-section-label">읽지 않은 알림</div>
-                {notifications.filter(n => !n.isRead).map(n => (
-                  <NotifItem
-                    key={n.id}
-                    item={{ ...n, icon: iconForType(n.iconType) }}
-                    onRead={() => markRead(n.id)}
-                    onDelete={() => deleteNotif(n.id)}
-                  />
-                ))}
-              </div>
+            {notifications.some((notification) => !notification.isRead) && (
+              <section className="notif-section" aria-labelledby="unread-notifications">
+                <h2 id="unread-notifications" className="notif-section-label">
+                  읽지 않은 알림
+                </h2>
+                {notifications
+                  .filter((notification) => !notification.isRead)
+                  .map((notification) => (
+                    <NotifItem
+                      key={notification.id}
+                      item={{ ...notification, icon: iconForType(notification.iconType) }}
+                      onRead={() => markRead(notification.id)}
+                      onDelete={() => deleteNotif(notification.id)}
+                    />
+                  ))}
+              </section>
             )}
-            {notifications.some(n => n.isRead) && (
-              <div className="notif-section">
-                <div className="notif-section-label">읽은 알림</div>
-                {notifications.filter(n => n.isRead).map(n => (
-                  <NotifItem
-                    key={n.id}
-                    item={{ ...n, icon: iconForType(n.iconType) }}
-                    onDelete={() => deleteNotif(n.id)}
-                  />
-                ))}
-              </div>
+
+            {notifications.some((notification) => notification.isRead) && (
+              <section className="notif-section" aria-labelledby="read-notifications">
+                <h2 id="read-notifications" className="notif-section-label">
+                  읽은 알림
+                </h2>
+                {notifications
+                  .filter((notification) => notification.isRead)
+                  .map((notification) => (
+                    <NotifItem
+                      key={notification.id}
+                      item={{ ...notification, icon: iconForType(notification.iconType) }}
+                      onDelete={() => deleteNotif(notification.id)}
+                    />
+                  ))}
+              </section>
             )}
           </div>
         )}
@@ -67,13 +94,22 @@ function NotifItem({ item, onRead, onDelete }) {
   const [selected, setSelected] = useState(false);
 
   const handleClick = () => {
-    if (onRead && !item.isRead) onRead();
-    setSelected(!selected);
+    if (onRead && !item.isRead) {
+      onRead();
+    }
+
+    setSelected((value) => !value);
   };
 
   return (
     <div className={`notif-item-wrapper ${selected ? 'expanded' : ''}`}>
-      <div className="notif-item" onClick={handleClick}>
+      <button
+        className="notif-item"
+        onClick={handleClick}
+        type="button"
+        aria-expanded={selected}
+        aria-label={`${item.title} 알림 ${item.isRead ? '읽음' : '읽지 않음'}`}
+      >
         <div className="notif-icon-wrap" style={{ backgroundColor: item.iconBg }}>
           {item.icon}
         </div>
@@ -86,11 +122,18 @@ function NotifItem({ item, onRead, onDelete }) {
           <span className="notif-time">{item.time}</span>
         </div>
         <IoChevronForward size={16} color="var(--text-light)" />
-      </div>
+      </button>
 
       {selected && (
         <div className="notif-actions">
-          <button className="delete-notif-btn" onClick={(e) => { e.stopPropagation(); onDelete(); }}>
+          <button
+            className="delete-notif-btn"
+            onClick={(event) => {
+              event.stopPropagation();
+              onDelete();
+            }}
+            type="button"
+          >
             <IoTrashOutline size={16} color="var(--accent-secondary)" />
             <span>알림 삭제</span>
           </button>

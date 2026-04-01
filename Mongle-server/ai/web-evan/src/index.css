@@ -5,8 +5,8 @@
   --bg-tertiary: #F5F0F0;
   
   --text-main: #3a2e2a;
-  --text-muted: #a08880;
-  --text-light: #c8bdb8;
+  --text-muted: #6f5b55;
+  --text-light: #8a7870;
   
   --border-color: #ede5de;
   --border-light: #f5f0eb;
@@ -17,7 +17,7 @@
   
   /* Feature specific colors */
   --badge-bg: #faebe9;
-  --badge-text: #ea806d;
+  --badge-text: #9e4f40;
   --kpi-border: #d29b8d;
   
   /* Avatar & Progress Colors (Light) */
@@ -47,8 +47,8 @@ body.dark {
   --bg-tertiary: #302a27;
   
   --text-main: #fcfbfa;
-  --text-muted: #c8bdb8;
-  --text-light: #a08880;
+  --text-muted: #d8cac4;
+  --text-light: #b6a49c;
   
   --border-color: #403834;
   --border-light: #362f2b;
@@ -58,7 +58,7 @@ body.dark {
   --accent-urgent: #f0a397;
   
   --badge-bg: #3d2a27;
-  --badge-text: #faa99d;
+  --badge-text: #ffc3b9;
   --kpi-border: #8b5e52;
   
   /* Avatar & Progress Colors (Dark - refined for contrast) */
@@ -93,6 +93,11 @@ body {
   transition: background-color var(--transition-speed) ease, color var(--transition-speed) ease;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+#root {
+  min-height: 100vh;
 }
 
 a {
@@ -105,6 +110,13 @@ button {
   background: none;
   cursor: pointer;
   font-family: inherit;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible {
+  outline: 3px solid rgba(139, 94, 82, 0.28);
+  outline-offset: 2px;
 }
 
 .scroll-hide::-webkit-scrollbar {

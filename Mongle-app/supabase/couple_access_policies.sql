@@ -17,6 +17,7 @@ alter table public.budget_items enable row level security;
 alter table public.couple_schedules enable row level security;
 alter table public.couple_payments enable row level security;
 alter table public.couple_vendor_costs enable row level security;
+alter table public.planner_vendors enable row level security;
 
 drop policy if exists "user_profiles self read" on public.user_profiles;
 create policy "user_profiles self read"
@@ -398,5 +399,71 @@ using (
     from public.couples c
     where c.user_id = auth.uid()
        or lower(coalesce(c.email, '')) = lower(coalesce(auth.jwt() ->> 'email', ''))
+  )
+);
+
+drop policy if exists "planner_vendors read by linked couple or planner" on public.planner_vendors;
+create policy "planner_vendors read by linked couple or planner"
+on public.planner_vendors
+for select
+using (
+  planner_id in (
+    select up.planner_id
+    from public.user_profiles up
+    where up.id = auth.uid()
+  )
+  or planner_id in (
+    select c.planner_id
+    from public.couples c
+    where c.id in (
+      select up.couple_id
+      from public.user_profiles up
+      where up.id = auth.uid()
+    )
+       or c.user_id = auth.uid()
+       or lower(coalesce(c.email, '')) = lower(coalesce(auth.jwt() ->> 'email', ''))
+  )
+);
+
+drop policy if exists "planner_vendors insert by planner" on public.planner_vendors;
+create policy "planner_vendors insert by planner"
+on public.planner_vendors
+for insert
+with check (
+  planner_id in (
+    select up.planner_id
+    from public.user_profiles up
+    where up.id = auth.uid()
+  )
+);
+
+drop policy if exists "planner_vendors update by planner" on public.planner_vendors;
+create policy "planner_vendors update by planner"
+on public.planner_vendors
+for update
+using (
+  planner_id in (
+    select up.planner_id
+    from public.user_profiles up
+    where up.id = auth.uid()
+  )
+)
+with check (
+  planner_id in (
+    select up.planner_id
+    from public.user_profiles up
+    where up.id = auth.uid()
+  )
+);
+
+drop policy if exists "planner_vendors delete by planner" on public.planner_vendors;
+create policy "planner_vendors delete by planner"
+on public.planner_vendors
+for delete
+using (
+  planner_id in (
+    select up.planner_id
+    from public.user_profiles up
+    where up.id = auth.uid()
   )
 );

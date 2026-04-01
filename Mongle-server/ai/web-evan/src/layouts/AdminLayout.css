@@ -45,7 +45,7 @@
 .planner-badge span {
   font-size: 11px;
   color: var(--text-muted);
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .sidebar-nav {
@@ -63,7 +63,7 @@
   border-radius: 12px;
   color: var(--text-muted);
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 600;
   transition: all var(--transition-speed) ease;
 }
 
@@ -75,7 +75,7 @@
 .nav-item.active {
   background-color: var(--badge-bg);
   color: var(--badge-text);
-  font-weight: 600;
+  font-weight: 700;
 }
 
 /* Main Content Area */
@@ -170,7 +170,7 @@
   border-radius: 12px;
   color: var(--text-muted);
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
   background: none;
   border: none;

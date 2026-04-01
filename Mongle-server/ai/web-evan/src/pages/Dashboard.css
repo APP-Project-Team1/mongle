@@ -15,7 +15,7 @@
 }
 .greeting-main {
   font-size: 24px;
-  font-weight: 500;
+  font-weight: 700;
   color: var(--text-main);
 }
 .greeting-name {
@@ -32,7 +32,7 @@
   padding: 6px 12px;
   color: var(--accent-urgent);
   font-size: 13px;
-  font-weight: 500;
+  font-weight: 700;
 }
 
 /* KPI Grid */

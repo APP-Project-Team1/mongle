@@ -1,19 +1,20 @@
 import React from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
-import { useTheme } from '../context/ThemeContext';
+import {
+  IoBriefcaseOutline,
+  IoCheckboxOutline,
+  IoGridOutline,
+  IoLogOutOutline,
+  IoMoonOutline,
+  IoNotificationsOutline,
+  IoPeopleOutline,
+  IoSunnyOutline,
+  IoWalletOutline,
+} from 'react-icons/io5';
+import Seo from '../components/common/Seo';
 import { useAuth } from '../context/AuthContext';
 import { useNotifications } from '../context/NotificationsContext';
-import { 
-  IoGridOutline, 
-  IoPeopleOutline, 
-  IoNotificationsOutline, 
-  IoCheckboxOutline, 
-  IoWalletOutline,
-  IoBriefcaseOutline,
-  IoMoonOutline,
-  IoSunnyOutline,
-  IoLogOutOutline,
-} from 'react-icons/io5';
+import { useTheme } from '../context/ThemeContext';
 import './AdminLayout.css';
 
 const NAV_ITEMS = [
@@ -37,8 +38,9 @@ export default function AdminLayout() {
 
   return (
     <div className="admin-container">
-      {/* Sidebar */}
-      <aside className="sidebar">
+      <Seo title="몽글 플래너 관리자" />
+
+      <aside className="sidebar" aria-label="관리자 사이드바">
         <div className="sidebar-header">
           <h1 className="logo">Mongle</h1>
           <div className="planner-badge">
@@ -47,14 +49,12 @@ export default function AdminLayout() {
           </div>
         </div>
 
-        <nav className="sidebar-nav">
+        <nav className="sidebar-nav" aria-label="주요 메뉴">
           {NAV_ITEMS.map((item) => (
             <NavLink
               key={item.path}
               to={item.path}
-              className={({ isActive }) => 
-                `nav-item ${isActive ? 'active' : ''}`
-              }
+              className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
               end={item.path === '/'}
             >
               {item.icon}
@@ -63,24 +63,40 @@ export default function AdminLayout() {
           ))}
         </nav>
 
-        <button className="sidebar-logout-btn" onClick={handleLogout} title="로그아웃">
+        <button
+          className="sidebar-logout-btn"
+          onClick={handleLogout}
+          aria-label="로그아웃"
+          type="button"
+        >
           <IoLogOutOutline size={18} />
           <span>로그아웃</span>
         </button>
       </aside>
 
-      {/* Main Content Area */}
       <div className="main-wrapper">
         <header className="topbar">
-          <div className="topbar-left">
-            {/* Breadcrumbs or title */}
-          </div>
+          <div className="topbar-left" />
           <div className="topbar-right">
-            <button className="icon-btn" onClick={toggleTheme} title="다크 모드 전환">
-              {isDarkMode ? <IoSunnyOutline size={20} color="var(--text-main)" /> : <IoMoonOutline size={20} color="var(--text-main)" />}
+            <button
+              className="icon-btn"
+              onClick={toggleTheme}
+              aria-label={isDarkMode ? '라이트 모드로 전환' : '다크 모드로 전환'}
+              type="button"
+            >
+              {isDarkMode ? (
+                <IoSunnyOutline size={20} color="var(--text-main)" />
+              ) : (
+                <IoMoonOutline size={20} color="var(--text-main)" />
+              )}
             </button>
-            
-            <button className="icon-btn" onClick={() => navigate('/notifications')} title="알림">
+
+            <button
+              className="icon-btn"
+              onClick={() => navigate('/notifications')}
+              aria-label={unreadCount > 0 ? `읽지 않은 알림 ${unreadCount}개` : '알림'}
+              type="button"
+            >
               <IoNotificationsOutline size={20} color="var(--text-main)" />
               {unreadCount > 0 && <span className="notif-dot" />}
             </button>

@@ -1,0 +1,349 @@
+.dashboard-page {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* Greeting */
+.greeting-block {
+  margin-bottom: 8px;
+}
+.greeting-date {
+  font-size: 13px;
+  color: var(--text-light);
+  margin-bottom: 6px;
+}
+.greeting-main {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text-main);
+}
+.greeting-name {
+  color: var(--accent-secondary);
+}
+.urgent-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 12px;
+  background-color: var(--badge-bg);
+  border: 1px solid var(--accent-urgent);
+  border-radius: 8px;
+  padding: 6px 12px;
+  color: var(--accent-urgent);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+/* KPI Grid */
+.kpi-grid {
+  display: flex;
+  gap: 16px;
+}
+.kpi-card {
+  flex: 1;
+  border-radius: 16px;
+  padding: 16px 20px;
+  border: 1px solid var(--kpi-border);
+}
+.kpi-value {
+  font-size: 28px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+.kpi-label {
+  font-size: 14px;
+  color: var(--text-muted);
+}
+.kpi-sub {
+  font-size: 12px;
+  color: var(--text-light);
+  margin-top: 4px;
+}
+
+/* Layout Grid */
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-top: 8px;
+}
+.dashboard-col {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* Common Section */
+.dash-section {
+  display: flex;
+  flex-direction: column;
+}
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+.section-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-main);
+}
+.section-more {
+  font-size: 13px;
+  color: var(--accent-secondary);
+  font-weight: 500;
+}
+.section-more:hover {
+  text-decoration: underline;
+}
+
+/* Common Card Box */
+.card-box {
+  background-color: var(--bg-secondary);
+  border-radius: 16px;
+  border: 1px solid var(--border-color);
+  padding: 0 16px;
+}
+
+/* Todos */
+.todo-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border-light);
+  cursor: pointer;
+}
+.todo-item.last {
+  border-bottom: none;
+}
+.checkbox {
+  width: 20px;
+  height: 20px;
+  border-radius: 6px;
+  border: 1.5px solid var(--checkbox-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+.checkbox.checked {
+  background-color: var(--checkbox-done-bg);
+  border-color: var(--checkbox-done-border);
+}
+.todo-content {
+  flex: 1;
+}
+.todo-text {
+  font-size: 14px;
+  color: var(--text-main);
+  transition: color 0.2s;
+}
+.todo-text.done {
+  color: var(--text-light);
+  text-decoration: line-through;
+}
+.todo-tag {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+.todo-tag.urgent {
+  color: var(--stage-2-color);
+  font-weight: 500;
+}
+.urgent-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--accent-urgent);
+}
+
+/* Couples */
+.couples-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.couple-card {
+  background-color: var(--bg-secondary);
+  border-radius: 16px;
+  border: 1px solid var(--border-color);
+  padding: 16px;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.couple-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+.couple-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 600;
+}
+.couple-info {
+  flex: 1;
+}
+.couple-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-main);
+}
+.couple-venue {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+.dday-badge {
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+}
+.progress-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 14px;
+}
+.progress-track {
+  flex: 1;
+  height: 6px;
+  background-color: var(--bg-tertiary);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+.progress-fill.default-bg {
+  background-color: var(--accent-primary);
+}
+.progress-pct {
+  font-size: 12px;
+  color: var(--text-muted);
+  min-width: 32px;
+  text-align: right;
+}
+
+/* Vendors */
+.vendor-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.vendor-cat-block {
+  background-color: var(--bg-secondary);
+  border-radius: 16px;
+  border: 1px solid var(--border-color);
+  padding: 12px 16px;
+}
+.vendor-cat-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+.vendor-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border-light);
+}
+.vendor-row.last {
+  border-bottom: none;
+}
+.vendor-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-main);
+}
+.vendor-status {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+/* Finance */
+.finance-kpi-row {
+  display: flex;
+  background-color: var(--bg-secondary);
+  border-radius: 16px;
+  border: 1px solid var(--border-color);
+  padding: 16px 0;
+  margin-bottom: 12px;
+}
+.finance-kpi {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+.finance-kpi-div {
+  width: 1px;
+  background-color: var(--border-light);
+}
+.finance-kpi-label {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.finance-kpi-val {
+  font-size: 16px;
+  font-weight: 600;
+}
+.finance-row {
+  display: flex;
+  flex-direction: column;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--border-light);
+}
+.finance-row.last {
+  border-bottom: none;
+}
+.finance-row-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.finance-cname {
+  font-size: 14px;
+  font-weight: 600;
+}
+.finance-unpaid {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--accent-secondary);
+}
+.finance-due {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 6px;
+}
+.vendor-cost-summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 12px;
+  background-color: var(--stage-2-bg);
+  border-radius: 12px;
+  color: var(--stage-2-color);
+  font-size: 13px;
+  font-weight: 500;
+}

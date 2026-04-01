@@ -1,0 +1,145 @@
+- generic [ref=e26]:
+  - complementary "관리자 사이드바" [ref=e27]:
+    - generic [ref=e28]:
+      - heading "Mongle" [level=1] [ref=e29]
+      - generic [ref=e30]:
+        - img [ref=e31]
+        - generic [ref=e34]: 수진 님
+    - navigation "주요 메뉴" [ref=e35]:
+      - link "대시보드" [ref=e36] [cursor=pointer]:
+        - /url: /
+        - img [ref=e37]
+        - generic [ref=e42]: 대시보드
+      - link "커플 목록" [ref=e43] [cursor=pointer]:
+        - /url: /couples
+        - img [ref=e44]
+        - generic [ref=e49]: 커플 목록
+      - link "오늘 할 일" [ref=e50] [cursor=pointer]:
+        - /url: /todos
+        - img [ref=e51]
+        - generic [ref=e54]: 오늘 할 일
+      - link "협력 업체" [ref=e55] [cursor=pointer]:
+        - /url: /vendors
+        - img [ref=e56]
+        - generic [ref=e59]: 협력 업체
+      - link "비용 현황" [ref=e60] [cursor=pointer]:
+        - /url: /budget
+        - img [ref=e61]
+        - generic [ref=e65]: 비용 현황
+    - button "로그아웃" [ref=e66] [cursor=pointer]:
+      - img [ref=e67]
+      - generic [ref=e69]: 로그아웃
+  - generic [ref=e70]:
+    - banner [ref=e71]:
+      - generic [ref=e72]:
+        - button "다크 모드로 전환" [ref=e73] [cursor=pointer]:
+          - img [ref=e74]
+        - button "읽지 않은 알림 2개" [ref=e76] [cursor=pointer]:
+          - img [ref=e77]
+    - main [ref=e80]:
+      - generic [ref=e81]:
+        - region "안녕하세요 수진 플래너님" [ref=e82]:
+          - paragraph [ref=e83]: 2026년 3월 26일 목요일
+          - heading "안녕하세요 수진 플래너님" [level=1] [ref=e84]
+          - button "오늘 마감 할 일 2건이 있어요" [ref=e85] [cursor=pointer]:
+            - img [ref=e86]
+            - generic [ref=e90]: 오늘 마감 할 일 2건이 있어요
+        - generic [ref=e91]:
+          - generic [ref=e92]:
+            - generic [ref=e93]: "12"
+            - generic [ref=e94]: 담당 커플
+            - generic [ref=e95]: 진행 8 · 완료 4
+          - generic [ref=e96]:
+            - generic [ref=e97]: "3"
+            - generic [ref=e98]: 이번 달 결혼식
+            - generic [ref=e99]: 4월 5 · 12 · 26일
+        - generic [ref=e100]:
+          - generic [ref=e101]:
+            - generic [ref=e102]:
+              - generic [ref=e103]:
+                - heading "오늘 할 일" [level=3] [ref=e104]
+                - button "전체 보기" [ref=e105] [cursor=pointer]
+              - generic [ref=e106]:
+                - generic [ref=e107] [cursor=pointer]:
+                  - img [ref=e109]
+                  - generic [ref=e111]:
+                    - paragraph [ref=e112]: 청첩장 시안 최종 확인
+                    - paragraph [ref=e113]: 박지수·이현우
+                - generic [ref=e116] [cursor=pointer]:
+                  - paragraph [ref=e117]: 드레스 피팅 일정 조율
+                  - paragraph [ref=e118]: 최민정·강태준 · 오늘 마감
+                - generic [ref=e122] [cursor=pointer]:
+                  - paragraph [ref=e123]: 스튜디오 계약서 검토
+                  - paragraph [ref=e124]: 윤서연·오민석 · 오늘 마감
+            - generic [ref=e126]:
+              - generic [ref=e127]:
+                - heading "임박한 커플" [level=3] [ref=e128]
+                - button "전체 보기" [ref=e129] [cursor=pointer]
+              - generic [ref=e130]:
+                - generic [ref=e131] [cursor=pointer]:
+                  - generic [ref=e132]:
+                    - generic [ref=e133]: 박이
+                    - generic [ref=e134]:
+                      - generic [ref=e135]: 박지수 · 이현우
+                      - generic [ref=e136]: 4월 5일 · 더채플 청담
+                    - generic [ref=e137]: D-11
+                  - generic [ref=e142]: 92%
+                - generic [ref=e143] [cursor=pointer]:
+                  - generic [ref=e144]:
+                    - generic [ref=e145]: 최강
+                    - generic [ref=e146]:
+                      - generic [ref=e147]: 최민정 · 강태준
+                      - generic [ref=e148]: 4월 12일 · 롯데호텔 잠실
+                    - generic [ref=e149]: D-18
+                  - generic [ref=e154]: 78%
+          - generic [ref=e155]:
+            - generic [ref=e156]:
+              - generic [ref=e157]:
+                - heading "협력 업체 현황" [level=3] [ref=e158]
+                - button "전체 보기" [ref=e159] [cursor=pointer]
+              - generic [ref=e160]:
+                - generic [ref=e161]:
+                  - generic [ref=e162]: 스튜디오
+                  - generic [ref=e163]:
+                    - generic [ref=e164]: 일다스튜디오
+                    - generic [ref=e165]: 계약 완료
+                - generic [ref=e166]:
+                  - generic [ref=e167]: 드레스
+                  - generic [ref=e168]:
+                    - generic [ref=e169]: 르블랑 웨딩
+                    - generic [ref=e170]: 피팅 조율
+                - generic [ref=e171]:
+                  - generic [ref=e172]: 웨딩홀
+                  - generic [ref=e173]:
+                    - generic [ref=e174]: 더채플 청담
+                    - generic [ref=e175]: 잔금 미납
+            - generic [ref=e176]:
+              - generic [ref=e177]:
+                - heading "비용 현황" [level=3] [ref=e178]
+                - button "상세 보기" [ref=e179] [cursor=pointer]
+              - generic [ref=e180]:
+                - generic [ref=e181]:
+                  - generic [ref=e182]: 수금 총액
+                  - generic [ref=e183]: 8,750만원
+                - generic [ref=e185]:
+                  - generic [ref=e186]: 미수금
+                  - generic [ref=e187]: 2,750만원
+                - generic [ref=e189]:
+                  - generic [ref=e190]: 미지급 업체
+                  - generic [ref=e191]: 4건
+              - generic [ref=e192]:
+                - generic [ref=e193]:
+                  - generic [ref=e194]:
+                    - generic [ref=e195]: 박지수 · 이현우
+                    - generic [ref=e196]: "-650만원"
+                  - generic [ref=e201]: 83%
+                  - generic [ref=e202]: 4월 1일까지
+                - generic [ref=e203]:
+                  - generic [ref=e204]:
+                    - generic [ref=e205]: 최민정 · 강태준
+                    - generic [ref=e206]: "-2,100만원"
+                  - generic [ref=e211]: 50%
+                  - generic [ref=e212]: 4월 8일까지
+              - generic [ref=e213]:
+                - img [ref=e214]
+                - generic [ref=e218]: 미지급 업체 4건 · 총 3,200만원

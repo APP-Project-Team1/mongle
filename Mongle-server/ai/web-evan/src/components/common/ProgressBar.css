@@ -1,0 +1,23 @@
+.progress-wrap-common {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
+
+.progress-track-common {
+  flex: 1;
+  overflow: hidden;
+}
+
+.progress-fill-common {
+  transition: width 0.3s ease;
+}
+
+.progress-pct-common {
+  font-size: 13px;
+  color: var(--text-muted);
+  font-weight: 500;
+  min-width: 32px;
+  text-align: right;
+}
